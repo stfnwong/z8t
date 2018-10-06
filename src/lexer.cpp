@@ -20,6 +20,7 @@ Lexer::Lexer()
     this->token_buf_size = 256;
     this->init_mem();
     this->init_instr_table();
+    this->init_reg_table();
 }
 
 Lexer::~Lexer()
@@ -58,8 +59,13 @@ bool Lexer::exhausted(void)
     return (this->cur_char == '\0') ? true : false;
 }
 
+/*
+ * advance()
+ */
 void Lexer::advance(void)
 {
+    if(this->exhausted())
+        return;
     this->cur_pos++;
     this->cur_char = this->source[this->cur_pos];    
     if(this->cur_char == '\n')
@@ -87,7 +93,9 @@ bool Lexer::is_comment(void)
  */
 void Lexer::skip_whitespace(void)
 {
-    while(this->cur_char == ' ')
+    while(this->cur_char == ' ' || 
+          this->cur_char == '\n' || 
+          this->cur_char == '\t')
         this->advance();
 }
 
@@ -118,7 +126,7 @@ void Lexer::scan_token(void)
             break;
         if(this->cur_char == ',')
             break;
-        this->token_buf[idx] = this->cur_char;
+        this->token_buf[idx] = toupper(this->cur_char);
         this->advance();
         idx++;
     }
@@ -135,7 +143,9 @@ void Lexer::scan_token(void)
     }
 }
 
-// Line parsing 
+/*
+ * next_token()
+ */
 void Lexer::next_token(void)
 {
     Opcode op;
@@ -183,6 +193,34 @@ TOKEN_END:
 }
 
 /*
+ * parse_two_arg()
+ */
+void Lexer::parse_two_arg(void)
+{
+    // First arg must be register 
+    this->next_token();
+    if(this->cur_token.type != SYM_REG)
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "First argument must be register";
+        return;
+    }
+
+    this->line_info.arg1 = this->cur_token;
+    // second arg could be reg or literal/immediate 
+    this->next_token();
+    if(this->cur_token.type == SYM_REG || 
+       this->cur_token.type == SYM_LITERAL)
+        this->line_info.arg2 = this->cur_token;
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "Second argument must be register or literal";
+        return;
+    }
+}
+
+/*
  * parse_line()
  */
 void Lexer::parse_line(void)
@@ -210,19 +248,27 @@ void Lexer::parse_line(void)
 
     if(this->cur_token.type == SYM_INSTR)
     {
+        if(this->verbose)
+        {
+            std::cout << "[" << __FUNCTION__ << "] processing INSTR symbol" << std::endl;
+        }
+
         this->instr_table.get(this->cur_token.val, op);
         switch(op.code)
         {
             case INSTR_ADD:
                 std::cout << "[" << __FUNCTION__ << "] got ADD" << std::endl;
+                this->parse_two_arg();
                 break;
 
             case INSTR_AND: 
                 std::cout << "[" << __FUNCTION__ << "] got AND" << std::endl;
+                this->parse_two_arg();
                 break;
 
             case INSTR_LD: 
                 std::cout << "[" << __FUNCTION__ << "] got LD" << std::endl;
+                this->parse_two_arg();
                 break;
 
             default:
@@ -275,10 +321,20 @@ void Lexer::lex(void)
         this->source_info.add(this->line_info);
     }
 
+    if(this->verbose)
+    {
+        std::cout << "[" << __FUNCTION__ << "] parsed " 
+            << this->source_info.getNumLines() << " lines of source"
+            << std::endl;
+    }
+
+
     // Resolve symbols 
 }
 
-
+/*
+ * read()
+ */
 int Lexer::read(const std::string& filename)
 {
     std::ifstream infile;

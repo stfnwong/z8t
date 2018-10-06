@@ -116,6 +116,8 @@ class LineInfo
         std::string label;
         std::string errstr;
         Opcode      opcode;
+        Token       arg1;
+        Token       arg2;
         uint16_t    line_num;
         uint16_t    addr;
         bool        is_label;

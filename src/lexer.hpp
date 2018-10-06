@@ -14,7 +14,7 @@
 
 // Register names 
 typedef enum {
-    REG_A, REG_B, REG_C, REG_D, REG_E, REG_H, REG_IXH, REG_IXL, REG_IYH, REG_IYL
+    REG_A, REG_B, REG_C, REG_D, REG_E, REG_H, REG_L, REG_IXH, REG_IXL, REG_IYH, REG_IYL, REG_HL, REG_BC
 } Z80_REG;
 
 // Instructions 
@@ -41,7 +41,10 @@ static Opcode z80_reg_names[] = {
     {REG_C, "C"},
     {REG_D, "D"},
     {REG_E, "E"},
-    {REG_H, "H"}
+    {REG_H, "H"},
+    {REG_L, "L"},
+    {REG_HL, "HL"},
+    {REG_BC, "BC"}
 };
 
 /*
@@ -89,6 +92,9 @@ class Lexer
         void skip_seperators(void);
         void scan_token(void);
         void next_token(void);
+        void parse_two_arg(void);
+
+
         void parse_line(void);
 
     private:

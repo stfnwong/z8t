@@ -199,7 +199,11 @@ SourceInfo::SourceInfo() {}
 
 SourceInfo::~SourceInfo() {} 
 
-SourceInfo::SourceInfo(const SourceInfo& that) {}  
+SourceInfo::SourceInfo(const SourceInfo& that)
+{
+    for(unsigned int idx = 0; idx < that.info.size(); ++idx)
+        this->info.push_back(that.info[idx]);
+}
 
 void SourceInfo::add(const LineInfo& l)
 {
