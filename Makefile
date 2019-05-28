@@ -15,7 +15,8 @@ CXX=g++
 OPT=-O0
 CXXFLAGS=-Wall -g2 -std=c++14 -D_REENTRANT $(OPT)
 TESTFLAGS=-lgtest -lgtest_main
-LDFLAGS =$(shell root-config --ldflags)
+#LDFLAGS =$(shell root-config --ldflags)
+LDFLAGS=
 LIBS = 
 TEST_LIBS = -lgtest -lgtest_main
 
