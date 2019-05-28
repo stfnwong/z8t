@@ -6,7 +6,7 @@
 
 #include "source.hpp"
 #include <iomanip>
-
+#include <iostream>
 
 /*
  * SymbolTable
@@ -230,3 +230,7 @@ unsigned int SourceInfo::getNumLines(void) const
     return this->info.size();
 }
 
+void SourceInfo::toFile(const std::string& filename) const
+{
+    std::cout << "[" << __FUNCTION__ << "] : TODO:" << std::endl;
+}

@@ -146,6 +146,7 @@ class SourceInfo
         void add(const LineInfo& l);
         LineInfo get(const unsigned int idx) const;
         unsigned int getNumLines(void) const;
+        void toFile(const std::string& filename) const;
 };
 
 
