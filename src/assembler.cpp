@@ -16,7 +16,6 @@ Assembler::Assembler()
     this->program = Program();
 }
 
-Assembler::~Assembler() {}
 
 void Assembler::assemble(void)
 {

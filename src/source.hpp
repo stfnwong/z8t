@@ -16,6 +16,7 @@
  * TokenType
  */
 typedef enum {
+    SYM_NULL,
     SYM_EOF,
     SYM_INSTR,
     SYM_LITERAL,
@@ -34,11 +35,18 @@ const std::vector <std::string> token_type_str = {
 /*
  * Token
  */
-typedef struct 
+struct Token
 {
     std::string val;
     TokenType   type;
-} Token;
+
+    public:
+        Token();
+        Token(const std::string& val, const TokenType& type);
+
+        bool operator==(const Token& that) const;
+        bool operator!=(const Token& that) const;
+};
 
 /* 
  * Opcode 
@@ -59,7 +67,6 @@ class InstrTable
         
     public:
         InstrTable();
-        ~InstrTable();
         InstrTable(const InstrTable& that) = delete;    // TODO; copy ctor later
         void init(void);
         void add(const Opcode& o);
@@ -76,10 +83,17 @@ class InstrTable
 /* 
  * Symbol
  */
-typedef struct {
+struct Symbol{
     uint16_t    addr;
     std::string label;
-} Symbol;
+
+    public:
+        Symbol();
+        Symbol(const uint16_t addr, const std::string& label);
+
+        bool operator==(const Symbol& that) const;
+        bool operator!=(const Symbol& that) const;
+};
 
 /*
  * SymbolTable 
