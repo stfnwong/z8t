@@ -11,17 +11,24 @@
 #include <vector>
 #include "Source.hpp"
 
-typedef struct
+
+/* 
+ * Instr
+ * Instruction object
+ */
+struct Instr
 {
     uint16_t adr;
     uint16_t ins;
-} Instr;
 
-/* 
- * initInstr()
- * Initialize the instruction object i
- */
-void initInstr(Instr& i);
+    public:
+        Instr();
+        Instr(uint16_t adr, uint16_t ins);
+
+        bool operator==(const Instr& that) const;
+        bool operator!=(const Instr& that) const;
+};
+
 
 /* 
  * Program

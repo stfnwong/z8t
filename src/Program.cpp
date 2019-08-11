@@ -9,11 +9,39 @@
 #include <iostream>
 #include "Program.hpp"
 
-void initInstr(Instr& i)
+
+/* 
+ * Instr
+ * Instruction object
+ */
+Instr::Instr()
 {
-    i.adr = 0;
-    i.ins = 0;
+    this->adr = 0;
+    this->ins = 0;
 }
+
+Instr::Instr(uint16_t adr, uint16_t ins) 
+{
+    this->adr = adr;
+    this->ins = ins;
+}
+
+bool Instr::operator==(const Instr& that) const
+{
+    if(this->adr != that.adr)
+        return false;
+    if(this->ins != that.ins)
+        return false;
+
+    return true;
+}
+
+bool Instr::operator!=(const Instr& that) const
+{
+    return !(*this == that);
+}
+
+
 
 Program::Program() {} 
 
@@ -55,9 +83,7 @@ Instr Program::get(const unsigned int idx) const
     if(idx >= 0 && idx < this->instructions.size())
         return this->instructions[idx];
 
-    Instr i;
-    initInstr(i);
-    return i;
+    return Instr();
 }
 
 /*

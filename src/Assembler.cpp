@@ -19,7 +19,7 @@ Assembler::Assembler()
 
 void Assembler::assemble(void)
 {
-    LineInfo cur_line;
+    TextLine cur_line;
 
     this->program.initProgram();
     if(this->source.getNumLines() == 0)

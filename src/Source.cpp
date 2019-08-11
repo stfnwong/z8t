@@ -19,7 +19,7 @@ Token::Token()
 
 Token::Token(const std::string& val, const TokenType& t)
 {
-    this->val = val;
+    this->val  = val;
     this->type = t;
 }
 
@@ -34,11 +34,33 @@ bool Token::operator==(const Token& that) const
 
 bool Token::operator!=(const Token& that) const
 {
-    if(this->val == that.val)
+    return !(*this == that);
+}
+
+/*
+ * Opcode
+ */
+Opcode::Opcode() : code(0), mnemonic("\0") {}
+
+Opcode::Opcode(uint16_t code, const std::string& mnemonic)
+{
+    this->code = code;
+    this->mnemonic = mnemonic;
+}
+
+bool Opcode::operator==(const Opcode& that) const
+{
+    if(this->code != that.code)
         return false;
-    if(this->type == that.type)
+    if(this->mnemonic != that.mnemonic)
         return false;
+    
     return true;
+}
+
+bool Opcode::operator!=(const Opcode& that) const
+{
+    return !(*this == that);
 }
 
 
@@ -47,13 +69,13 @@ bool Token::operator!=(const Token& that) const
  */
 Symbol::Symbol()
 {
-    this->addr = 0;
+    this->addr  = 0;
     this->label = "\0";
 }
 
 Symbol::Symbol(const uint16_t addr, const std::string& label)
 {
-    this->addr = addr;
+    this->addr  = addr;
     this->label = label;
 }
 
@@ -68,11 +90,7 @@ bool Symbol::operator==(const Symbol& that) const
 
 bool Symbol::operator!=(const Symbol& that) const
 {
-    if(this->addr == that.addr)
-        return false;
-    if(this->label == that.label)
-        return false;
-    return true;
+    return !(*this == that);
 }
 
 /*
@@ -158,35 +176,37 @@ std::string InstrTable::getMnemonic(const uint16_t code) const
 
 
 /*
- * LineInfo
+ * TextLine
  */
-LineInfo::LineInfo()
+TextLine::TextLine()
 {
     this->init();
 }
 
-
-LineInfo::LineInfo(const LineInfo& that)
+TextLine::TextLine(const TextLine& that)
 {
+    this->opcode   = that.opcode;
+    this->label    = that.label;
+    this->symbol   = that.symbol;
     this->line_num = that.line_num;
     this->addr     = that.addr;
 }
 
-void LineInfo::init(void)
+void TextLine::init(void)
 {
     // Init opcode 
     this->opcode.code = 0;
     this->opcode.mnemonic = "\0";
     // Init others 
-    this->label = "\0";
-    this->symbol = "\0";
+    this->label    = "\0";
+    this->symbol   = "\0";
     this->line_num = 0;
-    this->addr = 0;
+    this->addr     = 0;
 
     this->is_label = false;
 }
 
-std::string LineInfo::toString(void)
+std::string TextLine::toString(void)
 {
     std::ostringstream oss;
 
@@ -196,18 +216,6 @@ std::string LineInfo::toString(void)
 
     oss << std::left << std::setw(6) << std::setfill(' ') << this->line_num;
     oss << "[";
-    //if(this->is_label)
-    //    oss << "l";
-    //else
-    //    oss << ".";
-    //if(this->is_directive)
-    //    oss << "d";
-    //else
-    //    oss << ".";
-    //if(this->is_imm)
-    //    oss << "i";
-    //else
-    //    oss << ".";
     oss << "] ";
     oss << std::right << "0x" << std::hex << std::setw(4) << std::setfill('0') << this->addr << " ";
     oss << std::left << std::setw(12) << std::setfill(' ') << this->opcode.mnemonic;
@@ -216,28 +224,6 @@ std::string LineInfo::toString(void)
     oss << "...";
     // Registers
     oss << "  ";
-    //if(l.reg_flags & LEX_IREG)
-    //    oss << "  I"; 
-    //else if(l.reg_flags & LEX_BREG)
-    //    oss << "  B";
-    //else if(l.reg_flags & LEX_FREG)
-    //    oss << "  F";
-    //else if(l.reg_flags & LEX_KREG)
-    //    oss << "  K";
-    //else if(l.reg_flags & LEX_DTREG)
-    //    oss << " DT";
-    //else if(l.reg_flags & LEX_STREG)
-    //    oss << " ST";
-    //else if(l.reg_flags & LEX_IST)
-    //    oss << " [I]";
-    //else
-    //    oss << " V" << std::right << std::hex << std::setw(1) << l.vx;
-    //if(l.reg_flags & LEX_ILD)
-    //    oss << " [I]";
-    //else
-    //    oss << "  V" << std::right << std::hex << std::setw(1) << l.vy;
-    //oss << " 0x" << std::right << std::hex << std::setw(2) << std::setfill('0') << l.kk;
-    //oss << " 0x" << std::right << std::hex << std::setw(3) << std::setfill('0') << l.nnn;
 
     // (Next line) Text 
     oss << std::endl;
@@ -256,15 +242,14 @@ std::string LineInfo::toString(void)
 
 SourceInfo::SourceInfo() {} 
 
-SourceInfo::~SourceInfo() {} 
 
-SourceInfo::SourceInfo(const SourceInfo& that)
-{
-    for(unsigned int idx = 0; idx < that.info.size(); ++idx)
-        this->info.push_back(that.info[idx]);
-}
+//SourceInfo::SourceInfo(const SourceInfo& that)
+//{
+//    for(unsigned int idx = 0; idx < that.info.size(); ++idx)
+//        this->info.push_back(that.info[idx]);
+//}
 
-void SourceInfo::add(const LineInfo& l)
+void SourceInfo::add(const TextLine& l)
 {
     this->info.push_back(l);
 }
@@ -272,12 +257,12 @@ void SourceInfo::add(const LineInfo& l)
 /*
  * get()
  */
-LineInfo SourceInfo::get(const unsigned int idx) const
+TextLine SourceInfo::get(const unsigned int idx) const
 {
     if(idx >= 0 && idx < this->info.size())
         return this->info[idx];
     
-    LineInfo l;
+    TextLine l;
     return l;
 }
 

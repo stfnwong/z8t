@@ -53,17 +53,25 @@ struct Token
  * Holds the mnemonic string and opcode value of 
  * an assembly opcode 
  */
-typedef struct 
+struct Opcode
 {
+    uint16_t    code;
+    std::string mnemonic;
+
     public:
-        uint16_t    code;
-        std::string mnemonic;
-} Opcode;
+        Opcode();
+        Opcode(uint16_t opcode, const std::string& mnemonic);
+
+        bool operator==(const Opcode& that) const;
+        bool operator!=(const Opcode& that) const;
+};
+
 
 class InstrTable
 {
     private:
         std::vector<Opcode> instrs;
+        Opcode null_opcode;
         
     public:
         InstrTable();
@@ -85,6 +93,7 @@ class InstrTable
  * Symbol
  */
 struct Symbol{
+
     uint16_t    addr;
     std::string label;
 
@@ -103,6 +112,7 @@ class SymbolTable
 {
     private:
         std::vector<Symbol> syms;
+        Symbol null_symbol;
 
     private:
         SymbolTable(const SymbolTable& that) = delete;
@@ -122,9 +132,12 @@ class SymbolTable
 
 
 /*
- * LineInfo
+ * TextLine
+ * Class representing a line from the source file that will go in the text segment.
+ * NOTE TO SELF: be careful to not mix roles related to text parsing with roles 
+ * related to binary formats (and especially for SMIPS).
  */
-class LineInfo
+class TextLine
 {
     public:
         // avoid having a large number of setters and getters 
@@ -140,26 +153,27 @@ class LineInfo
         bool        error;
 
     public:
-        LineInfo();
-        LineInfo(const LineInfo& that);
+        TextLine();
+        TextLine(const TextLine& that);
 
         void init(void);
         std::string toString(void);
 };
 
 
+// TODO ; in keeping with the text/data segment distinction, this should be at some point
+// renamed into something that indicates that its a collection of TextLine objects
 class SourceInfo
 {
     private: 
-        std::vector<LineInfo> info;
+        std::vector<TextLine> info;
 
     public:
         SourceInfo();
-        ~SourceInfo();
-        SourceInfo(const SourceInfo& that);
+        //SourceInfo(const SourceInfo& that);
 
-        void add(const LineInfo& l);
-        LineInfo get(const unsigned int idx) const;
+        void add(const TextLine& l);
+        TextLine get(const unsigned int idx) const;
         unsigned int getNumLines(void) const;
         void toFile(const std::string& filename) const;
 };

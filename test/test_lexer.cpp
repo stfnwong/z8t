@@ -41,7 +41,7 @@ TEST_F(TestLexer, test_inc_asm)
     std::cout << "Dumping source info...." << std::endl << std::endl;
     for(unsigned int line = 0; line < lex_source.getNumLines(); ++line)
     {
-        LineInfo line_info = lex_source.get(line);
+        TextLine line_info = lex_source.get(line);
         std::cout << line_info.toString() << std::endl;
     }
     
