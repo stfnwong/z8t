@@ -24,9 +24,6 @@ class Assembler
 
     public:
         Assembler();
-        ~Assembler();
-        Assembler(const Assembler& that) = delete;
-
 
         void assemble(void);
 

@@ -16,6 +16,7 @@
  * TokenType
  */
 typedef enum {
+    SYM_NULL,
     SYM_EOF,
     SYM_INSTR,
     SYM_LITERAL,
@@ -34,11 +35,18 @@ const std::vector <std::string> token_type_str = {
 /*
  * Token
  */
-typedef struct 
+struct Token
 {
     std::string val;
     TokenType   type;
-} Token;
+
+    public:
+        Token();
+        Token(const std::string& val, const TokenType& type);
+
+        bool operator==(const Token& that) const;
+        bool operator!=(const Token& that) const;
+};
 
 /* 
  * Opcode 
@@ -59,8 +67,8 @@ class InstrTable
         
     public:
         InstrTable();
-        ~InstrTable();
         InstrTable(const InstrTable& that) = delete;    // TODO; copy ctor later
+
         void init(void);
         void add(const Opcode& o);
         void get(const std::string& mnemonic, Opcode& o) const;
@@ -76,10 +84,17 @@ class InstrTable
 /* 
  * Symbol
  */
-typedef struct {
+struct Symbol{
     uint16_t    addr;
     std::string label;
-} Symbol;
+
+    public:
+        Symbol();
+        Symbol(const uint16_t addr, const std::string& label);
+
+        bool operator==(const Symbol& that) const;
+        bool operator!=(const Symbol& that) const;
+};
 
 /*
  * SymbolTable 
@@ -89,10 +104,11 @@ class SymbolTable
     private:
         std::vector<Symbol> syms;
 
+    private:
+        SymbolTable(const SymbolTable& that) = delete;
+
     public:
         SymbolTable();
-        ~SymbolTable();
-        SymbolTable(const SymbolTable& that);
 
         void         add(const Symbol& s);
         void         update(const unsigned int idx, const Symbol& s);
@@ -125,7 +141,6 @@ class LineInfo
 
     public:
         LineInfo();
-        ~LineInfo();
         LineInfo(const LineInfo& that);
 
         void init(void);

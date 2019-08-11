@@ -9,15 +9,76 @@
 #include "Source.hpp"
 
 /*
+ * Token
+ */
+Token::Token()
+{
+    this->val = "\0";
+    this->type = SYM_NULL;
+}
+
+Token::Token(const std::string& val, const TokenType& t)
+{
+    this->val = val;
+    this->type = t;
+}
+
+bool Token::operator==(const Token& that) const
+{
+    if(this->val != that.val)
+        return false;
+    if(this->type != that.type)
+        return false;
+    return true;
+}
+
+bool Token::operator!=(const Token& that) const
+{
+    if(this->val == that.val)
+        return false;
+    if(this->type == that.type)
+        return false;
+    return true;
+}
+
+
+/* 
+ * Symbol
+ */
+Symbol::Symbol()
+{
+    this->addr = 0;
+    this->label = "\0";
+}
+
+Symbol::Symbol(const uint16_t addr, const std::string& label)
+{
+    this->addr = addr;
+    this->label = label;
+}
+
+bool Symbol::operator==(const Symbol& that) const
+{
+    if(this->addr != that.addr)
+        return false;
+    if(this->label != that.label)
+        return false;
+    return true;
+}
+
+bool Symbol::operator!=(const Symbol& that) const
+{
+    if(this->addr == that.addr)
+        return false;
+    if(this->label == that.label)
+        return false;
+    return true;
+}
+
+/*
  * SymbolTable
  */
 SymbolTable::SymbolTable() {} 
-SymbolTable::~SymbolTable() {} 
-
-SymbolTable::SymbolTable(const SymbolTable& that)
-{
-    
-}
 
 void SymbolTable::add(const Symbol& s)
 {
@@ -29,8 +90,6 @@ void SymbolTable::add(const Symbol& s)
  * InstrTable
  */
 InstrTable::InstrTable() {} 
-
-InstrTable::~InstrTable() {} 
 
 void InstrTable::init(void)
 {
@@ -106,7 +165,6 @@ LineInfo::LineInfo()
     this->init();
 }
 
-LineInfo::~LineInfo() {}
 
 LineInfo::LineInfo(const LineInfo& that)
 {
