@@ -9,8 +9,8 @@
 #include <vector>
 #include <string>
 #include <gtest/gtest.h>
-#include "lexer.hpp"
-#include "source.hpp"
+#include "Lexer.hpp"
+#include "Source.hpp"
 
 
 class TestLexer : public ::testing::Test

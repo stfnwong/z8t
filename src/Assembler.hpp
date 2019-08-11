@@ -9,8 +9,8 @@
 #define __ASSEMBLER_HPP
 
 #include <string>
-#include "source.hpp"
-#include "program.hpp"
+#include "Source.hpp"
+#include "Program.hpp"
 
 class Assembler
 {

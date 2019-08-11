@@ -4,9 +4,9 @@
  * Stefan Wong 2018
  */
 
-#include "source.hpp"
 #include <iomanip>
 #include <iostream>
+#include "Source.hpp"
 
 /*
  * SymbolTable
@@ -29,6 +29,7 @@ void SymbolTable::add(const Symbol& s)
  * InstrTable
  */
 InstrTable::InstrTable() {} 
+
 InstrTable::~InstrTable() {} 
 
 void InstrTable::init(void)

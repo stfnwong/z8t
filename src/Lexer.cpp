@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <cctype>
 #include <fstream>
-#include "lexer.hpp"
+#include "Lexer.hpp"
 
 Lexer::Lexer() 
 {

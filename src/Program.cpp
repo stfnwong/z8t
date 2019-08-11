@@ -7,7 +7,7 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
-#include "program.hpp"
+#include "Program.hpp"
 
 void initInstr(Instr& i)
 {

@@ -6,7 +6,7 @@
  */
 
 #include <iostream>
-#include "assembler.hpp"
+#include "Assembler.hpp"
 
 
 Assembler::Assembler()
