@@ -4,22 +4,20 @@
  * Stefan Wong 2018
  */
 
+#define CATCH_CONFIG_MAIN
+#include "catch/catch.hpp"
+
 #include <iostream> 
 #include <iomanip>
 #include <vector>
 #include <string>
-#include <gtest/gtest.h>
+
 #include "Lexer.hpp"
 #include "Source.hpp"
 
 
-class TestLexer : public ::testing::Test
-{
-    virtual void SetUp() {}
-    virtual void TearDown() {}
-};
 
-TEST_F(TestLexer, test_inc_asm)
+TEST_CASE("test_lexer_init", "[classic]")
 {
     int status;
     std::string infile = "data/add_sub.asm";
@@ -29,7 +27,7 @@ TEST_F(TestLexer, test_inc_asm)
 
     std::cout << "\t Reading file " << infile << std::endl;
     status = lexer.read(infile);
-    ASSERT_EQ(0, status);
+    REQUIRE(status == 0);
 
     std::cout << "\t Lexing file " << infile << std::endl;
     lexer.lex();
@@ -47,10 +45,3 @@ TEST_F(TestLexer, test_inc_asm)
     
     std::cout << std::endl << "... done" << std::endl;
 }
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
-

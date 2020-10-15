@@ -99,6 +99,8 @@ void Lexer::skip_whitespace(void)
         this->advance();
 }
 
+
+
 /* 
  * skip_comment()
  */
@@ -153,6 +155,7 @@ void Lexer::next_token(void)
 
     this->scan_token();     // load token into token buffer
     token_str = std::string(this->token_buf);
+    // TODO: return op here, if invalid then it should have a null type
     this->instr_table.get(token_str, op);
 
     // Instructions 
@@ -186,9 +189,8 @@ void Lexer::next_token(void)
 TOKEN_END:
     if(this->verbose)
     {
-        std::cout << "[" << __FUNCTION__ << "] got token <" 
-            << token_type_str[(unsigned int) this->cur_token.type] 
-            << "> : "  << this->cur_token.val << std::endl;
+        std::cout << "[" << __FUNCTION__ << "] got token "
+            << this->cur_token.toString() << std::endl;
     }
 }
 
@@ -234,6 +236,7 @@ void Lexer::parse_line(void)
     this->line_info.init();
     this->line_info.line_num = this->cur_line;
     this->next_token();
+
     // Check if we have a label 
     if(this->cur_token.type == SYM_LABEL)
     {

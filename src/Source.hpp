@@ -43,9 +43,12 @@ struct Token
     public:
         Token();
         Token(const std::string& val, const TokenType& type);
+        Token(const Token& that);
 
         bool operator==(const Token& that) const;
         bool operator!=(const Token& that) const;
+
+        std::string toString(void) const;
 };
 
 /* 

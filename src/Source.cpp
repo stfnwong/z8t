@@ -22,7 +22,18 @@ Token::Token(const std::string& val, const TokenType& t)
     this->val  = val;
     this->type = t;
 }
+/*
+ * copy ctor
+ */
+Token::Token(const Token& that)
+{
+    this->val = that.val;
+    this->type = that.type;
+}
 
+/*
+ * ==
+ */
 bool Token::operator==(const Token& that) const
 {
     if(this->val != that.val)
@@ -32,9 +43,36 @@ bool Token::operator==(const Token& that) const
     return true;
 }
 
+/*
+ * !=
+ */
 bool Token::operator!=(const Token& that) const
 {
     return !(*this == that);
+}
+
+/*
+ * toString()
+ */
+std::string Token::toString(void) const
+{
+    switch(this->type)
+    {
+        case SYM_NULL:
+            return "NULL <" + std::string(this->val) + ">";
+        case SYM_EOF:
+            return "EOF <" + std::string(this->val) + ">";
+        case SYM_INSTR:
+            return "INSTR <" + std::string(this->val) + ">";
+        case SYM_LITERAL:
+            return "LITERAL <" + std::string(this->val) + ">";
+        case SYM_LABEL:
+            return "LABEL <" + std::string(this->val) + ">";
+        case SYM_REG:
+            return "REGISTER <" + std::string(this->val) + ">";
+    }
+
+    return "INVALID <" + std::string(this->val) + ">";
 }
 
 /*

@@ -80,6 +80,11 @@ class Lexer
         char* token_buf;
         unsigned int token_buf_size;
 
+    // token extraction
+    //private:
+    //    Token extractLiteral(void);
+    //    Token extractRegister(void);
+
     private:
         // token check 
         bool is_space(void);
