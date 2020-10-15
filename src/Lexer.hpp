@@ -26,25 +26,25 @@ typedef enum {
  * List of valid instruction codes for SYM_INSTR tokens
  */
 static Opcode z80_instr_codes[] = {
-    {INSTR_ADD,  "ADD"},
-    {INSTR_AND,  "AND"},
-    {INSTR_DEC,  "DEC"},
-    {INSTR_LD,   "LD"},
-    {INSTR_INC,  "INC"},
-    {INSTR_POP,  "POP"},
-    {INSTR_PUSH, "PUSH"}
+    {INSTR_ADD,  "add"},
+    {INSTR_AND,  "and"},
+    {INSTR_DEC,  "dec"},
+    {INSTR_LD,   "ld"},
+    {INSTR_INC,  "inc"},
+    {INSTR_POP,  "pop"},
+    {INSTR_PUSH, "push"}
 };
 
 static Opcode z80_reg_names[] = {
-    {REG_A, "A"},
-    {REG_B, "B"},
-    {REG_C, "C"},
-    {REG_D, "D"},
-    {REG_E, "E"},
-    {REG_H, "H"},
-    {REG_L, "L"},
-    {REG_HL, "HL"},
-    {REG_BC, "BC"}
+    {REG_A, "a"},
+    {REG_B, "b"},
+    {REG_C, "c"},
+    {REG_D, "d"},
+    {REG_E, "e"},
+    {REG_H, "h"},
+    {REG_L, "l"},
+    {REG_HL, "hl"},
+    {REG_BC, "bc"}
 };
 
 /*
@@ -101,10 +101,14 @@ class Lexer
         std::string source;
         std::string filename;
 
+    // prevent copy and move construction
+    private:
+        Lexer(const Lexer& that) = delete;
+        Lexer(const Lexer&& that) = delete;
+
     public:
         Lexer();
         ~Lexer();
-        Lexer(const Lexer& that) = delete;
 
         void lex(void);
         int read(const std::string& filename);

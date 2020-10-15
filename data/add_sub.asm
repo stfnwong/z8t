@@ -2,7 +2,6 @@
 ; Testing program for lexer/assembler 
 ; Taken from http://www.z80.info/lesson1.htm
 ;
-
     ld a,8      ;a=8
     add a,10    ;a=a+10  a=18
     ld hl,$FC00 ;hl = $FC00

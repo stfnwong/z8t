@@ -13,10 +13,10 @@
 
 Lexer::Lexer() 
 {
-    this->verbose = false;
-    this->cur_pos = 0;
-    this->cur_line = 0;
-    this->cur_addr = 0;     // TODO : find start address
+    this->verbose        = false;
+    this->cur_pos        = 0;
+    this->cur_line       = 0;
+    this->cur_addr       = 0;     // TODO : find start address
     this->token_buf_size = 256;
     this->init_mem();
     this->init_instr_table();
@@ -126,7 +126,7 @@ void Lexer::scan_token(void)
             break;
         if(this->cur_char == ',')
             break;
-        this->token_buf[idx] = toupper(this->cur_char);
+        this->token_buf[idx] = tolower(this->cur_char);
         this->advance();
         idx++;
     }
