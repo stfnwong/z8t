@@ -13,6 +13,8 @@
 #include "Register.hpp"
 #include "Source.hpp"
 
+#define TEXT_START_ADDR 0x0
+
 
 // Instructions 
 typedef enum {
@@ -118,7 +120,7 @@ class Lexer
         void lex(void);
         int read(const std::string& filename);
         void loadSource(const std::string& src);
-        SourceInfo getSource(void) const;
+        const SourceInfo& getSource(void) const;
         
         void setVerbose(const bool v);
         bool getVerbose(void) const;

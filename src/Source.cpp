@@ -77,14 +77,17 @@ std::string Token::toString(void) const
 /*
  * Argument
  */
-Argument::Argument() : type(SYM_NULL), val(0) {} 
+Argument::Argument() : type(SYM_NULL), val(0), repr("\0") {} 
 
-Argument::Argument(const TokenType& t, int v) : type(t), val(v) {} 
+Argument::Argument(const TokenType& t, int v) : type(t), val(v), repr("\0") {} 
+
+Argument::Argument(const TokenType& t, int v, const std::string& s) : type(t), val(v), repr(s) {} 
 
 Argument::Argument(const Argument& that)
 {
     this->type = that.type;
     this->val = that.val;
+    this->repr = that.repr;
 }
 
 bool Argument::operator==(const Argument& that) const
@@ -92,6 +95,8 @@ bool Argument::operator==(const Argument& that) const
     if(this->type != that.type)
         return false;
     if(this->val != that.val)
+        return false;
+    if(this->repr != that.repr)
         return false;
 
     return true;
@@ -106,6 +111,7 @@ void Argument::init(void)
 {
     this->type = SYM_NULL;
     this->val = 0;
+    this->repr = "\0";
 }
 
 std::string Argument::toString(void) const
@@ -130,8 +136,6 @@ std::string Argument::toString(void) const
 
     return oss.str();
 }
-
-
 
 /*
  * Opcode
@@ -225,6 +229,7 @@ void InstrTable::add(const Opcode& op)
     this->instrs.push_back(op);
 }
 
+// TODO : return opcode copy
 /*
  * get()
  */
@@ -275,10 +280,8 @@ std::string InstrTable::getMnemonic(const uint16_t code) const
         if(this->instrs[idx].code == code)
             return this->instrs[idx].mnemonic;
     }
-    return "\0";
+    return std::string("\0");
 }
-
-
 
 
 /*
@@ -289,6 +292,9 @@ TextLine::TextLine()
     this->init();
 }
 
+/*
+ * copy ctor
+ */
 TextLine::TextLine(const TextLine& that)
 {
     this->opcode   = that.opcode;
@@ -296,8 +302,46 @@ TextLine::TextLine(const TextLine& that)
     this->symbol   = that.symbol;
     this->line_num = that.line_num;
     this->addr     = that.addr;
+
+    for(int i = 0; i < 2; ++i)
+        this->args[i] = that.args[i];
 }
 
+/*
+ * ==
+ */
+bool TextLine::operator==(const TextLine& that) const
+{
+    if(this->opcode != that.opcode)
+        return false;
+    if(this->label != that.label)
+        return false;
+    if(this->symbol != that.symbol)
+        return false;
+    if(this->line_num != that.line_num)
+        return false;
+    if(this->addr != that.addr)
+        return false;
+    for(int i = 0; i < 2; ++i)
+    {
+        if(this->args[i] != that.args[i])
+            return false;
+    }
+
+    return true;
+}
+
+/*
+ * !=
+ */
+bool TextLine::operator!=(const TextLine& that) const
+{
+    return !(*this == that);
+}
+
+/*
+ * init()
+ */
 void TextLine::init(void)
 {
     // Init opcode 
@@ -315,24 +359,28 @@ void TextLine::init(void)
         this->args[i].init();
 }
 
+/*
+ * toString()
+ */
 std::string TextLine::toString(void)
 {
     std::ostringstream oss;
 
     oss << "---------------------------------------------------------------------" << std::endl;
-    oss << "Line  Type   Addr  Mnemonic    Opcode  flags  O1  O2 O3   " << std::endl;
-    //oss << "Line  Type   Addr  Mnemonic    Opcode  flags   arg1  arg2  arg3  imm  " << std::endl;
+    oss << "Line  Type   Addr  Mnemonic    Opcode  flags  args" << std::endl;
 
     oss << std::left << std::setw(6) << std::setfill(' ') << this->line_num;
     oss << "[";
-    oss << "] ";
+    oss << "]    ";
     oss << std::right << "0x" << std::hex << std::setw(4) << std::setfill('0') << this->addr << " ";
     oss << std::left << std::setw(12) << std::setfill(' ') << this->opcode.mnemonic;
     oss << "0x" << std::right << std::hex << std::setw(4) << std::setfill('0') << this->opcode.code << "   ";
     // Insert flag chars
     oss << "...";
     // Registers
-    oss << "  ";
+    oss << "   ";
+    for(int i = 0; i < 2; ++i)
+        oss << this->args[i].repr << " ";
 
     // (Next line) Text 
     oss << std::endl;
@@ -340,6 +388,8 @@ std::string TextLine::toString(void)
     oss << "Symbol[" << std::left << std::setw(16) << std::setfill(' ') << this->symbol << "] ";
 
     oss << std::endl;
+    if(this->errstr.size() > 0)
+        oss << this->errstr << std::endl;
 
     return oss.str();
 }

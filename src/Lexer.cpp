@@ -133,6 +133,7 @@ Argument Lexer::extract_literal(void)
     else
         arg.val = std::stoi(this->token_buf, nullptr, 10);
     arg.type = SYM_LITERAL;
+    arg.repr = std::string(this->token_buf);
 
     // TODO : debug, remove 
     std::cout << "[" << __func__ << "] arg : " << arg.toString() << std::endl;
@@ -161,6 +162,7 @@ Argument Lexer::extract_register(void)
 
     arg.type = SYM_REG;
     arg.val  = this->reg_map.getIdx(std::string(this->cur_token.val));
+    arg.repr = std::string(this->cur_token.val);
 
     return arg;
 }
@@ -172,6 +174,8 @@ void Lexer::skip_comment(void)
 {
     while(this->cur_char != '\n')
         this->advance();
+
+    this->advance();    // skip over the newline char
 }
 
 /*
@@ -180,8 +184,8 @@ void Lexer::skip_comment(void)
 void Lexer::scan_token(void)
 {
     unsigned int idx = 0;
+
     this->skip_whitespace();
-    //this->skip_seperators();
     while(idx < (this->token_buf_size-1))
     {
         if(this->cur_char == ' ')   // end
@@ -192,7 +196,7 @@ void Lexer::scan_token(void)
             break;
         if(this->cur_char == ',')
             break;
-        this->token_buf[idx] = tolower(this->cur_char);
+        this->token_buf[idx] = std::tolower(this->cur_char);
         this->advance();
         idx++;
     }
@@ -219,6 +223,7 @@ void Lexer::next_token(void)
 
     this->scan_token();     // load token into token buffer
     token_str = std::string(this->token_buf);
+
     // TODO: return op here, if invalid then it should have a null type
     this->instr_table.get(token_str, op);
 
@@ -292,28 +297,6 @@ void Lexer::parse_two_arg(void)
     }   
 
     this->line_info.args[1] = arg;
-
-    
-    //this->next_token();
-    //if(this->cur_token.type != SYM_REG)
-    //{
-    //    this->line_info.error = true;
-    //    this->line_info.errstr = "First argument must be register";
-    //    return;
-    //}
-
-    //this->line_info.arg1 = this->cur_token;
-    //// second arg could be reg or literal/immediate 
-    //this->next_token();
-    //if(this->cur_token.type == SYM_REG || 
-    //   this->cur_token.type == SYM_LITERAL)
-    //    this->line_info.arg2 = this->cur_token;
-    //else
-    //{
-    //    this->line_info.error = true;
-    //    this->line_info.errstr = "Second argument must be register or literal";
-    //    return;
-    //}
 }
 
 /*
@@ -333,17 +316,14 @@ void Lexer::parse_instruction(void)
     switch(op.code)
     {
         case INSTR_ADD:
-            std::cout << "[" << __func__ << "] got ADD" << std::endl;
             this->parse_two_arg();
             break;
 
         case INSTR_AND: 
-            std::cout << "[" << __func__ << "] got AND" << std::endl;
             this->parse_two_arg();
             break;
 
         case INSTR_LD: 
-            std::cout << "[" << __func__ << "] got LD" << std::endl;
             this->parse_two_arg();
             break;
 
@@ -416,16 +396,22 @@ void Lexer::lex(void)
     {
         if(this->is_space())
         {
+            std::cout << "[" << __func__ << "] skipping whitespace on line "
+                << std::dec << this->cur_line << std::endl;
             this->skip_whitespace();
             continue;
         }
         if(this->is_comment())
         {
+            //std::cout << "[" << __func__ << "] skipping comment on line "
+            //    << std::dec << this->cur_line << std::endl;
             this->skip_comment();
             continue;
         }
         this->parse_line();
         this->source_info.add(this->line_info);
+        //std::cout << "[" << __func__ << "] current line " << std::endl;
+        //std::cout << this->line_info.toString() << std::endl;
     }
 
     if(this->verbose)
@@ -480,7 +466,7 @@ void Lexer::loadSource(const std::string& src)
 /*
  * getSource()
  */
-SourceInfo Lexer::getSource(void) const
+const SourceInfo& Lexer::getSource(void) const
 {
     return this->source_info;
 }

@@ -43,7 +43,7 @@ struct Register
     public:
         Register();
         Register(int i, const std::string& n);
-        //Register(const Register& that) = default;
+        Register(const Register& that) = default;
 
         bool operator==(const Register& that) const;
         bool operator!=(const Register& that) const;

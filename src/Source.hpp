@@ -58,10 +58,12 @@ struct Argument
 {
     TokenType type;
     int val;
+    std::string repr;
 
     public:
         Argument();
         Argument(const TokenType& type, int val);
+        Argument(const TokenType& type, int val, const std::string& s);
         Argument(const Argument& that);
 
         bool operator==(const Argument& that) const;
@@ -158,27 +160,26 @@ class SymbolTable
 /*
  * TextLine
  * Class representing a line from the source file that will go in the text segment.
- * NOTE TO SELF: be careful to not mix roles related to text parsing with roles 
- * related to binary formats (and especially for SMIPS).
  */
-class TextLine
+struct TextLine
 {
-    public:
-        // avoid having a large number of setters and getters 
-        std::string symbol;
-        std::string label;
-        std::string errstr;
-        Opcode      opcode;
-        Argument    args[2];
-        uint16_t    line_num;
-        uint16_t    addr;
-        bool        is_label;
-        bool        error;
+    // avoid having a large number of setters and getters 
+    std::string symbol;
+    std::string label;
+    std::string errstr;
+    Opcode      opcode;
+    Argument    args[2];
+    uint16_t    line_num;
+    uint16_t    addr;
+    bool        is_label;
+    bool        error;
 
     public:
         TextLine();
         TextLine(const TextLine& that);
 
+        bool operator==(const TextLine& that) const;
+        bool operator!=(const TextLine& that) const;
         void init(void);
         std::string toString(void);
 };
