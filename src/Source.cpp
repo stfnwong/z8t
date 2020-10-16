@@ -58,8 +58,6 @@ std::string Token::toString(void) const
 {
     switch(this->type)
     {
-        case SYM_NULL:
-            return "NULL <" + std::string(this->val) + ">";
         case SYM_EOF:
             return "EOF <" + std::string(this->val) + ">";
         case SYM_INSTR:
@@ -70,10 +68,70 @@ std::string Token::toString(void) const
             return "LABEL <" + std::string(this->val) + ">";
         case SYM_REG:
             return "REGISTER <" + std::string(this->val) + ">";
+        default:
+            return "NULL <" + std::string(this->val) + ">";
     }
 
-    return "INVALID <" + std::string(this->val) + ">";
 }
+
+/*
+ * Argument
+ */
+Argument::Argument() : type(SYM_NULL), val(0) {} 
+
+Argument::Argument(const TokenType& t, int v) : type(t), val(v) {} 
+
+Argument::Argument(const Argument& that)
+{
+    this->type = that.type;
+    this->val = that.val;
+}
+
+bool Argument::operator==(const Argument& that) const
+{
+    if(this->type != that.type)
+        return false;
+    if(this->val != that.val)
+        return false;
+
+    return true;
+}
+
+bool Argument::operator!=(const Argument& that) const
+{
+    return !(*this == that);
+}
+
+void Argument::init(void)
+{
+    this->type = SYM_NULL;
+    this->val = 0;
+}
+
+std::string Argument::toString(void) const
+{
+    std::ostringstream oss;
+
+    switch(this->type)
+    {
+        case SYM_EOF:
+            oss << "EOF <" << this->val << ">";
+        case SYM_INSTR:
+            oss << "INSTR <" << this->val << ">";
+        case SYM_LITERAL:
+            oss << "LITERAL <" << this->val << ">";
+        case SYM_LABEL:
+            oss << "LABEL <" << this->val << ">";
+        case SYM_REG:
+            oss << "REGISTER <" << this->val << ">";
+        default:
+            oss << "NULL <" << this->val << ">";
+    }
+
+    return oss.str();
+}
+
+
 
 /*
  * Opcode
@@ -99,6 +157,16 @@ bool Opcode::operator==(const Opcode& that) const
 bool Opcode::operator!=(const Opcode& that) const
 {
     return !(*this == that);
+}
+
+std::string Opcode::toString(void) const
+{
+    std::ostringstream oss;
+
+    oss << this->mnemonic << " [0x" << std::hex << std::setw(4)
+        << std::setfill('0') << "]";
+
+    return oss.str();
 }
 
 
@@ -242,6 +310,9 @@ void TextLine::init(void)
     this->addr     = 0;
 
     this->is_label = false;
+
+    for(int i = 0; i < 2; ++i)
+        this->args[i].init();
 }
 
 std::string TextLine::toString(void)
@@ -269,7 +340,6 @@ std::string TextLine::toString(void)
     oss << "Symbol[" << std::left << std::setw(16) << std::setfill(' ') << this->symbol << "] ";
 
     oss << std::endl;
-
 
     return oss.str();
 }

@@ -10,12 +10,9 @@
 
 #include <string>
 #include <cstdint>
+#include "Register.hpp"
 #include "Source.hpp"
 
-// Register names 
-typedef enum {
-    REG_A, REG_B, REG_C, REG_D, REG_E, REG_H, REG_L, REG_IXH, REG_IXL, REG_IYH, REG_IYL, REG_HL, REG_BC
-} Z80_REG;
 
 // Instructions 
 typedef enum {
@@ -66,6 +63,7 @@ class Lexer
         // Symbol/token info 
         InstrTable instr_table;
         InstrTable reg_table;
+        RegisterMap reg_map;
         SymbolTable symbol_table;
         void init_instr_table(void);
         void init_reg_table(void);
@@ -80,15 +78,15 @@ class Lexer
         char* token_buf;
         unsigned int token_buf_size;
 
-    // token extraction
-    //private:
-    //    Token extractLiteral(void);
-    //    Token extractRegister(void);
-
     private:
         // token check 
         bool is_space(void);
         bool is_comment(void);
+
+    // token extraction
+    private:
+        Argument extract_literal(void);
+        Argument extract_register(void);
 
     private:
         // parsing 
@@ -97,9 +95,11 @@ class Lexer
         void skip_seperators(void);
         void scan_token(void);
         void next_token(void);
+
+        void parse_one_arg(void);
         void parse_two_arg(void);
 
-
+        void parse_instruction(void);
         void parse_line(void);
 
     private:
@@ -117,6 +117,7 @@ class Lexer
 
         void lex(void);
         int read(const std::string& filename);
+        void loadSource(const std::string& src);
         SourceInfo getSource(void) const;
         
         void setVerbose(const bool v);

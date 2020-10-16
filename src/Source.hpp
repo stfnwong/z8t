@@ -51,6 +51,25 @@ struct Token
         std::string toString(void) const;
 };
 
+/*
+ * Argument
+ */
+struct Argument
+{
+    TokenType type;
+    int val;
+
+    public:
+        Argument();
+        Argument(const TokenType& type, int val);
+        Argument(const Argument& that);
+
+        bool operator==(const Argument& that) const;
+        bool operator!=(const Argument& that) const;
+        void init(void);
+        std::string toString(void) const;
+};
+
 /* 
  * Opcode 
  * Holds the mnemonic string and opcode value of 
@@ -67,6 +86,8 @@ struct Opcode
 
         bool operator==(const Opcode& that) const;
         bool operator!=(const Opcode& that) const;
+
+        std::string toString(void) const;
 };
 
 
@@ -148,8 +169,7 @@ class TextLine
         std::string label;
         std::string errstr;
         Opcode      opcode;
-        Token       arg1;
-        Token       arg2;
+        Argument    args[2];
         uint16_t    line_num;
         uint16_t    addr;
         bool        is_label;
