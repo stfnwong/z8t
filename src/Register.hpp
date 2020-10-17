@@ -74,6 +74,12 @@ const Register Z80_REGISTERS[] = {
     Register(REG_A, "a"),
     Register(REG_B, "b"),
     Register(REG_C, "c"),
+    Register(REG_D, "d"),
+    Register(REG_E, "e"),
+    Register(REG_H, "h"),
+    Register(REG_L, "l"),
+    Register(REG_HL, "hl"),
+    Register(REG_BC, "bc"),
 };
 
 

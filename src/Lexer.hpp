@@ -13,6 +13,7 @@
 #include "Register.hpp"
 #include "Source.hpp"
 
+// TODO : find real start address
 #define TEXT_START_ADDR 0x0
 
 

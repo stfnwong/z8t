@@ -13,7 +13,7 @@ TOOL_DIR=tools
 # Tool options
 CXX=g++
 OPT=-O0
-CXXFLAGS=-Wall -g2 -std=c++17 -D_REENTRANT $(OPT)
+CXXFLAGS=-Wall -g2 -std=c++17 $(OPT)
 TESTFLAGS=
 #LDFLAGS =$(shell root-config --ldflags)
 LDFLAGS=

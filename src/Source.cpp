@@ -122,16 +122,22 @@ std::string Argument::toString(void) const
     {
         case SYM_EOF:
             oss << "EOF <" << this->val << ">";
+            break;
         case SYM_INSTR:
             oss << "INSTR <" << this->val << ">";
+            break;
         case SYM_LITERAL:
             oss << "LITERAL <" << this->val << ">";
+            break;
         case SYM_LABEL:
             oss << "LABEL <" << this->val << ">";
+            break;
         case SYM_REG:
             oss << "REGISTER <" << this->val << ">";
+            break;
         default:
             oss << "NULL <" << this->val << ">";
+            break;
     }
 
     return oss.str();
@@ -146,6 +152,12 @@ Opcode::Opcode(uint16_t code, const std::string& mnemonic)
 {
     this->code = code;
     this->mnemonic = mnemonic;
+}
+
+void Opcode::init(void)
+{
+    this->code = 0 ;
+    this->mnemonic.clear();
 }
 
 bool Opcode::operator==(const Opcode& that) const
@@ -345,15 +357,16 @@ bool TextLine::operator!=(const TextLine& that) const
 void TextLine::init(void)
 {
     // Init opcode 
-    this->opcode.code = 0;
-    this->opcode.mnemonic = "\0";
+    this->opcode.init();
     // Init others 
-    this->label    = "\0";
-    this->symbol   = "\0";
+    this->symbol.clear();   
+    this->label.clear();    
+    this->errstr.clear();   
     this->line_num = 0;
     this->addr     = 0;
 
     this->is_label = false;
+    this->error    = false;
 
     for(int i = 0; i < 2; ++i)
         this->args[i].init();
@@ -371,7 +384,15 @@ std::string TextLine::toString(void)
 
     oss << std::left << std::setw(6) << std::setfill(' ') << this->line_num;
     oss << "[";
-    oss << "]    ";
+    if(this->is_label == true)  // why do I need == true here but nowhere else?
+        oss << "l";
+    else
+        oss << ".";
+    if(this->error == true)
+        oss << "e";
+    else
+        oss << ".";
+    oss << "]  ";
     oss << std::right << "0x" << std::hex << std::setw(4) << std::setfill('0') << this->addr << " ";
     oss << std::left << std::setw(12) << std::setfill(' ') << this->opcode.mnemonic;
     oss << "0x" << std::right << std::hex << std::setw(4) << std::setfill('0') << this->opcode.code << "   ";
@@ -390,6 +411,68 @@ std::string TextLine::toString(void)
     oss << std::endl;
     if(this->errstr.size() > 0)
         oss << this->errstr << std::endl;
+
+    return oss.str();
+}
+
+std::string TextLine::diff(const TextLine& that)
+{
+    std::ostringstream oss;
+
+    if(this->symbol != that.symbol)
+    {
+        oss << "symbol [" << this->symbol
+            << "] does not match [" << that.symbol
+            << "]" << std::endl;
+    }
+    if(this->label != that.label)
+    {
+        oss << "label [" << this->label
+            << "] does not match [" << that.label 
+            << "]" << std::endl;
+    }
+    if(this->errstr != that.errstr)
+    {
+        oss << "errstr [" << this->errstr
+            << "] does not match [" << that.errstr
+            << "]" << std::endl;
+    }
+    if(this->opcode != that.opcode)
+    {
+        oss << "opcode [" << this->opcode.toString()
+            << "] does not match [" << that.opcode.toString()
+            << "]" << std::endl;
+    }
+
+    for(int i = 0; i < 2; ++i)
+    {
+        if(this->args[i] != that.args[i])
+        {
+            oss << "arg " << i << " [" << this->args[i].toString() 
+                << "] does not match [" << that.args[i].toString()
+                << "]" << std::endl;
+        }
+    }
+    if(this->line_num != that.line_num)
+    {
+        oss << "line num [" << this->line_num
+            << "] does not match [" << that.line_num
+            << "]" << std::endl;
+    }
+    if(this->addr != that.addr)
+    {
+        oss << "addr [" << this->addr
+            << "] does not match [" << that.addr
+            << "]" << std::endl;
+    }
+    if(this->is_label != that.is_label)
+    {
+        oss << "is_label does not match" << std::endl;
+    }
+    if(this->error != that.error)
+    {
+        oss << "error does not match" << std::endl;
+    }
 
     return oss.str();
 }

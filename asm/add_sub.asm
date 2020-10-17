@@ -7,7 +7,6 @@
     ld hl,$FC00 ;hl = $FC00
     ld bc,$00BB ;bc = $00BB
     add hl,$FCBB ;hl=hl+bc  hl = $fcbb
- 
     
     ld b,8      ;b=8
     ld a,b      ;a=b
@@ -15,7 +14,6 @@
     ld b,a      ;b='b+5'
 
     ;or
-
     ld bc,46    ;bc=46
     ld h,b      ;you can't do'ld hl,bc'
     ld l,c      ;

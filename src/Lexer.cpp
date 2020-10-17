@@ -16,8 +16,8 @@ Lexer::Lexer()
     this->verbose        = false;
     this->cur_pos        = 0;
     this->cur_line       = 0;
-    this->cur_addr       = 0;     // TODO : find start address
-    this->token_buf_size = 256;
+    this->cur_addr       = TEXT_START_ADDR;     
+    this->token_buf_size = 128;
     this->init_mem();
     this->init_instr_table();
     this->init_reg_table();
@@ -77,7 +77,10 @@ void Lexer::advance(void)
  */
 bool Lexer::is_space(void)
 {
-    return (this->cur_char == ' ') ? true : false;
+    if(this->cur_char == ' ' || this->cur_char == '\n')
+        return true;
+
+    return false;
 }
 
 /* 
@@ -117,8 +120,16 @@ Argument Lexer::extract_literal(void)
             this->advance();
             continue;
         }
-        if(!std::isdigit(this->cur_char))
-            break;
+        if(base16)
+        {
+            if(!std::isalnum(this->cur_char))
+                break;
+        }
+        else
+        {
+            if(!std::isdigit(this->cur_char))
+                break;
+        }
         this->token_buf[idx] = this->cur_char;
         idx++;
         this->advance();
@@ -135,9 +146,6 @@ Argument Lexer::extract_literal(void)
     arg.type = SYM_LITERAL;
     arg.repr = std::string(this->token_buf);
 
-    // TODO : debug, remove 
-    std::cout << "[" << __func__ << "] arg : " << arg.toString() << std::endl;
-
     return arg;
 }
 
@@ -150,8 +158,6 @@ Argument Lexer::extract_register(void)
 
     // TODO: need to deal with parentheses
     this->next_token();
-    std::cout << "[" << __func__ << "] cur_token :" << 
-        this->cur_token.toString() << std::endl;
 
     if(this->cur_token.type != SYM_REG)
     {
@@ -196,6 +202,7 @@ void Lexer::scan_token(void)
             break;
         if(this->cur_char == ',')
             break;
+
         this->token_buf[idx] = std::tolower(this->cur_char);
         this->advance();
         idx++;
@@ -291,6 +298,7 @@ void Lexer::parse_two_arg(void)
     arg = this->extract_register();
     if(arg.type != SYM_REG)
     {
+        // try to extract a label
         this->line_info.error = true;
         this->line_info.errstr = "Second argument must be register or literal (got " + arg.toString() + ")";
         return;
@@ -352,16 +360,26 @@ void Lexer::parse_line(void)
     this->line_info.line_num = this->cur_line;
     this->next_token();
 
+    std::cout << "[" << __func__ << "] next token was " << this->cur_token.toString() << std::endl;
+
     // Check if we have a label 
     if(this->cur_token.type == SYM_LABEL)
     {
+        std::cout << "[" << __func__ << "] ======== GOT A SYMBOL ======== " << std::endl;
         // TODO : remove trailing ':'
         s.label = this->cur_token.val;
         s.addr  = this->cur_addr;
         this->symbol_table.add(s);
+        this->line_info.label = s.label;
         // Scan the next token
         this->next_token();
         this->line_info.line_num = this->cur_line;
+        this->line_info.is_label = true;
+
+        // TODO : debug 
+        std::cout << "[" << __func__ << "] just added label to line " 
+            << std::dec << this->cur_line << std::endl;
+        std::cout << this->line_info.toString() << std::endl;
     }
 
     // Check if we have an instruction
@@ -396,22 +414,16 @@ void Lexer::lex(void)
     {
         if(this->is_space())
         {
-            std::cout << "[" << __func__ << "] skipping whitespace on line "
-                << std::dec << this->cur_line << std::endl;
             this->skip_whitespace();
             continue;
         }
         if(this->is_comment())
         {
-            //std::cout << "[" << __func__ << "] skipping comment on line "
-            //    << std::dec << this->cur_line << std::endl;
             this->skip_comment();
             continue;
         }
         this->parse_line();
         this->source_info.add(this->line_info);
-        //std::cout << "[" << __func__ << "] current line " << std::endl;
-        //std::cout << this->line_info.toString() << std::endl;
     }
 
     if(this->verbose)
@@ -420,7 +432,6 @@ void Lexer::lex(void)
             << this->source_info.getNumLines() << " lines of source"
             << std::endl;
     }
-
 
     // Resolve symbols 
 }

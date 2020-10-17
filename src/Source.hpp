@@ -88,6 +88,7 @@ struct Opcode
 
         bool operator==(const Opcode& that) const;
         bool operator!=(const Opcode& that) const;
+        void init(void);
 
         std::string toString(void) const;
 };
@@ -181,6 +182,7 @@ struct TextLine
         bool operator==(const TextLine& that) const;
         bool operator!=(const TextLine& that) const;
         void init(void);
+        std::string diff(const TextLine& that);
         std::string toString(void);
 };
 
