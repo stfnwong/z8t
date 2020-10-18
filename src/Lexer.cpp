@@ -305,15 +305,14 @@ void Lexer::parse_instruction(const Token& token)
     switch(token.val)
     {
         case INSTR_ADD:
+        case INSTR_LD: 
             this->parse_two_arg();
             break;
 
         case INSTR_AND: 
-            this->parse_two_arg();
-            break;
-
-        case INSTR_LD: 
-            this->parse_two_arg();
+        case INSTR_DEC:
+        case INSTR_OR:
+            this->parse_one_arg();
             break;
 
         default:

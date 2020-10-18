@@ -18,7 +18,33 @@
  * Instruction constants
  */
 typedef enum {
-    INSTR_ADD, INSTR_AND, INSTR_DEC, INSTR_LD, INSTR_INC, INSTR_POP, INSTR_PUSH
+    INSTR_ADD, 
+    INSTR_ADC,
+    INSTR_AND, 
+    INSTR_CALL,
+    INSTR_CCF,
+    INSTR_CP,
+    INSTR_CPL,
+    INSTR_DAA,
+    INSTR_DEC, 
+    INSTR_DI,
+    INSTR_DJNZ,
+    INSTR_EX,
+    INSTR_JP,
+    INSTR_JR,
+    INSTR_LD, 
+    INSTR_INC, 
+    INSTR_OR,
+    INSTR_OUT,
+    INSTR_POP, 
+    INSTR_PUSH,
+    INSTR_RRA,
+    INSTR_RRCA,
+    INSTR_RET,
+    INSTR_RST,
+    INSTR_SBC,
+    INSTR_SUB,
+    INSTR_XOR
 } Z80_INSTR;
 
 
@@ -99,12 +125,31 @@ const Token Z80_TOKENS[] =
 {
     // Instructions 
     Token(SYM_INSTR, INSTR_ADD, "add" ),
+    Token(SYM_INSTR, INSTR_ADC, "adc" ),
     Token(SYM_INSTR, INSTR_AND, "and" ),
+    Token(SYM_INSTR, INSTR_CALL, "call" ),
+    Token(SYM_INSTR, INSTR_CCF, "ccf" ),
+    Token(SYM_INSTR, INSTR_CP, "cp" ),
+    Token(SYM_INSTR, INSTR_CPL, "cpl" ),
+    Token(SYM_INSTR, INSTR_DAA, "daa" ),
     Token(SYM_INSTR, INSTR_DEC, "dec" ),
+    Token(SYM_INSTR, INSTR_DI, "di" ),
+    Token(SYM_INSTR, INSTR_DJNZ, "djnz" ),
+    Token(SYM_INSTR, INSTR_EX, "ex" ),
+    Token(SYM_INSTR, INSTR_JP, "jp" ),
+    Token(SYM_INSTR, INSTR_JR, "jr" ),
     Token(SYM_INSTR, INSTR_LD , "ld"  ),
     Token(SYM_INSTR, INSTR_INC, "inc" ),
+    Token(SYM_INSTR, INSTR_OR, "or"),
+    Token(SYM_INSTR, INSTR_OUT, "out"),
     Token(SYM_INSTR, INSTR_POP, "pop" ),
-    Token(SYM_INSTR, INSTR_PUSH, "push"),
+    Token(SYM_INSTR, INSTR_PUSH, "push" ),
+    Token(SYM_INSTR, INSTR_RRA, "rra"),
+    Token(SYM_INSTR, INSTR_RRCA, "rrca"),
+    Token(SYM_INSTR, INSTR_RET, "ret"),
+    Token(SYM_INSTR, INSTR_SBC, "sbc"),
+    Token(SYM_INSTR, INSTR_SUB, "sub"),
+    Token(SYM_INSTR, INSTR_XOR, "xor"),
     // Registers 
     Token(SYM_REG,  REG_A,  "a"),
     Token(SYM_REG,  REG_B,  "b"),
@@ -139,8 +184,6 @@ class TokenLookup
         TokenLookup();
         Token lookup(const std::string& s) const;
 };
-
-
 
 /* 
  * Opcode 

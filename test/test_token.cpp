@@ -15,49 +15,71 @@
 
 
 // TODO : just test all reserved symbols
+//
+
+const Token expected_tokens[] = 
+{
+    Token(SYM_INSTR, INSTR_ADD, "add" ),
+    Token(SYM_INSTR, INSTR_ADC, "adc" ),
+    Token(SYM_INSTR, INSTR_AND, "and" ),
+    Token(SYM_INSTR, INSTR_CALL, "call" ),
+    Token(SYM_INSTR, INSTR_CCF, "ccf" ),
+    Token(SYM_INSTR, INSTR_CP, "cp" ),
+    Token(SYM_INSTR, INSTR_CPL, "cpl" ),
+    Token(SYM_INSTR, INSTR_DAA, "daa" ),
+    Token(SYM_INSTR, INSTR_DEC, "dec" ),
+    Token(SYM_INSTR, INSTR_DI, "di" ),
+    Token(SYM_INSTR, INSTR_DJNZ, "djnz" ),
+    Token(SYM_INSTR, INSTR_EX, "ex" ),
+    Token(SYM_INSTR, INSTR_JP, "jp" ),
+    Token(SYM_INSTR, INSTR_JR, "jr" ),
+    Token(SYM_INSTR, INSTR_LD , "ld"  ),
+    Token(SYM_INSTR, INSTR_INC, "inc" ),
+    Token(SYM_INSTR, INSTR_OR, "or"),
+    Token(SYM_INSTR, INSTR_OUT, "out"),
+    Token(SYM_INSTR, INSTR_POP, "pop" ),
+    Token(SYM_INSTR, INSTR_PUSH, "push" ),
+    Token(SYM_INSTR, INSTR_RRA, "rra"),
+    Token(SYM_INSTR, INSTR_RRCA, "rrca"),
+    Token(SYM_INSTR, INSTR_RET, "ret"),
+    Token(SYM_INSTR, INSTR_SBC, "sbc"),
+    Token(SYM_INSTR, INSTR_SUB, "sub"),
+    Token(SYM_INSTR, INSTR_XOR, "xor"),
+
+    Token(SYM_REG,  REG_A,  "a"),
+    Token(SYM_REG,  REG_B,  "b"),
+    Token(SYM_REG,  REG_C,  "c"),
+    Token(SYM_REG,  REG_D,  "d"),
+    Token(SYM_REG,  REG_E,  "e"),
+    Token(SYM_REG,  REG_H,  "h"),
+    Token(SYM_REG,  REG_L,  "l"),
+    Token(SYM_REG,  REG_HL, "hl"),
+    Token(SYM_REG,  REG_BC, "bc"),
+
+    Token(SYM_COND, COND_C,  "C"), 
+    Token(SYM_COND, COND_NC, "NC"),
+    Token(SYM_COND, COND_Z,  "Z"), 
+    Token(SYM_COND, COND_NZ, "NZ"),
+    Token(SYM_COND, COND_M,  "M"), 
+    Token(SYM_COND, COND_P,  "P"), 
+    Token(SYM_COND, COND_PE, "PE"),
+};
+
 
 TEST_CASE("test_token_lookup", "[classic]")
 {
     TokenLookup lut;
-    Token exp_token;
     Token out_token;
 
-    // what if we get instructions?
-    exp_token.type = SYM_INSTR;
-    exp_token.val = INSTR_ADD;
-    exp_token.repr = "add";
-
-    out_token = lut.lookup("add");
-    REQUIRE(out_token == exp_token);
-
-    exp_token.type = SYM_INSTR;
-    exp_token.val = INSTR_DEC;
-    exp_token.repr = "dec";
-
-    out_token = lut.lookup("dec");
-    REQUIRE(out_token == exp_token);
-
-    // what if we get registers?
-    exp_token.type = SYM_REG;
-    exp_token.val = REG_HL;
-    exp_token.repr = "hl";
-
-    out_token = lut.lookup("hl");
-    REQUIRE(out_token == exp_token);
-    // what if its a one letter register ? 
-    exp_token.type = SYM_REG;
-    exp_token.val = REG_C;
-    exp_token.repr = "c";
-
-    out_token = lut.lookup("c");
-    REQUIRE(out_token == exp_token);
-
-    // if its a capital c then it should be a condition
-    exp_token.type = SYM_COND;
-    exp_token.val = COND_C;
-    exp_token.repr = "C";
-
-    out_token = lut.lookup("C");
-    REQUIRE(out_token == exp_token);
-
+    for(const Token& exp_token : expected_tokens)
+    {
+        out_token = lut.lookup(exp_token.repr);
+        if(out_token != exp_token)
+        {
+            std::cout << "Token mismatch. Looked for [" << exp_token.repr << "]" << std::endl;
+            std::cout << "Expected : " << exp_token.toString() << std::endl;
+            std::cout << "Got      : " << out_token.toString() << std::endl;
+        }
+        REQUIRE(out_token == exp_token);
+    }
 }
