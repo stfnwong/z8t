@@ -148,7 +148,7 @@ std::string Argument::toString(void) const
  */
 Opcode::Opcode() : code(0), mnemonic("\0") {}
 
-Opcode::Opcode(uint16_t code, const std::string& mnemonic)
+Opcode::Opcode(int code, const std::string& mnemonic)
 {
     this->code = code;
     this->mnemonic = mnemonic;
@@ -180,7 +180,7 @@ std::string Opcode::toString(void) const
     std::ostringstream oss;
 
     oss << this->mnemonic << " [0x" << std::hex << std::setw(4)
-        << std::setfill('0') << "]";
+        << std::setfill('0') << this->code "]";
 
     return oss.str();
 }

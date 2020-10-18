@@ -11,6 +11,7 @@
 #include <fstream>
 #include "Lexer.hpp"
 
+
 Lexer::Lexer() 
 {
     this->verbose        = false;
@@ -28,6 +29,9 @@ Lexer::~Lexer()
     delete[] this->token_buf;
 }
 
+/*
+ * init_mem()
+ */
 void Lexer::init_mem(void)
 {
     this->token_buf = new char [this->token_buf_size];
@@ -47,8 +51,8 @@ void Lexer::init_instr_table(void)
  */
 void Lexer::init_reg_table(void)
 {
-    for(const Opcode& code : z80_reg_names)
-        this->reg_table.add(code);
+    for(const Register& reg : Z80_REGISTERS)
+        this->reg_table.add(reg);
 }
 
 /*
@@ -106,7 +110,7 @@ void Lexer::skip_whitespace(void)
 /*
  * extract_literal()
  */
-Argument Lexer::extract_literal(void)
+Argument Lexer::extract_literal(const std::string& token_str)
 {
     Argument arg;
     unsigned int idx = 0;
@@ -152,11 +156,11 @@ Argument Lexer::extract_literal(void)
 /*
  * extract_register()
  */
-Argument Lexer::extract_register(void)
+Argument Lexer::extract_register(const std::string& token_str)
 {
     Argument arg;
 
-    // TODO: need to deal with parentheses
+    // TODO: need to deal with parentheses for indirection
     this->next_token();
 
     if(this->cur_token.type != SYM_REG)
@@ -226,6 +230,7 @@ void Lexer::scan_token(void)
 void Lexer::next_token(void)
 {
     Opcode op;
+    Register reg;
     std::string token_str; 
 
     this->scan_token();     // load token into token buffer
@@ -241,7 +246,10 @@ void Lexer::next_token(void)
         this->cur_token.val  = token_str;
         goto TOKEN_END;
     }
+
     // named register
+    reg = this->reg_map.get(token_str);     // TODO ; if we are going to do this, why bother tokenizing at all?
+    if(reg.val != SYM_NULL)
     this->reg_table.get(token_str, op);
     if(op.mnemonic != "\0")
     {
@@ -270,6 +278,87 @@ TOKEN_END:
     }
 }
 
+Argument Lexer::token_to_arg(const std::string& token)
+{
+    Argument arg;
+    Opcode op;
+
+    op = this->instr_table.get(token);
+
+
+
+    return arg;
+}
+
+
+/*
+ * parse_arg()
+ */
+// TODO : can this be a const function?
+Argument Lexer::parse_arg(const Token& token) const
+{
+    Argument arg;
+
+    arg.type = token.type;
+    switch(token.type)
+    {
+        case SYM_REG:
+            arg.val = this->reg_map.getIdx(token.val);
+            break;
+
+        case SYM_LITERAL:
+            if(token.val[0] == '$')
+                arg.val = std::stoi(token.val.substr(1, token.val.size()-1), nullptr, 16);
+            else
+                arg.val = std::stoi(token, nullptr, 10);
+            arg.repr = token.val;
+            break;
+
+        case SYM_COND:
+            arg.val  = this->cond_map.getIdx(token.val);
+            arg.repr = token.val;
+            break;
+
+        case SYM_LABEL:
+            arg.val = 0;
+            arg.repr = token.val;
+            break;
+
+        default:
+            arg.type = SYM_NULL;
+            arg.val  = -1;
+            break;
+    }
+
+    return arg;
+}
+
+/*
+ * parse_one_arg()
+ */
+void Lexer::parse_one_arg(void)
+{
+
+    switch(this->cur_token.type)
+    {
+        case SYM_REG:
+            break;
+        case SYM_LITERAL:
+            break;
+        case SYM_COND:
+            break;
+        case SYM_LABEL:
+            break;
+        default:
+            this->line_info.error = true;
+            this->line_info.errstr = "First argument must be REG, LITERAL, COND, or LABEL (got "
+                + this->cur_token.toString() + ")";
+            if(this->verbose)
+                std::cout << this->line_info.error << std::endl;
+            break;
+    }
+}
+
 /*
  * parse_two_arg()
  */
@@ -278,32 +367,38 @@ void Lexer::parse_two_arg(void)
     // First arg must be register 
     Argument arg;
 
-    arg = this->extract_register();
-    if(arg.type != SYM_REG)
+    this->next_token();
+    arg = parse_arg(this->cur_token);
+    if(arg.type == SYM_NULL)
     {
         this->line_info.error = true;
-        this->line_info.errstr = "First argument must be register (got " + arg.toString() + ")";
+        this->line_info.errstr = "First argument must be REG, LITERAL, COND, or LABEL (got "
+            + std::string(this->cur_token.toString()) + ")";
+
+        if(this->verbose)
+            std::cout << this->line_info.error << std::endl;
+        
         return;
-    }   
+    }
+    if(arg.type == SYM_LABEL)
+    {
+        this->line_info.is_label = true;
+        this->line_info.label = this->cur_token.val;
+    }
     this->line_info.args[0] = arg;
 
-    // try to extract a literal.
-    arg = this->extract_literal();
-    if(arg.type == SYM_LITERAL)
+    this->next_token();
+    if(arg.type == SYM_NULL)
     {
-        this->line_info.args[1] = arg;
-        return ;
-    }
-
-    arg = this->extract_register();
-    if(arg.type != SYM_REG)
-    {
-        // try to extract a label
         this->line_info.error = true;
-        this->line_info.errstr = "Second argument must be register or literal (got " + arg.toString() + ")";
-        return;
-    }   
+        this->line_info.errstr = "Second argument must be REG, LITERAL, COND, or LABEL (got "
+            + std::string(this->cur_token.toString()) + ")";
 
+        if(this->verbose)
+            std::cout << this->line_info.error << std::endl;
+        
+        return;
+    }
     this->line_info.args[1] = arg;
 }
 
@@ -360,13 +455,10 @@ void Lexer::parse_line(void)
     this->line_info.line_num = this->cur_line;
     this->next_token();
 
-    std::cout << "[" << __func__ << "] next token was " << this->cur_token.toString() << std::endl;
 
     // Check if we have a label 
     if(this->cur_token.type == SYM_LABEL)
     {
-        std::cout << "[" << __func__ << "] ======== GOT A SYMBOL ======== " << std::endl;
-        // TODO : remove trailing ':'
         s.label = this->cur_token.val;
         s.addr  = this->cur_addr;
         this->symbol_table.add(s);

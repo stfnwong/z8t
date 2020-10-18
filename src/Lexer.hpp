@@ -16,37 +16,6 @@
 // TODO : find real start address
 #define TEXT_START_ADDR 0x0
 
-
-// Instructions 
-typedef enum {
-    INSTR_ADD, INSTR_AND, INSTR_DEC, INSTR_LD, INSTR_INC, INSTR_POP, INSTR_PUSH
-} Z80_INSTR;
-
-/*
- * List of valid instruction codes for SYM_INSTR tokens
- */
-static Opcode z80_instr_codes[] = {
-    {INSTR_ADD,  "add"},
-    {INSTR_AND,  "and"},
-    {INSTR_DEC,  "dec"},
-    {INSTR_LD,   "ld"},
-    {INSTR_INC,  "inc"},
-    {INSTR_POP,  "pop"},
-    {INSTR_PUSH, "push"}
-};
-
-static Opcode z80_reg_names[] = {
-    {REG_A, "a"},
-    {REG_B, "b"},
-    {REG_C, "c"},
-    {REG_D, "d"},
-    {REG_E, "e"},
-    {REG_H, "h"},
-    {REG_L, "l"},
-    {REG_HL, "hl"},
-    {REG_BC, "bc"}
-};
-
 /*
  * Lexer 
  */
@@ -65,8 +34,9 @@ class Lexer
     private:
         // Symbol/token info 
         InstrTable instr_table;
-        InstrTable reg_table;
+        RegisterTable reg_table;
         RegisterMap reg_map;
+        CondMap cond_map;
         SymbolTable symbol_table;
         void init_instr_table(void);
         void init_reg_table(void);
@@ -88,8 +58,9 @@ class Lexer
 
     // token extraction
     private:
-        Argument extract_literal(void);
-        Argument extract_register(void);
+        Argument parse_arg(const Token& token) const;
+        Argument extract_literal(const std::string& token_str);
+        Argument extract_register(const std::string& token_str);
 
     private:
         // parsing 

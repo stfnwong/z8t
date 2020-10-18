@@ -13,6 +13,14 @@
 #include <vector>
 
 /*
+ * Instructions
+ */
+typedef enum {
+    INSTR_ADD, INSTR_AND, INSTR_DEC, INSTR_LD, INSTR_INC, INSTR_POP, INSTR_PUSH
+} Z80_INSTR;
+
+
+/*
  * TokenType
  */
 typedef enum {
@@ -21,8 +29,10 @@ typedef enum {
     SYM_INSTR,
     SYM_LITERAL,
     SYM_LABEL,
-    SYM_REG
+    SYM_REG,
+    SYM_COND
 } TokenType;
+
 
 const std::vector <std::string> token_type_str = {
     "EOF",
@@ -31,6 +41,7 @@ const std::vector <std::string> token_type_str = {
     "LABEL",
     "REG"
 };
+
 
 /*
  * Token
@@ -79,12 +90,12 @@ struct Argument
  */
 struct Opcode
 {
-    uint16_t    code;
+    int        code;
     std::string mnemonic;
 
     public:
         Opcode();
-        Opcode(uint16_t opcode, const std::string& mnemonic);
+        Opcode(int opcode, const std::string& mnemonic);
 
         bool operator==(const Opcode& that) const;
         bool operator!=(const Opcode& that) const;
@@ -94,6 +105,7 @@ struct Opcode
 };
 
 
+// TODO : genericize these tables 
 class InstrTable
 {
     private:
@@ -106,6 +118,7 @@ class InstrTable
 
         void init(void);
         void add(const Opcode& o);
+        // TODO : return copy of T 
         void get(const std::string& mnemonic, Opcode& o) const;
         void get(const uint16_t opcode, Opcode& o) const;
         std::string getMnemonic(const uint16_t opcode) const;

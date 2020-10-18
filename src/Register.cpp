@@ -8,19 +8,46 @@
 #include <sstream>
 #include "Register.hpp"
 
+
+Condition::Condition() : idx(0), repr("\0") {} 
+
+Condition::Condition(const int v, const std::string& r) : idx(v), repr(r) {} 
+
+void Condition::init(void)
+{
+    this->idx = 0;
+    this->repr.clear();
+}
+
+bool Condition::operator==(const Condition& that) const
+{
+    if(this->idx != that.idx)
+        return false;
+    if(this->repr != that.repr)
+        return false;
+
+    return true;
+}
+
+bool Condition::operator!=(const Condition& that) const
+{
+    return !(*this == that);
+}
+
+
 /* 
  * REGISTER
  */
-Register::Register() : idx(0), repr("") {} 
+Register::Register() : val(0), repr("") {} 
 
-Register::Register(int i, const std::string& n) : idx(i), repr(n) {} 
+Register::Register(int i, const std::string& n) : val(i), repr(n) {} 
 
 /*
  * Register::==
  */
 bool Register::operator==(const Register& that) const
 {
-    if(this->idx != that.idx)
+    if(this->val != that.val)
         return false;
     if(this->repr != that.repr)
         return false;
@@ -75,7 +102,7 @@ RegisterMap::RegisterMap()
 }
 
 
-std::string RegisterMap::getName(const int idx) 
+std::string RegisterMap::getName(const int idx) const
 {
     auto name = this->reg_idx_to_reg_name.find(idx);
     if(name != this->reg_idx_to_reg_name.end())
@@ -84,7 +111,7 @@ std::string RegisterMap::getName(const int idx)
     return this->invalid_name;
 }
 
-int RegisterMap::getIdx(const std::string& name) 
+int RegisterMap::getIdx(const std::string& name) const
 {
     auto idx = this->reg_name_to_reg_idx.find(name);
     if(idx != this->reg_name_to_reg_idx.end())
@@ -96,4 +123,30 @@ int RegisterMap::getIdx(const std::string& name)
 unsigned int RegisterMap::size(void) const
 {
     return this->reg_idx_to_reg_name.size();
+}
+
+// REGISTER TABLE
+// TODO : refactor all tables to have a common ancestor
+RegisterTable::RegisterTable()
+{
+
+}
+
+void RegisterTable::add(const Register& r)
+{
+
+}
+
+
+/// TODO: probably refactor this 
+/*
+ * CondMap
+ */
+CondMap::CondMap()
+{
+    for (const Condition& cond : Z80_CONDITIONS)
+    {
+        this->cond_idx_to_cond_name[cond.idx] = cond.repr;
+        this->cond_name_to_cond_idx[cond.repr] = cond.idx;
+    }
 }

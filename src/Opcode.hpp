@@ -18,12 +18,5 @@ typedef struct
 } Opcode;
 
 
-/*
- * Instruction table 
- */
-class InstrTable
-{
-
-};
 
 #endif /*__OPCODE_HPP*/
