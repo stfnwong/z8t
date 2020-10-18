@@ -13,11 +13,12 @@ TOOL_DIR=tools
 # Tool options
 CXX=g++
 OPT=-O0
-CXXFLAGS=-Wall -g2 -std=c++14 -D_REENTRANT $(OPT)
-TESTFLAGS=-lgtest -lgtest_main
-LDFLAGS =$(shell root-config --ldflags)
-LIBS = 
-TEST_LIBS = -lgtest -lgtest_main
+CXXFLAGS=-Wall -g2 -std=c++17 $(OPT)
+TESTFLAGS=
+#LDFLAGS =$(shell root-config --ldflags)
+LDFLAGS=
+LIBS= 
+TEST_LIBS= 
 
 # Object targets
 INCS=-I$(SRC_DIR)
@@ -49,11 +50,11 @@ $(TEST_OBJECTS): $(OBJ_DIR)/%.o : $(TEST_DIR)/%.cpp
 #	$(CXX) $(CXXFLAGS) $(INCS) -c $< -o $@
 
 # ==== TEST TARGETS ==== #
-#TESTS=test_chip8 test_lexer test_assembler test_disassembler test_program 
-#$(TESTS): $(TEST_OBJECTS) $(OBJECTS)
-#	$(CXX) $(LDFLAGS) $(OBJECTS) $(OBJ_DIR)/$@.o\
-#		-o $(TEST_BIN_DIR)/$@ $(LIBS) $(TEST_LIBS)
-#
+TESTS=test_lexer test_token
+$(TESTS): $(TEST_OBJECTS) $(OBJECTS)
+	$(CXX) $(LDFLAGS) $(OBJECTS) $(OBJ_DIR)/$@.o\
+		-o $(TEST_BIN_DIR)/$@ $(LIBS) $(TEST_LIBS)
+
 ## ===== TOOL TARGETS ===== # 
 #TOOLS = c8asm c8dis
 #
@@ -70,6 +71,7 @@ tools : $(TOOLS)
 
 clean:
 	rm -rfv *.o $(OBJ_DIR)/*.o 
+	rm -rfv bin/test/test_*
 
 print-%:
 	@echo $* = $($*)
