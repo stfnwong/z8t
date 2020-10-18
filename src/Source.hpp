@@ -11,9 +11,11 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <unordered_map>
+
 
 /*
- * Instructions
+ * Instruction constants
  */
 typedef enum {
     INSTR_ADD, INSTR_AND, INSTR_DEC, INSTR_LD, INSTR_INC, INSTR_POP, INSTR_PUSH
@@ -26,21 +28,51 @@ typedef enum {
 typedef enum {
     SYM_NULL,
     SYM_EOF,
+    SYM_DIRECTIVE,
     SYM_INSTR,
     SYM_LITERAL,
+    SYM_LITERAL_IND,
     SYM_LABEL,
     SYM_REG,
     SYM_COND
 } TokenType;
 
+// Register names 
+typedef enum Z80_REG
+{
+    REG_NULL,
+    REG_A, 
+    REG_B, 
+    REG_C, 
+    REG_D, 
+    REG_E, 
+    REG_H, 
+    REG_L, 
+    REG_IXH, 
+    REG_IXL, 
+    REG_IYH, 
+    REG_IYL, 
+    REG_HL, 
+    REG_BC,
+    REG_BC_IND,     // indirect, ie: (BC)
+    REG_HL_IND,     // indirect, ie: (HL)
+    REG_DE_IND      // indirect, ie: (DE)
+} Z80_REG;
 
-const std::vector <std::string> token_type_str = {
-    "EOF",
-    "INSTR",
-    "LITERAL",
-    "LABEL",
-    "REG"
-};
+
+// Condition codes
+typedef enum
+{
+    COND_C,
+    COND_NC, 
+    COND_Z,
+    COND_NZ,
+    COND_M,
+    COND_P,
+    COND_PE,
+} Z80_COND;
+
+
 
 
 /*
@@ -54,40 +86,64 @@ struct Token
 
     public:
         Token();
-        Token(const std::string& repr, const TokenType& type, int val);
+        Token(const TokenType& type, int val, const std::string& repr);
         Token(const Token& that);
 
         bool operator==(const Token& that) const;
         bool operator!=(const Token& that) const;
+        void init(void);
 
         std::string toString(void) const;
 };
 
-
-// TODO : a lookup table for tokens
-
-
-// TODO : deprecate this (replace with Token)
-/*
- * Argument
- */
-struct Argument
+// Collection of all valid tokens 
+const Token Z80_TOKENS[] =
 {
-    TokenType type;
-    int val;
-    std::string repr;
+    // Instructions 
+    Token(SYM_INSTR, INSTR_ADD, "add" ),
+    Token(SYM_INSTR, INSTR_AND, "and" ),
+    Token(SYM_INSTR, INSTR_DEC, "dec" ),
+    Token(SYM_INSTR, INSTR_LD , "ld"  ),
+    Token(SYM_INSTR, INSTR_INC, "inc" ),
+    Token(SYM_INSTR, INSTR_POP, "pop" ),
+    Token(SYM_INSTR, INSTR_PUSH, "push"),
+    // Registers 
+    Token(SYM_REG,  REG_A,  "a"),
+    Token(SYM_REG,  REG_B,  "b"),
+    Token(SYM_REG,  REG_C,  "c"),
+    Token(SYM_REG,  REG_D,  "d"),
+    Token(SYM_REG,  REG_E,  "e"),
+    Token(SYM_REG,  REG_H,  "h"),
+    Token(SYM_REG,  REG_L,  "l"),
+    Token(SYM_REG,  REG_HL, "hl"),
+    Token(SYM_REG,  REG_BC, "bc"),
+    // directives
+    // conditions
+    Token(SYM_COND, COND_C,  "C"), 
+    Token(SYM_COND, COND_NC, "NC"),
+    Token(SYM_COND, COND_Z,  "Z"), 
+    Token(SYM_COND, COND_NZ, "NZ"),
+    Token(SYM_COND, COND_M,  "M"), 
+    Token(SYM_COND, COND_P,  "P"), 
+    Token(SYM_COND, COND_PE, "PE"),
+};
+
+
+/*
+ * TokenLookup
+ * Table of all known tokens 
+ */
+class TokenLookup
+{
+    std::unordered_map<std::string, Token> name_to_token;
 
     public:
-        Argument();
-        Argument(const TokenType& type, int val);
-        Argument(const TokenType& type, int val, const std::string& s);
-        Argument(const Argument& that);
+        TokenLookup();
 
-        bool operator==(const Argument& that) const;
-        bool operator!=(const Argument& that) const;
-        void init(void);
-        std::string toString(void) const;
+        Token lookup(const std::string& s) const;
 };
+
+
 
 /* 
  * Opcode 
@@ -111,49 +167,6 @@ struct Opcode
 };
 
 
-// TODO : genericize these tables ? 
-// For the tables, what features do we actually need?
-//
-// InstrTable:
-// - add 
-// - get by string,
-// - get by opcode 
-// - get by idx 
-// - getMnemonic
-//
-// SymbolTable:
-// - add 
-// - update 
-// - get by idx 
-// - get addr 
-// - get number of symbols
-//
-// This might mean that the consolidation opportunities are a bit more
-// limited than I thought, since they are both just wrappers around vectors
-// anyway, and the difference really is just in the interface (which is
-// different to suit the different design goals)
-class InstrTable
-{
-    private:
-        std::vector<Opcode> instrs;
-        Opcode null_opcode;
-        
-    public:
-        InstrTable();
-        InstrTable(const InstrTable& that) = delete;    // TODO; copy ctor later
-
-        void init(void);
-        void add(const Opcode& o);
-        // TODO : return copy of T 
-        void get(const std::string& mnemonic, Opcode& o) const;
-        void get(const uint16_t opcode, Opcode& o) const;
-        std::string getMnemonic(const uint16_t opcode) const;
-        void getIdx(const unsigned int idx, Opcode& o) const;
-
-        // generic getters 
-        unsigned int getNumOps(void) const;
-        std::string getStr(const unsigned int idx) const;
-};
 
 /* 
  * Symbol
@@ -208,8 +221,7 @@ struct TextLine
     std::string label;
     std::string errstr;
     Opcode      opcode;
-    // TODO : Argument -> Token
-    Argument    args[2];
+    Token       args[2];
     uint16_t    line_num;
     uint16_t    addr;
     bool        is_label;

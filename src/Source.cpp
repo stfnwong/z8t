@@ -11,22 +11,22 @@
 /*
  * Token
  */
-Token::Token() : repr("\0"), type(SYM_NULL), val(-1) {}
+Token::Token() : type(SYM_NULL), val(-1), repr("\0") {}
 
-Token::Token(const std::string& repr, const TokenType& t, int val)
+Token::Token(const TokenType& t, int val, const std::string& repr)
 {
-    this->repr = repr;
     this->type = t;
     this->val  = val;
+    this->repr = repr;
 }
 /*
  * copy ctor
  */
 Token::Token(const Token& that)
 {
-    this->repr = that.repr;
     this->type = that.type;
     this->val = that.val;
+    this->repr = that.repr;
 }
 
 /*
@@ -34,11 +34,11 @@ Token::Token(const Token& that)
  */
 bool Token::operator==(const Token& that) const
 {
-    if(this->repr != that.repr)
-        return false;
     if(this->type != that.type)
         return false;
     if(this->val != that.val)
+        return false;
+    if(this->repr != that.repr)
         return false;
     return true;
 }
@@ -49,6 +49,13 @@ bool Token::operator==(const Token& that) const
 bool Token::operator!=(const Token& that) const
 {
     return !(*this == that);
+}
+
+void Token::init(void)
+{
+    this->type = SYM_NULL;
+    this->val = -1;
+    this->repr.clear();
 }
 
 /*
@@ -68,80 +75,35 @@ std::string Token::toString(void) const
             return "LABEL <" + std::string(this->repr) + ">";
         case SYM_REG:
             return "REGISTER <" + std::string(this->repr) + ">";
+        case SYM_COND:
+            return "CONDITION <" + std::string(this->repr) + ">";
         default:
             return "NULL <" + std::string(this->repr) + ">";
     }
 }
 
-// TODO: deprecate
+
 /*
- * Argument
+ * TOKEN LOOKUP
  */
-Argument::Argument() : type(SYM_NULL), val(0), repr("\0") {} 
-
-Argument::Argument(const TokenType& t, int v) : type(t), val(v), repr("\0") {} 
-
-Argument::Argument(const TokenType& t, int v, const std::string& s) : type(t), val(v), repr(s) {} 
-
-Argument::Argument(const Argument& that)
+TokenLookup::TokenLookup()
 {
-    this->type = that.type;
-    this->val = that.val;
-    this->repr = that.repr;
-}
-
-bool Argument::operator==(const Argument& that) const
-{
-    if(this->type != that.type)
-        return false;
-    if(this->val != that.val)
-        return false;
-    if(this->repr != that.repr)
-        return false;
-
-    return true;
-}
-
-bool Argument::operator!=(const Argument& that) const
-{
-    return !(*this == that);
-}
-
-void Argument::init(void)
-{
-    this->type = SYM_NULL;
-    this->val = 0;
-    this->repr = "\0";
-}
-
-std::string Argument::toString(void) const
-{
-    std::ostringstream oss;
-
-    switch(this->type)
+    for(const Token& token : Z80_TOKENS)
     {
-        case SYM_EOF:
-            oss << "EOF <" << this->val << ">";
-            break;
-        case SYM_INSTR:
-            oss << "INSTR <" << this->val << ">";
-            break;
-        case SYM_LITERAL:
-            oss << "LITERAL <" << this->val << ">";
-            break;
-        case SYM_LABEL:
-            oss << "LABEL <" << this->val << ">";
-            break;
-        case SYM_REG:
-            oss << "REGISTER <" << this->val << ">";
-            break;
-        default:
-            oss << "NULL <" << this->val << ">";
-            break;
+        this->name_to_token[token.repr] = token;
     }
-
-    return oss.str();
 }
+
+
+Token TokenLookup::lookup(const std::string& s) const
+{
+    auto token = this->name_to_token.find(s);
+    if(token != this->name_to_token.end())
+        return token->second;
+
+    return Token();     // can't find anything, return an empty token
+}
+
 
 /*
  * Opcode
@@ -223,76 +185,6 @@ SymbolTable::SymbolTable() {}
 void SymbolTable::add(const Symbol& s)
 {
     this->syms.push_back(s);
-}
-
-
-/* 
- * InstrTable
- */
-InstrTable::InstrTable() {} 
-
-void InstrTable::init(void)
-{
-    this->instrs.clear();
-}
-
-void InstrTable::add(const Opcode& op)
-{
-    this->instrs.push_back(op);
-}
-
-// TODO : return opcode copy
-/*
- * get()
- */
-void InstrTable::get(const std::string& name, Opcode& op) const
-{
-    for(unsigned int idx = 0; idx < this->instrs.size(); ++idx)
-    {
-        if(this->instrs[idx].mnemonic == name)
-        {
-            op.code = this->instrs[idx].code;
-            op.mnemonic = this->instrs[idx].mnemonic;
-            return;
-        }
-    }
-    
-    // Can't find any match
-    op.code = 0;
-    op.mnemonic = "\0";
-}
-
-/*
- * get()
- */
-void InstrTable::get(const uint16_t code, Opcode& op) const
-{
-    for(unsigned int idx = 0; idx < this->instrs.size(); ++idx)
-    {
-        if(this->instrs[idx].code == code)
-        {
-            op.code = this->instrs[idx].code;
-            op.mnemonic = this->instrs[idx].mnemonic;
-            return;
-        }
-    }
-    
-    // Can't find any match
-    op.code = 0;
-    op.mnemonic = "\0";
-}
-
-/* 
- * getMnemonic()
- */
-std::string InstrTable::getMnemonic(const uint16_t code) const
-{
-    for(unsigned int idx = 0; idx < this->instrs.size(); ++idx)
-    {
-        if(this->instrs[idx].code == code)
-            return this->instrs[idx].mnemonic;
-    }
-    return std::string("\0");
 }
 
 

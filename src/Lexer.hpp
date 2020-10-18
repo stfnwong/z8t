@@ -10,7 +10,6 @@
 
 #include <string>
 #include <cstdint>
-#include "Register.hpp"
 #include "Source.hpp"
 
 // TODO : find real start address
@@ -33,13 +32,8 @@ class Lexer
 
     private:
         // Symbol/token info 
-        InstrTable instr_table;
-        RegisterTable reg_table;
-        RegisterMap reg_map;
-        CondMap cond_map;
+        TokenLookup token_lookup;
         SymbolTable symbol_table;
-        void init_instr_table(void);
-        void init_reg_table(void);
 
     private:
         // source movement 
@@ -56,24 +50,20 @@ class Lexer
         bool is_space(void);
         bool is_comment(void);
 
-    // token extraction
-    private:
-        Argument parse_arg(const Token& token) const;
-        Argument extract_literal(const std::string& token_str);
-        Argument extract_register(const std::string& token_str);
-
     private:
         // parsing 
         void skip_whitespace(void);
         void skip_comment(void);
         void skip_seperators(void);
         void scan_token(void);
-        void next_token(void);
+
+        Token tok_string_to_literal(const std::string& tok_string) const;
+        Token next_token(void);
 
         void parse_one_arg(void);
         void parse_two_arg(void);
 
-        void parse_instruction(void);
+        void parse_instruction(const Token& token);
         void parse_line(void);
 
     private:
