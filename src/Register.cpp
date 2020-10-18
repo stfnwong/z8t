@@ -69,7 +69,7 @@ Register& Register::operator=(const Register& that)
 {
     if(this != &that)
     {
-        this->idx = that.idx;
+        this->val = that.val;
         this->repr = that.repr;
     }
 
@@ -83,7 +83,7 @@ std::string Register::toString(void) const
 {
     std::ostringstream oss;
 
-    oss << this->repr << "[" << std::dec << this->idx << "]";
+    oss << this->repr << "[" << std::dec << this->val << "]";
 
     return oss.str();
 }
@@ -96,8 +96,8 @@ RegisterMap::RegisterMap()
 {
     for (const Register& reg : Z80_REGISTERS)
     {
-        this->reg_idx_to_reg_name[reg.idx] = reg.repr;
-        this->reg_name_to_reg_idx[reg.repr] = reg.idx;
+        this->reg_idx_to_reg_name[reg.val] = reg.repr;
+        this->reg_name_to_reg_idx[reg.repr] = reg.val;
     }
 }
 

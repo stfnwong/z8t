@@ -1,5 +1,5 @@
 /* 
- * TEST_REGISTER_MAP 
+ * TEST_LOOKUP 
  *
  * Stefan Wong 2018
  */
@@ -12,12 +12,15 @@
 #include <vector>
 #include <string>
 
+#include "Lookup.hpp"
 #include "Register.hpp"
+
+
 
 
 TEST_CASE("test_reg_map_init", "[classic]")
 {
-    RegisterMap rmap;
+    Lookup<Register> reg_map(Z80_REGISTERS);
 
 
 }

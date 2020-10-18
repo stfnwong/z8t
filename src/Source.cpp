@@ -11,24 +11,22 @@
 /*
  * Token
  */
-Token::Token()
-{
-    this->val = "\0";
-    this->type = SYM_NULL;
-}
+Token::Token() : repr("\0"), type(SYM_NULL), val(-1) {}
 
-Token::Token(const std::string& val, const TokenType& t)
+Token::Token(const std::string& repr, const TokenType& t, int val)
 {
-    this->val  = val;
+    this->repr = repr;
     this->type = t;
+    this->val  = val;
 }
 /*
  * copy ctor
  */
 Token::Token(const Token& that)
 {
-    this->val = that.val;
+    this->repr = that.repr;
     this->type = that.type;
+    this->val = that.val;
 }
 
 /*
@@ -36,9 +34,11 @@ Token::Token(const Token& that)
  */
 bool Token::operator==(const Token& that) const
 {
-    if(this->val != that.val)
+    if(this->repr != that.repr)
         return false;
     if(this->type != that.type)
+        return false;
+    if(this->val != that.val)
         return false;
     return true;
 }
@@ -59,21 +59,21 @@ std::string Token::toString(void) const
     switch(this->type)
     {
         case SYM_EOF:
-            return "EOF <" + std::string(this->val) + ">";
+            return "EOF <" + std::string(this->repr) + ">";
         case SYM_INSTR:
-            return "INSTR <" + std::string(this->val) + ">";
+            return "INSTR <" + std::string(this->repr) + ">";
         case SYM_LITERAL:
-            return "LITERAL <" + std::string(this->val) + ">";
+            return "LITERAL <" + std::string(this->repr) + ">";
         case SYM_LABEL:
-            return "LABEL <" + std::string(this->val) + ">";
+            return "LABEL <" + std::string(this->repr) + ">";
         case SYM_REG:
-            return "REGISTER <" + std::string(this->val) + ">";
+            return "REGISTER <" + std::string(this->repr) + ">";
         default:
-            return "NULL <" + std::string(this->val) + ">";
+            return "NULL <" + std::string(this->repr) + ">";
     }
-
 }
 
+// TODO: deprecate
 /*
  * Argument
  */
@@ -146,7 +146,7 @@ std::string Argument::toString(void) const
 /*
  * Opcode
  */
-Opcode::Opcode() : code(0), mnemonic("\0") {}
+Opcode::Opcode() : code(-1), mnemonic("\0") {}
 
 Opcode::Opcode(int code, const std::string& mnemonic)
 {
@@ -156,7 +156,7 @@ Opcode::Opcode(int code, const std::string& mnemonic)
 
 void Opcode::init(void)
 {
-    this->code = 0 ;
+    this->code = -1;
     this->mnemonic.clear();
 }
 
@@ -180,7 +180,7 @@ std::string Opcode::toString(void) const
     std::ostringstream oss;
 
     oss << this->mnemonic << " [0x" << std::hex << std::setw(4)
-        << std::setfill('0') << this->code "]";
+        << std::setfill('0') << this->code << "]";
 
     return oss.str();
 }

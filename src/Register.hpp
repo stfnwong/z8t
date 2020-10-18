@@ -8,6 +8,10 @@
 
 #include <unordered_map>
 
+// TODO: why bother with all this? Why not just use tokens here? 
+// These things are more strongly typed, but why we even care?
+
+
 /*
  * Register
  * Structure representation of a named register
@@ -107,6 +111,10 @@ const Condition Z80_CONDITIONS[] =
 
 
 // TODO : the generic version is what? BidirMap?
+
+// Here, these are maps that we just use to lookup whether or not a 
+// particular symbol is something we care about
+
 
 /*
  * RegisterMap

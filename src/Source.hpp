@@ -48,12 +48,13 @@ const std::vector <std::string> token_type_str = {
  */
 struct Token
 {
-    std::string val;
+    std::string repr;
     TokenType   type;
+    int         val;
 
     public:
         Token();
-        Token(const std::string& val, const TokenType& type);
+        Token(const std::string& repr, const TokenType& type, int val);
         Token(const Token& that);
 
         bool operator==(const Token& that) const;
@@ -62,6 +63,11 @@ struct Token
         std::string toString(void) const;
 };
 
+
+// TODO : a lookup table for tokens
+
+
+// TODO : deprecate this (replace with Token)
 /*
  * Argument
  */
@@ -105,7 +111,27 @@ struct Opcode
 };
 
 
-// TODO : genericize these tables 
+// TODO : genericize these tables ? 
+// For the tables, what features do we actually need?
+//
+// InstrTable:
+// - add 
+// - get by string,
+// - get by opcode 
+// - get by idx 
+// - getMnemonic
+//
+// SymbolTable:
+// - add 
+// - update 
+// - get by idx 
+// - get addr 
+// - get number of symbols
+//
+// This might mean that the consolidation opportunities are a bit more
+// limited than I thought, since they are both just wrappers around vectors
+// anyway, and the difference really is just in the interface (which is
+// different to suit the different design goals)
 class InstrTable
 {
     private:
@@ -132,8 +158,8 @@ class InstrTable
 /* 
  * Symbol
  */
-struct Symbol{
-
+struct Symbol
+{
     uint16_t    addr;
     std::string label;
 
@@ -182,6 +208,7 @@ struct TextLine
     std::string label;
     std::string errstr;
     Opcode      opcode;
+    // TODO : Argument -> Token
     Argument    args[2];
     uint16_t    line_num;
     uint16_t    addr;

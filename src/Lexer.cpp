@@ -42,8 +42,8 @@ void Lexer::init_mem(void)
  */
 void Lexer::init_instr_table(void)
 {
-    for(const Opcode& code : z80_instr_codes)
-        this->instr_table.add(code);
+    ///for(const Opcode& code : Z80_INSTR)
+    ///    this->instr_table.add(code);
 }
 
 /*
@@ -248,9 +248,9 @@ void Lexer::next_token(void)
     }
 
     // named register
-    reg = this->reg_map.get(token_str);     // TODO ; if we are going to do this, why bother tokenizing at all?
-    if(reg.val != SYM_NULL)
-    this->reg_table.get(token_str, op);
+    //reg = this->reg_map.get(token_str);     // TODO ; if we are going to do this, why bother tokenizing at all?
+    //if(reg.val != SYM_NULL)
+    //this->reg_table.get(token_str, op);
     if(op.mnemonic != "\0")
     {
         this->cur_token.type = SYM_REG;
@@ -278,18 +278,22 @@ TOKEN_END:
     }
 }
 
-Argument Lexer::token_to_arg(const std::string& token)
-{
-    Argument arg;
-    Opcode op;
-
-    op = this->instr_table.get(token);
-
-
-
-    return arg;
-}
-
+///Argument Lexer::token_to_arg(const std::string& token)
+///{
+///    Argument arg;
+///    Opcode op;
+///
+///    op = this->instr_table.get(token);
+///    if(op.code > 0)
+///    {
+///        // this is an instruction
+///    }
+///
+///
+///
+///    return arg;
+///}
+///
 
 /*
  * parse_arg()
@@ -310,12 +314,12 @@ Argument Lexer::parse_arg(const Token& token) const
             if(token.val[0] == '$')
                 arg.val = std::stoi(token.val.substr(1, token.val.size()-1), nullptr, 16);
             else
-                arg.val = std::stoi(token, nullptr, 10);
+                arg.val = std::stoi(token.val, nullptr, 10);
             arg.repr = token.val;
             break;
 
         case SYM_COND:
-            arg.val  = this->cond_map.getIdx(token.val);
+            //arg.val  = this->cond_map.getIdx(token.val);  // TODO : fix with new map
             arg.repr = token.val;
             break;
 
