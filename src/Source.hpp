@@ -73,16 +73,14 @@ typedef enum
 } Z80_COND;
 
 
-
-
 /*
  * Token
  */
 struct Token
 {
-    std::string repr;
     TokenType   type;
     int         val;
+    std::string repr;
 
     public:
         Token();
@@ -139,7 +137,6 @@ class TokenLookup
 
     public:
         TokenLookup();
-
         Token lookup(const std::string& s) const;
 };
 
@@ -152,7 +149,7 @@ class TokenLookup
  */
 struct Opcode
 {
-    int        code;
+    int         code;
     std::string mnemonic;
 
     public:
@@ -166,6 +163,29 @@ struct Opcode
         std::string toString(void) const;
 };
 
+
+const Opcode Z80_OPCODES[] = 
+{
+    Opcode(INSTR_ADD, "add" ),
+    Opcode(INSTR_AND, "and" ),
+    Opcode(INSTR_DEC, "dec" ),
+    Opcode(INSTR_LD , "ld"  ),
+    Opcode(INSTR_INC, "inc" ),
+    Opcode(INSTR_POP, "pop" ),
+    Opcode(INSTR_PUSH, "push"),
+};
+
+
+class OpcodeLookup
+{
+    std::unordered_map<int, Opcode> val_to_opcode;
+    std::unordered_map<std::string, Opcode> name_to_opcode;
+
+    public:
+        OpcodeLookup();
+        Opcode get(const int val) const;
+        Opcode get(const std::string& name) const;
+}; 
 
 
 /* 
@@ -220,7 +240,7 @@ struct TextLine
     std::string symbol;
     std::string label;
     std::string errstr;
-    Opcode      opcode;
+    Opcode      opcode;     // TODO : make this just another Token?
     Token       args[2];
     uint16_t    line_num;
     uint16_t    addr;

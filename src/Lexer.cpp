@@ -180,6 +180,9 @@ Token Lexer::next_token(void)
     // Check if this is an instruction, register, condition, or directive
     token = this->token_lookup.lookup(tok_string);
 
+    // TODO: debug, remove 
+    std::cout << "[" << __func__ << "] token was " << token.toString() << " at lookup time" << std::endl;
+
     // not a pre-defined token
     if(token.type == SYM_NULL)
     {
@@ -197,9 +200,8 @@ Token Lexer::next_token(void)
             //    idx++;
             // TODO : hack version - replace with something more robust 
             
-            
+            std::cout << "[" << __func__ << "] when indirection is implemented, this branch will parse indirections" << std::endl; 
             token.type = SYM_LITERAL_IND;
-
         } 
         // presume this is a label
         else
@@ -209,6 +211,8 @@ Token Lexer::next_token(void)
             token.type = SYM_LABEL;
         }
     }
+
+    std::cout << "[" << __func__ << "] token was " << token.toString() << " at return time" << std::endl;
 
     return token;
 }
@@ -288,12 +292,13 @@ void Lexer::parse_two_arg(void)
  */
 void Lexer::parse_instruction(const Token& token)
 {
-    Opcode op;
-
     if(this->verbose)
     {
         std::cout << "[" << __func__ << "] processing instruction token " << token.toString() << std::endl;
     }
+
+    // get the corresponding opcode
+    this->line_info.opcode = this->opcode_lookup.get(token.repr);
 
     // Since this is already a token object we can just
     // jump based on the value
@@ -339,19 +344,16 @@ void Lexer::parse_line(void)
 
     if(token.type == SYM_LABEL)
     {
+        // add symbol to table
         s.label = token.val;
         s.addr  = this->cur_addr;
         this->symbol_table.add(s);
         this->line_info.label = s.label;
+
         // Scan the next token
         token = this->next_token();
         this->line_info.line_num = this->cur_line;
         this->line_info.is_label = true;
-
-        // TODO : debug 
-        std::cout << "[" << __func__ << "] just added label to line " 
-            << std::dec << this->cur_line << std::endl;
-        std::cout << this->line_info.toString() << std::endl;
     }
 
     // handle instructions 

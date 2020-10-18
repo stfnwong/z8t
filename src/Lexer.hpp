@@ -33,6 +33,7 @@ class Lexer
     private:
         // Symbol/token info 
         TokenLookup token_lookup;
+        OpcodeLookup opcode_lookup;
         SymbolTable symbol_table;
 
     private:

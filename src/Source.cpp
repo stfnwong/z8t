@@ -147,6 +147,36 @@ std::string Opcode::toString(void) const
     return oss.str();
 }
 
+/*
+ * Opcode lookup
+ */
+OpcodeLookup::OpcodeLookup()
+{
+    for(const Opcode& opcode : Z80_OPCODES)
+    {
+        this->val_to_opcode[opcode.code] = opcode;
+        this->name_to_opcode[opcode.mnemonic] = opcode;
+    }
+}
+
+Opcode OpcodeLookup::get(const int val) const
+{
+    auto op = this->val_to_opcode.find(val);
+    if(op != this->val_to_opcode.end())
+        return op->second;
+
+    return Opcode();     // can't find anything, return an empty opcode
+}
+
+
+Opcode OpcodeLookup::get(const std::string& name) const
+{
+    auto op = this->name_to_opcode.find(name);
+    if(op != this->name_to_opcode.end())
+        return op->second;
+
+    return Opcode();     // can't find anything, return an empty opcode
+}
 
 /* 
  * Symbol

@@ -47,7 +47,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.opcode = Opcode(INSTR_LD, "ld");
     line.addr = TEXT_START_ADDR + 2;    
     line.args[0] = Token(SYM_REG, REG_HL, "hl");
-    line.args[1] = Token(SYM_LITERAL, 0xFC00, "FC00");
+    line.args[1] = Token(SYM_LITERAL, 0xFC00, "$fc00");
     info.add(line);
 
     // ld bc, $00BB
@@ -56,7 +56,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.opcode = Opcode(INSTR_LD, "ld");
     line.addr = TEXT_START_ADDR + 3;    
     line.args[0] = Token(SYM_REG, REG_BC, "bc");
-    line.args[1] = Token(SYM_LITERAL, 0x00BB, "00BB");
+    line.args[1] = Token(SYM_LITERAL, 0x00BB, "$00bb");
     info.add(line);
 
     // add hl, $FCBB
@@ -65,7 +65,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.opcode = Opcode(INSTR_ADD, "add");
     line.addr = TEXT_START_ADDR + 4;    
     line.args[0] = Token(SYM_REG, REG_HL, "hl");
-    line.args[1] = Token(SYM_LITERAL, 0xFCBB, "FCBB");
+    line.args[1] = Token(SYM_LITERAL, 0xFCBB, "$fcbb");
     info.add(line);
 
     // ld b, 8
@@ -174,7 +174,7 @@ SourceInfo get_add_sub_expected_source(void)
 TEST_CASE("test_lexer_init", "[classic]")
 {
     int status;
-    std::string infile = "data/add_sub.asm";
+    std::string infile = "asm/add_sub.asm";
     SourceInfo lex_source;
     SourceInfo exp_source;
 
