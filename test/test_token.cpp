@@ -14,6 +14,8 @@
 #include "Source.hpp"
 
 
+// TODO : just test all reserved symbols
+
 TEST_CASE("test_token_lookup", "[classic]")
 {
     TokenLookup lut;
