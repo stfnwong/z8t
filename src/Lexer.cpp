@@ -175,14 +175,9 @@ Token Lexer::next_token(void)
     std::string tok_string;
     
     this->scan_token();
-    tok_string = std::string(this->token_buf);  // this variable could be factored out
+    tok_string = std::string(this->token_buf);  
 
-    // Check if this is an instruction, register, condition, or directive
     token = this->token_lookup.lookup(tok_string);
-
-    // TODO: debug, remove 
-    std::cout << "[" << __func__ << "] token was " << token.toString() << " at lookup time" << std::endl;
-
     // not a pre-defined token
     if(token.type == SYM_NULL)
     {
@@ -212,8 +207,6 @@ Token Lexer::next_token(void)
         }
     }
 
-    std::cout << "[" << __func__ << "] token was " << token.toString() << " at return time" << std::endl;
-
     return token;
 }
 
@@ -223,27 +216,27 @@ Token Lexer::next_token(void)
  */
 void Lexer::parse_one_arg(void)
 {
-    switch(this->cur_token.type)
+    Token token;
+
+    token = this->next_token();
+    if(token.type == SYM_NULL)
     {
-        case SYM_REG:
-            break;
-        case SYM_LITERAL:
-            break;
-        case SYM_COND:
-            break;
-        case SYM_LABEL:
-            break;
-        default:
-            this->line_info.error = true;
-            this->line_info.errstr = "First argument must be REG, LITERAL, COND, or LABEL (got "
-                + this->cur_token.toString() + ")";
-            if(this->verbose)
-                std::cout << this->line_info.error << std::endl;
-            break;
+        this->line_info.error = true;
+        this->line_info.errstr = "First argument must be REG, LITERAL, COND, or LABEL (got "
+            + std::string(token.toString()) + ")";
+
+        if(this->verbose)
+            std::cout << this->line_info.error << std::endl;
+        
+        return;
     }
+    if(token.type == SYM_LABEL)
+    {
+        this->line_info.is_label = true;
+        this->line_info.label = token.val;
+    }
+    this->line_info.args[0] = token;
 }
-
-
 
 
 /*
@@ -258,7 +251,7 @@ void Lexer::parse_two_arg(void)
     {
         this->line_info.error = true;
         this->line_info.errstr = "First argument must be REG, LITERAL, COND, or LABEL (got "
-            + std::string(this->cur_token.toString()) + ")";
+            + std::string(token.toString()) + ")";
 
         if(this->verbose)
             std::cout << this->line_info.error << std::endl;
@@ -268,7 +261,7 @@ void Lexer::parse_two_arg(void)
     if(token.type == SYM_LABEL)
     {
         this->line_info.is_label = true;
-        this->line_info.label = this->cur_token.val;
+        this->line_info.label = token.val;
     }
     this->line_info.args[0] = token;
 
@@ -277,7 +270,7 @@ void Lexer::parse_two_arg(void)
     {
         this->line_info.error = true;
         this->line_info.errstr = "Second argument must be REG, LITERAL, COND, or LABEL (got "
-            + std::string(this->cur_token.toString()) + ")";
+            + std::string(token.toString()) + ")";
 
         if(this->verbose)
             std::cout << this->line_info.error << std::endl;
@@ -292,11 +285,6 @@ void Lexer::parse_two_arg(void)
  */
 void Lexer::parse_instruction(const Token& token)
 {
-    if(this->verbose)
-    {
-        std::cout << "[" << __func__ << "] processing instruction token " << token.toString() << std::endl;
-    }
-
     // get the corresponding opcode
     this->line_info.opcode = this->opcode_lookup.get(token.repr);
 

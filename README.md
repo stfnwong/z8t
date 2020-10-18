@@ -1,6 +1,8 @@
 # Z8T
 A Z80 assembler, disassembler, and emulator.
 
+[![Build Status](https://travis-ci.com/stfnwong/z8t.svg?token=8stNvsTq48pbK7bVmwzi&branch=master)](https://travis-ci.com/stfnwong/z8t)
+
 And maybe eventually RTL as well.
 
 ### TODO : Most of everything
