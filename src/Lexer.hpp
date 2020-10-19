@@ -42,8 +42,8 @@ class Lexer
         void advance(void);
         unsigned int cur_pos;
         unsigned int cur_line;
-        char cur_char;
-        char* token_buf;
+        char         cur_char;
+        char*        token_buf;
         unsigned int token_buf_size;
 
     private:
@@ -66,6 +66,8 @@ class Lexer
 
         void parse_instruction(const Token& token);
         void parse_line(void);
+
+        void resolve_labels(void);
 
     private:
         std::string source;

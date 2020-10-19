@@ -314,6 +314,30 @@ void Lexer::parse_instruction(const Token& token)
     }
 }
 
+
+/*
+ * resolve_labels()
+ */
+void Lexer::resolve_labels(void)
+{
+    uint16_t label_addr;
+
+    // walk over the sourceinfo and check for labels
+    for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
+    {
+        TextLine cur_line = this->source_info.get(idx);
+        if(cur_line.sym_arg > 0)
+        {
+            label_addr = this->symbol_table.getAddr(cur_line.symbol);
+            if(label_addr > 0)
+            {
+                cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, label_addr, std::to_string(label_addr));
+                this->source_info.update(idx, cur_line);
+            }
+        }
+    }
+}
+
 /*
  * parse_line()
  */

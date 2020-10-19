@@ -193,6 +193,12 @@ Symbol::Symbol(const uint16_t addr, const std::string& label)
     this->label = label;
 }
 
+void Symbol::init(void)
+{
+    this->addr = 0;
+    this->label.clear();
+}
+
 bool Symbol::operator==(const Symbol& that) const
 {
     if(this->addr != that.addr)
@@ -212,11 +218,90 @@ bool Symbol::operator!=(const Symbol& that) const
  */
 SymbolTable::SymbolTable() {} 
 
+/*
+ * add()
+ */
 void SymbolTable::add(const Symbol& s)
 {
     this->syms.push_back(s);
 }
 
+/*
+ * update()
+ */
+void SymbolTable::update(const unsigned int idx, const Symbol& s)
+{
+    if(idx < this->syms.size())
+        this->syms[idx] = s;
+}
+
+/*
+ * get()
+ */
+Symbol SymbolTable::get(const unsigned int idx) const
+{
+    return this->syms[idx];
+}
+
+/*
+ * getAddr()
+ */
+uint16_t SymbolTable::getAddr(const std::string& sym) const
+{
+    uint16_t addr = 0;
+
+    // if this turns out to be a bottleneck then this can be made 
+    // and unordered map of labels to addresses
+    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
+    {
+        if(sym == this->syms[idx].label)
+            return this->syms[idx].addr;
+    }
+
+    return addr;
+}
+
+std::string SymbolTable::getName(const uint16_t addr)  const
+{
+    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
+    {
+        if(addr == this->syms[idx].addr)
+            return this->syms[idx].label;
+    }
+
+    return "";
+}
+
+/*
+ * init()
+ */
+void SymbolTable::init(void)
+{
+    this->syms.clear();
+}
+
+unsigned int SymbolTable::size(void) const
+{
+    return this->syms.size();
+}
+
+/*
+ * toString()
+ */
+std::string SymbolTable::toString(void) const
+{
+    std::ostringstream oss;
+
+    oss << "Symbol Table: (" << this->syms.size() << " symbols)" << std::endl;
+    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
+    {
+        oss << "    [" << this->syms[idx].label << "] -> 0x" << std::hex 
+            << std::setw(4) << std::setfill('0') << this->syms[idx].addr 
+            << std::endl;
+    }
+
+    return oss.str();
+}
 
 /*
  * TextLine
@@ -233,9 +318,11 @@ TextLine::TextLine(const TextLine& that)
 {
     this->opcode   = that.opcode;
     this->label    = that.label;
+    this->errstr   = that.errstr;
     this->symbol   = that.symbol;
     this->line_num = that.line_num;
     this->addr     = that.addr;
+    this->sym_arg  = that.sym_arg;
 
     for(int i = 0; i < 2; ++i)
         this->args[i] = that.args[i];
@@ -286,6 +373,7 @@ void TextLine::init(void)
     this->errstr.clear();   
     this->line_num = 0;
     this->addr     = 0;
+    this->sym_arg  = -1; 
 
     this->is_label = false;
     this->error    = false;
@@ -427,6 +515,14 @@ TextLine SourceInfo::get(const unsigned int idx) const
     
     TextLine l;
     return l;
+}
+
+/*
+ * update()
+ */
+void SourceInfo::update(const unsigned int idx, const TextLine& l)
+{
+    this->info[idx] = l;
 }
 
 /*

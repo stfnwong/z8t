@@ -206,7 +206,11 @@ struct Opcode
         std::string toString(void) const;
 };
 
-
+/*
+ * List of Accepted instruction Opcodes
+ * TODO: consider replacing these with just a token since the real 
+ * opcode depends on the combination of args
+ */
 const Opcode Z80_OPCODES[] = 
 {
     Opcode(INSTR_ADD, "add" ),
@@ -243,6 +247,7 @@ struct Symbol
         Symbol();
         Symbol(const uint16_t addr, const std::string& label);
 
+        void init(void);
         bool operator==(const Symbol& that) const;
         bool operator!=(const Symbol& that) const;
 };
@@ -266,10 +271,11 @@ class SymbolTable
         void         update(const unsigned int idx, const Symbol& s);
         Symbol       get(const unsigned int idx) const;
         uint16_t     getAddr(const std::string& label) const;
+        std::string  getName(const uint16_t addr) const;
         void         init(void);
-        unsigned int getNumSyms(void) const;
-        // debug 
-        void         dump(void);
+        unsigned int size(void) const;
+
+        std::string  toString(void) const;
 };
 
 
@@ -285,6 +291,7 @@ struct TextLine
     std::string errstr;
     Opcode      opcode;     // TODO : make this just another Token?
     Token       args[2];
+    int8_t      sym_arg;        // which arg has a symbol (so we don't have to check later)
     uint16_t    line_num;
     uint16_t    addr;
     bool        is_label;
@@ -304,6 +311,7 @@ struct TextLine
 
 // TODO ; in keeping with the text/data segment distinction, this should be at some point
 // renamed into something that indicates that its a collection of TextLine objects
+// TODO : are iterators acceptable enough that I could implement one here?
 class SourceInfo
 {
     private: 
@@ -311,13 +319,13 @@ class SourceInfo
 
     public:
         SourceInfo();
-        //SourceInfo(const SourceInfo& that);
+        SourceInfo(const SourceInfo& that) = delete;
 
         void add(const TextLine& l);
         TextLine get(const unsigned int idx) const;
+        void update(const unsigned int idx, const TextLine& l);
         unsigned int getNumLines(void) const;
         void toFile(const std::string& filename) const;
 };
-
 
 #endif /*__SOURCE_HPP*/
