@@ -385,7 +385,7 @@ void TextLine::init(void)
 /*
  * toString()
  */
-std::string TextLine::toString(void)
+std::string TextLine::toString(void) const
 {
     std::ostringstream oss;
 
@@ -425,6 +425,10 @@ std::string TextLine::toString(void)
     return oss.str();
 }
 
+
+/*
+ * diff()
+ */
 std::string TextLine::diff(const TextLine& that)
 {
     std::ostringstream oss;
@@ -488,6 +492,18 @@ std::string TextLine::diff(const TextLine& that)
 }
 
 /*
+ * toInstrString()
+ */
+std::string TextLine::toInstrString(void) const
+{
+    std::ostringstream oss;
+
+    oss << this->opcode.mnemonic << " " << this->args[0].repr << "," << this->args[1].repr;
+
+    return oss.str();
+}
+
+/*
  * SourceInfo
  */
 
@@ -499,6 +515,12 @@ SourceInfo::SourceInfo() {}
 //    for(unsigned int idx = 0; idx < that.info.size(); ++idx)
 //        this->info.push_back(that.info[idx]);
 //}
+
+
+void SourceInfo::init(void)
+{
+    this->info.clear();
+}
 
 void SourceInfo::add(const TextLine& l)
 {
@@ -513,8 +535,7 @@ TextLine SourceInfo::get(const unsigned int idx) const
     if(idx >= 0 && idx < this->info.size())
         return this->info[idx];
     
-    TextLine l;
-    return l;
+    return TextLine();
 }
 
 /*

@@ -49,7 +49,7 @@ class Program
         ~Program();
         Program(const Program& that);
 
-        void initProgram(void);
+        void init(void);
         /*
          * get()
          * Return the instruction at position idx of the 

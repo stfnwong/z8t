@@ -54,6 +54,7 @@ Program::Program(const Program& that)
         this->instructions.push_back(that.instructions[i]);
 }
 
+
 /*
  * instr_to_string()
  */
@@ -70,7 +71,7 @@ std::string Program::instr_to_string(const Instr& i)
 /*
  * initProgram()
  */
-void Program::initProgram(void)
+void Program::init(void)
 {
     this->instructions.erase(this->instructions.begin(), this->instructions.end());
 }

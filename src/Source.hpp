@@ -80,6 +80,8 @@ typedef enum Z80_REG
     REG_IYL, 
     REG_HL, 
     REG_BC,
+    REG_DE,
+    REG_SP,
     REG_BC_IND,     // indirect, ie: (BC)
     REG_HL_IND,     // indirect, ie: (HL)
     REG_DE_IND      // indirect, ie: (DE)
@@ -160,6 +162,8 @@ const Token Z80_TOKENS[] =
     Token(SYM_REG,  REG_L,  "l"),
     Token(SYM_REG,  REG_HL, "hl"),
     Token(SYM_REG,  REG_BC, "bc"),
+    Token(SYM_REG,  REG_DE, "de"),
+    Token(SYM_REG,  REG_SP, "sp"),
     // directives
     // conditions
     Token(SYM_COND, COND_C,  "C"), 
@@ -262,7 +266,7 @@ class SymbolTable
         Symbol null_symbol;
 
     private:
-        SymbolTable(const SymbolTable& that) = delete;
+        SymbolTable(const SymbolTable& that) = default;
 
     public:
         SymbolTable();
@@ -304,8 +308,9 @@ struct TextLine
         bool operator==(const TextLine& that) const;
         bool operator!=(const TextLine& that) const;
         void init(void);
+        std::string toString(void) const;
         std::string diff(const TextLine& that);
-        std::string toString(void);
+        std::string toInstrString(void) const;
 };
 
 
@@ -319,8 +324,9 @@ class SourceInfo
 
     public:
         SourceInfo();
-        SourceInfo(const SourceInfo& that) = delete;
+        SourceInfo(const SourceInfo& that) = default;
 
+        void init(void);
         void add(const TextLine& l);
         TextLine get(const unsigned int idx) const;
         void update(const unsigned int idx, const TextLine& l);
