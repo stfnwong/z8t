@@ -39,3 +39,37 @@ TEST_CASE("test_symbol_table", "[classic]")
     REQUIRE(0xCEED == sym_table.getAddr("z0_data"));
     REQUIRE("z0_data" == sym_table.getName(0xCEED));
 }
+
+
+TEST_CASE("test_textline_init", "[classic]")
+{
+    TextLine line;
+
+    REQUIRE(line.line_num == 0);
+    REQUIRE(line.addr == 0);
+    REQUIRE(line.is_label == false);
+    REQUIRE(line.error == false);
+
+    for(int i = 0; i < 2; ++i)
+        REQUIRE(line.args[i] == Token());
+}
+
+TEST_CASE("test_textline_hash", "[classic]")
+{
+    TextLine line;
+
+    std::vector<int> second_reg_types = {REG_A, REG_B, REG_C, REG_D, REG_E};
+    std::vector<int> instr_opcode = {INSTR_ADD, INSTR_LD, INSTR_DEC, INSTR_POP, INSTR_EX};
+
+    for(unsigned int reg_type = 0; reg_type < second_reg_types.size(); ++reg_type)
+    {
+        for(unsigned int instr_type = 0; instr_type < second_reg_types.size(); ++instr_type)
+        {
+            line.opcode  = Token(SYM_INSTR, instr_opcode[instr_type], "test");
+            line.args[0] = Token(SYM_INSTR, REG_A, "a");
+            line.args[1] = Token(SYM_INSTR, second_reg_types[reg_type], "test");
+
+            std::cout << line.argHash() << std::endl;
+        }
+    }
+}

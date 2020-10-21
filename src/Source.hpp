@@ -17,6 +17,7 @@
 /*
  * Instruction constants
  */
+// TODO : these should just be one giant enum so that the hashing works correctly
 typedef enum {
     INSTR_ADD, 
     INSTR_ADC,
@@ -122,6 +123,11 @@ struct Token
         std::string toString(void) const;
 };
 
+// hash on a key like 
+//
+// SYM_TYPE | ARG1_VAL | ARG2_VAL
+// ie:
+
 // Collection of all valid tokens 
 const Token Z80_TOKENS[] =
 {
@@ -189,53 +195,33 @@ class TokenLookup
         Token lookup(const std::string& s) const;
 };
 
-/* 
- * Opcode 
- * Holds the mnemonic string and opcode value of 
- * an assembly opcode 
- */
-struct Opcode
-{
-    int         code;
-    std::string mnemonic;
-
-    public:
-        Opcode();
-        Opcode(int opcode, const std::string& mnemonic);
-
-        bool operator==(const Opcode& that) const;
-        bool operator!=(const Opcode& that) const;
-        void init(void);
-
-        std::string toString(void) const;
-};
 
 /*
  * List of Accepted instruction Opcodes
  * TODO: consider replacing these with just a token since the real 
  * opcode depends on the combination of args
  */
-const Opcode Z80_OPCODES[] = 
+const Token Z80_OPCODES[] = 
 {
-    Opcode(INSTR_ADD, "add" ),
-    Opcode(INSTR_AND, "and" ),
-    Opcode(INSTR_DEC, "dec" ),
-    Opcode(INSTR_LD , "ld"  ),
-    Opcode(INSTR_INC, "inc" ),
-    Opcode(INSTR_POP, "pop" ),
-    Opcode(INSTR_PUSH, "push"),
+    Token(SYM_INSTR, INSTR_ADD, "add" ),
+    Token(SYM_INSTR, INSTR_AND, "and" ),
+    Token(SYM_INSTR, INSTR_DEC, "dec" ),
+    Token(SYM_INSTR, INSTR_LD , "ld"  ),
+    Token(SYM_INSTR, INSTR_INC, "inc" ),
+    Token(SYM_INSTR, INSTR_POP, "pop" ),
+    Token(SYM_INSTR, INSTR_PUSH, "push"),
 };
 
 
 class OpcodeLookup
 {
-    std::unordered_map<int, Opcode> val_to_opcode;
-    std::unordered_map<std::string, Opcode> name_to_opcode;
+    std::unordered_map<int, Token> val_to_opcode;
+    std::unordered_map<std::string, Token> name_to_opcode;
 
     public:
         OpcodeLookup();
-        Opcode get(const int val) const;
-        Opcode get(const std::string& name) const;
+        Token get(const int val) const;
+        Token get(const std::string& name) const;
 }; 
 
 
@@ -293,7 +279,7 @@ struct TextLine
     std::string symbol;
     std::string label;
     std::string errstr;
-    Opcode      opcode;     // TODO : make this just another Token?
+    Token       opcode;     
     Token       args[2];
     int8_t      sym_arg;        // which arg has a symbol (so we don't have to check later)
     uint16_t    line_num;
@@ -308,6 +294,8 @@ struct TextLine
         bool operator==(const TextLine& that) const;
         bool operator!=(const TextLine& that) const;
         void init(void);
+        uint32_t argHash(void) const;
+
         std::string toString(void) const;
         std::string diff(const TextLine& that);
         std::string toInstrString(void) const;

@@ -106,76 +106,34 @@ Token TokenLookup::lookup(const std::string& s) const
 
 
 /*
- * Opcode
- */
-Opcode::Opcode() : code(-1), mnemonic("\0") {}
-
-Opcode::Opcode(int code, const std::string& mnemonic)
-{
-    this->code = code;
-    this->mnemonic = mnemonic;
-}
-
-void Opcode::init(void)
-{
-    this->code = -1;
-    this->mnemonic.clear();
-}
-
-bool Opcode::operator==(const Opcode& that) const
-{
-    if(this->code != that.code)
-        return false;
-    if(this->mnemonic != that.mnemonic)
-        return false;
-    
-    return true;
-}
-
-bool Opcode::operator!=(const Opcode& that) const
-{
-    return !(*this == that);
-}
-
-std::string Opcode::toString(void) const
-{
-    std::ostringstream oss;
-
-    oss << this->mnemonic << " [0x" << std::hex << std::setw(4)
-        << std::setfill('0') << this->code << "]";
-
-    return oss.str();
-}
-
-/*
  * Opcode lookup
  */
 OpcodeLookup::OpcodeLookup()
 {
-    for(const Opcode& opcode : Z80_OPCODES)
+    for(const Token& opcode : Z80_OPCODES)
     {
-        this->val_to_opcode[opcode.code] = opcode;
-        this->name_to_opcode[opcode.mnemonic] = opcode;
+        this->val_to_opcode[opcode.val] = opcode;
+        this->name_to_opcode[opcode.repr] = opcode;
     }
 }
 
-Opcode OpcodeLookup::get(const int val) const
+Token OpcodeLookup::get(const int val) const
 {
     auto op = this->val_to_opcode.find(val);
     if(op != this->val_to_opcode.end())
         return op->second;
 
-    return Opcode();     // can't find anything, return an empty opcode
+    return Token();     // can't find anything, return an empty opcode
 }
 
 
-Opcode OpcodeLookup::get(const std::string& name) const
+Token OpcodeLookup::get(const std::string& name) const
 {
     auto op = this->name_to_opcode.find(name);
     if(op != this->name_to_opcode.end())
         return op->second;
 
-    return Opcode();     // can't find anything, return an empty opcode
+    return Token();     // can't find anything, return an empty opcode
 }
 
 /* 
@@ -383,6 +341,20 @@ void TextLine::init(void)
 }
 
 /*
+ * argHash()
+ */
+uint32_t TextLine::argHash(void) const
+{
+    uint32_t hash = 0;
+
+    hash = ((this->opcode.val  & 0xFF) << 16) | 
+           ((this->args[0].val & 0xFF) << 8) | 
+           ((this->args[1].val & 0xFF));
+
+    return hash;
+}
+
+/*
  * toString()
  */
 std::string TextLine::toString(void) const
@@ -404,8 +376,8 @@ std::string TextLine::toString(void) const
         oss << ".";
     oss << "]  ";
     oss << std::right << "0x" << std::hex << std::setw(4) << std::setfill('0') << this->addr << " ";
-    oss << std::left << std::setw(12) << std::setfill(' ') << this->opcode.mnemonic;
-    oss << "0x" << std::right << std::hex << std::setw(4) << std::setfill('0') << this->opcode.code << "   ";
+    oss << std::left << std::setw(12) << std::setfill(' ') << this->opcode.repr;
+    oss << "0x" << std::right << std::hex << std::setw(4) << std::setfill('0') << this->opcode.val << "   ";
     // Insert flag chars
     oss << "...";
     // Registers
@@ -498,7 +470,7 @@ std::string TextLine::toInstrString(void) const
 {
     std::ostringstream oss;
 
-    oss << this->opcode.mnemonic << " " << this->args[0].repr << "," << this->args[1].repr;
+    oss << this->opcode.repr << " " << this->args[0].repr << "," << this->args[1].repr;
 
     return oss.str();
 }

@@ -275,7 +275,7 @@ void Assembler::assemble(void)
     {
         Instr cur_instr;
         cur_line = this->source.get(i);
-        switch(cur_line.opcode.code)
+        switch(cur_line.opcode.val)
         {
             case INSTR_ADD:
                 cur_instr = this->asm_add(cur_line);
@@ -285,7 +285,7 @@ void Assembler::assemble(void)
                 if(this->verbose)
                 {
                     std::cerr << "[" << __func__ << "] (line " << std::dec << cur_line.line_num << 
-                        ") unknown lexer code " << std::hex << cur_line.opcode.code << std::endl;
+                        ") unknown lexer code " << std::hex << cur_line.opcode.val << std::endl;
 
                 }
                 break;
