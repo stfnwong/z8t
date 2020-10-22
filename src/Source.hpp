@@ -99,6 +99,7 @@ typedef enum
     COND_M,
     COND_P,
     COND_PE,
+    COND_PO
 } Z80_COND;
 
 
@@ -179,6 +180,7 @@ const Token Z80_TOKENS[] =
     Token(SYM_COND, COND_M,  "M"), 
     Token(SYM_COND, COND_P,  "P"), 
     Token(SYM_COND, COND_PE, "PE"),
+    Token(SYM_COND, COND_PO, "PO"),
 };
 
 

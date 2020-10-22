@@ -123,7 +123,7 @@ Token OpcodeLookup::get(const int val) const
     if(op != this->val_to_opcode.end())
         return op->second;
 
-    return Token();     // can't find anything, return an empty opcode
+    return Token();     // can't find anything, return an empty token
 }
 
 
@@ -133,7 +133,7 @@ Token OpcodeLookup::get(const std::string& name) const
     if(op != this->name_to_opcode.end())
         return op->second;
 
-    return Token();     // can't find anything, return an empty opcode
+    return Token();     // can't find anything, return an empty token
 }
 
 /* 
