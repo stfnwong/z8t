@@ -6,7 +6,7 @@
     add a,10    ;a=a+10  a=18
     ld hl,$FC00 ;hl = $FC00
     ld bc,$00BB ;bc = $00BB
-    add hl,$FCBB ;hl=hl+bc  hl = $fcbb
+    ;add hl,$FCBB ;hl=hl+bc  hl = $fcbb  ; TODO: is this legit?
     
     ld b,8      ;b=8
     ld a,b      ;a=b

@@ -278,37 +278,18 @@ void Assembler::assemble(void)
         cur_line  = this->source.get(i);
         line_hash = cur_line.argHash();
 
-        //cur_instr.ins = instr_lookup[line_hash];
         auto lookup_val = instr_lookup.find(line_hash);
         if(lookup_val != instr_lookup.end())
             cur_instr.ins = lookup_val->second;
         else
         {
-            std::cerr << "[" << __func__ << "] instruction " << cur_line.toInstrString() 
+            std::cerr << "[" << __func__ << "] skipping instruction " << cur_line.toInstrString() 
                 << " with hash " << std::hex << line_hash << std::endl;
-            std::cerr << "[" << __func__ << "] skipping. " << std::endl;
             continue;
         }
-
         cur_instr.adr = cur_line.addr;
 
-        //switch(cur_line.opcode.val)
-        //{
-        //    case INSTR_ADD:
-        //        cur_instr = this->asm_add(cur_line);
-        //        break;
-
-        //    default:
-        //        if(this->verbose)
-        //        {
-        //            std::cerr << "[" << __func__ << "] (line " << std::dec << cur_line.line_num << 
-        //                ") unknown lexer code " << std::hex << cur_line.opcode.val << std::endl;
-
-        //        }
-        //        break;
-        //}
-
-        std::cout << "[" << __func__ << "] instruction " << cur_line.toInstrString() << " with hash 0x" << std::hex << line_hash 
+        std::cout << "[" << __func__ << "] assembled instruction " << cur_line.toInstrString() << " with hash 0x" << std::hex << line_hash 
             << " cur_instr : " << cur_instr.toString() << std::endl;
     }
 }

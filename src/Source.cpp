@@ -347,9 +347,24 @@ uint32_t TextLine::argHash(void) const
 {
     uint32_t hash = 0;
 
-    hash = ((this->opcode.val  & 0xFF) << 16) | 
-           ((this->args[0].val & 0xFF) << 8) | 
-           ((this->args[1].val & 0xFF));
+    if(this->args[0].type == SYM_LITERAL)
+    {
+        hash = ((this->opcode.val  & 0xFF) << 16) | 
+               ((this->args[0].type & 0xFF) << 8) | 
+               ((this->args[1].val & 0xFF));
+    }
+    else if(this->args[1].type == SYM_LITERAL)
+    {
+        hash = ((this->opcode.val  & 0xFF) << 16) | 
+               ((this->args[0].val & 0xFF) << 8) | 
+               ((this->args[1].type & 0xFF));
+    }
+    else
+    {
+        hash = ((this->opcode.val  & 0xFF) << 16) | 
+               ((this->args[0].val & 0xFF) << 8) | 
+               ((this->args[1].val & 0xFF));
+    }
 
     return hash;
 }

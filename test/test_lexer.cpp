@@ -59,20 +59,11 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[1] = Token(SYM_LITERAL, 0x00BB, "$00bb");
     info.add(line);
 
-    // add hl, $FCBB
-    line.init();
-    line.line_num = 9;
-    line.opcode = Token(SYM_INSTR, INSTR_ADD, "add");
-    line.addr = TEXT_START_ADDR + 4;    
-    line.args[0] = Token(SYM_REG, REG_HL, "hl");
-    line.args[1] = Token(SYM_LITERAL, 0xFCBB, "$fcbb");
-    info.add(line);
-
     // ld b, 8
     line.init();
     line.line_num = 11;
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 5;    
+    line.addr = TEXT_START_ADDR + 4;    
     line.args[0] = Token(SYM_REG, REG_B, "b");
     line.args[1] = Token(SYM_LITERAL, 8, "8");
     info.add(line);
@@ -81,7 +72,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 12;
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 6;    
+    line.addr = TEXT_START_ADDR + 5;    
     line.args[0] = Token(SYM_REG, REG_A, "a");
     line.args[1] = Token(SYM_REG, REG_B, "b");
     info.add(line);
@@ -90,7 +81,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 13;
     line.opcode = Token(SYM_INSTR, INSTR_ADD, "add");
-    line.addr = TEXT_START_ADDR + 7;    
+    line.addr = TEXT_START_ADDR + 6;    
     line.args[0] = Token(SYM_REG, REG_A, "a");
     line.args[1] = Token(SYM_LITERAL, 5, "5");
     info.add(line);
@@ -99,7 +90,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 14;
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 8;    
+    line.addr = TEXT_START_ADDR + 7;    
     line.args[0] = Token(SYM_REG, REG_B, "b");
     line.args[1] = Token(SYM_REG, REG_A, "a");
     info.add(line);
@@ -108,7 +99,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 17;
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 9;    
+    line.addr = TEXT_START_ADDR + 8;    
     line.args[0] = Token(SYM_REG, REG_BC, "bc");
     line.args[1] = Token(SYM_LITERAL, 46, "46");
     info.add(line);
@@ -117,7 +108,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 18;
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 10;    
+    line.addr = TEXT_START_ADDR + 9;    
     line.args[0] = Token(SYM_REG, REG_H, "h");
     line.args[1] = Token(SYM_REG, REG_B, "b");
     info.add(line);
@@ -126,7 +117,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 19;
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 11;    
+    line.addr = TEXT_START_ADDR + 10;    
     line.args[0] = Token(SYM_REG, REG_L, "l");
     line.args[1] = Token(SYM_REG, REG_C, "c");
     info.add(line);
@@ -135,7 +126,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 20;
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 12;    
+    line.addr = TEXT_START_ADDR + 11;    
     line.args[0] = Token(SYM_REG, REG_BC, "bc");
     line.args[1] = Token(SYM_LITERAL, 52, "52");
     info.add(line);
@@ -144,7 +135,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 21;
     line.opcode = Token(SYM_INSTR, INSTR_ADD, "add");
-    line.addr = TEXT_START_ADDR + 13;    
+    line.addr = TEXT_START_ADDR + 12;    
     line.args[0] = Token(SYM_REG, REG_HL, "hl");
     line.args[1] = Token(SYM_REG, REG_BC, "bc");
     info.add(line);
@@ -153,7 +144,7 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 22;
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 14;    
+    line.addr = TEXT_START_ADDR + 13;    
     line.args[0] = Token(SYM_REG, REG_B, "b");
     line.args[1] = Token(SYM_REG, REG_H, "h");
     info.add(line);
@@ -161,11 +152,10 @@ SourceInfo get_add_sub_expected_source(void)
     line.init();
     line.line_num = 23;
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 15;    
+    line.addr = TEXT_START_ADDR + 14;    
     line.args[0] = Token(SYM_REG, REG_C, "c");
     line.args[1] = Token(SYM_REG, REG_L, "l");
     info.add(line);
-
 
     return info;
 }
