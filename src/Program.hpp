@@ -19,15 +19,31 @@
 struct Instr
 {
     uint16_t adr;
-    uint16_t ins;
+    uint32_t ins;
+    uint8_t  size;
 
     public:
         Instr();
-        Instr(uint16_t adr, uint16_t ins);
+        Instr(uint16_t adr, uint32_t ins);
+        Instr(uint16_t adr, uint32_t ins, uint8_t size);
 
         bool operator==(const Instr& that) const;
         bool operator!=(const Instr& that) const;
 
+        /*
+         * init()
+         * Reset instruction
+         */
+        void init(void);
+        /*
+         * getInstr()
+         * Get the instruction without checking its size.
+         */
+        uint32_t getInstr(void) const;  
+        /*
+         * toString()
+         * Return a string representation of the instruction.
+         */
         std::string toString(void) const;
 };
 
@@ -51,6 +67,10 @@ class Program
         ~Program();
         Program(const Program& that);
 
+        /*
+         * init()
+         * Reset the program object
+         */
         void init(void);
         /*
          * get()

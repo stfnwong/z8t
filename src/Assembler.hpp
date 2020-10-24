@@ -147,13 +147,13 @@ const std::unordered_map<uint32_t, int> instr_lookup = {
     {(INSTR_LD << 16)  | (REG_HL_IND  << 8) | SYM_LITERAL,     0x36},   // ld (hl), *
     {(INSTR_LD << 16)  | (REG_BC_IND  << 8) | REG_A,           0x02},   // ld (bc), a
     {(INSTR_LD << 16)  | (REG_DE_IND  << 8) | REG_A,           0x12},   // ld (de), a
+    // ld (**)
+    {(INSTR_LD << 16)  | (SYM_LITERAL_IND << 8) | REG_HL,      0x22},   // ld (**), hl
 
     {(INSTR_LD << 16)  | (REG_BC      << 8) | SYM_LITERAL,     0x01},   // ld bc, **
     {(INSTR_LD << 16)  | (REG_DE      << 8) | SYM_LITERAL,     0x11},   // ld de, **
     {(INSTR_LD << 16)  | (REG_HL      << 8) | SYM_LITERAL,     0x21},   // ld hl, **
     {(INSTR_LD << 16)  | (REG_SP      << 8) | SYM_LITERAL,     0x31},   // ld sp, **
-    // ld (**)
-    {(INSTR_LD << 16)  | (SYM_LITERAL_IND << 8) | REG_HL,      0x22},   // ld (**), hl
 
     // or 
     {(INSTR_OR << 16)  | (REG_A       << 8),                   0xB7},   // or a

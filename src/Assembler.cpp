@@ -278,6 +278,7 @@ void Assembler::assemble(void)
         cur_line  = this->source.get(i);
         line_hash = cur_line.argHash();
 
+        // TODO : return a std::pair, second element is size in bytes
         auto lookup_val = instr_lookup.find(line_hash);
         if(lookup_val != instr_lookup.end())
             cur_instr.ins = lookup_val->second;
@@ -288,6 +289,7 @@ void Assembler::assemble(void)
             continue;
         }
         cur_instr.adr = cur_line.addr;
+        this->program.add(cur_instr);
 
         std::cout << "[" << __func__ << "] assembled instruction " << cur_line.toInstrString() << " with hash 0x" << std::hex << line_hash 
             << " cur_instr : " << cur_instr.toString() << std::endl;

@@ -16,6 +16,7 @@
 #include "Source.hpp"
 
 constexpr const bool GLOBAL_VERBOSE = true;
+const std::string add_sub_filename = "asm/add_sub.asm";
 
 
 SourceInfo get_add_sub_expected_source(void)
@@ -164,25 +165,24 @@ SourceInfo get_add_sub_expected_source(void)
 TEST_CASE("test_add_sub", "[classic]")
 {
     int status;
-    std::string infile = "asm/add_sub.asm";
     SourceInfo lex_source;
     SourceInfo exp_source;
 
     Lexer lexer;
     lexer.setVerbose(GLOBAL_VERBOSE);
 
-    std::cout << "\t Reading file " << infile << std::endl;
-    status = lexer.read(infile);
+    std::cout << "\t Reading file " << add_sub_filename << std::endl;
+    status = lexer.read(add_sub_filename);
     REQUIRE(status == 0);
 
-    std::cout << "\t Lexing file " << infile << std::endl;
+    std::cout << "\t Lexing file " << add_sub_filename << std::endl;
     lexer.lex();
 
     // Get the source 
     lex_source = lexer.getSource();
     std::cout << "\t Lexer generated " << lex_source.getNumLines() << " line of output" << std::endl;
 
-
+    // Check intermediate results
     exp_source = get_add_sub_expected_source();
     for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
     {

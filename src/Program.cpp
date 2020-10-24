@@ -10,49 +10,75 @@
 #include "Program.hpp"
 
 
-/* 
- * Instr
- * Instruction object
+// ======== PROGRAM ======== //
+Instr::Instr() : adr(0), ins(0), size(0) {} 
+
+Instr::Instr(uint16_t adr, uint32_t ins) : adr(adr), ins(ins), size(1) {} 
+
+Instr::Instr(uint16_t adr, uint32_t ins, uint8_t size) : adr(adr), ins(ins), size(size) {} 
+
+/*
+ * ==
  */
-Instr::Instr()
-{
-    this->adr = 0;
-    this->ins = 0;
-}
-
-Instr::Instr(uint16_t adr, uint16_t ins) 
-{
-    this->adr = adr;
-    this->ins = ins;
-}
-
 bool Instr::operator==(const Instr& that) const
 {
     if(this->adr != that.adr)
         return false;
     if(this->ins != that.ins)
         return false;
+    if(this->size != that.size)
+        return false;
 
     return true;
 }
 
+/*
+ * !=
+ */
 bool Instr::operator!=(const Instr& that) const
 {
     return !(*this == that);
 }
 
+/*
+ * init()
+ */
+void Instr::init(void)
+{
+    this->adr = 0;
+    this->ins = 0;
+    this->size = 0;
+}
+
+/*
+ * getInstr()
+ */
+uint32_t Instr::getInstr(void) const
+{
+    if(this->size == 1)
+        return this->ins & 0xFF;
+    if(this->size == 2)
+        return this->ins & 0xFFFF;
+
+    return this->ins & 0xFFFFFF;
+}
+
+/*
+ * toString()
+ */
 std::string Instr::toString(void) const
 {
     std::ostringstream oss;
 
     oss << "[" << std::hex << std::setw(4) << std::setfill('0') 
-        << this->adr << "] 0x" << this->ins;
+        << this->adr << "] 0x" << this->ins << " (" 
+        << unsigned(this->size) << " bytes)" << std::endl;
 
     return oss.str();
 }
 
 
-
+// ======== PROGRAM ======== //
 Program::Program() {} 
 
 Program::~Program() {} 

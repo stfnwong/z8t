@@ -12,159 +12,157 @@
 #include <string>
 
 #include "Assembler.hpp"
+#include "Lexer.hpp"
 #include "Source.hpp"
+#include "Program.hpp"
+
+constexpr const bool GLOBAL_VERBOSE = true;
+const std::string add_sub_filename = "asm/add_sub.asm";
 
 
-SourceInfo get_add_sub_expected_source(void)
+// TODO: addresses are wrong
+Program get_add_sub_expected_program(void)
 {
-    SourceInfo info;
-    TextLine line;
+    Program prog;
+    Instr cur_instr;
 
-    // ld a, 8
-    line.init();
-    line.line_num = 5;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR;    
-    line.args[0] = Token(SYM_REG, REG_A, "a");
-    line.args[1] = Token(SYM_LITERAL, 8, "8");
-    info.add(line);
-
+    // ld a, 8  
+    cur_instr.init();
+    cur_instr.ins = 0x7F08;
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR;
+    prog.add(cur_instr);
     // add a, 10
-    line.init();
-    line.line_num = 6;
-    line.opcode = Token(SYM_INSTR, INSTR_ADD, "add");
-    line.addr = TEXT_START_ADDR + 1;    
-    line.args[0] = Token(SYM_REG, REG_A, "a");
-    line.args[1] = Token(SYM_LITERAL, 10, "10");
-    info.add(line);
-    
-    // ld hl, $FC00
-    line.init();
-    line.line_num = 7;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 2;    
-    line.args[0] = Token(SYM_REG, REG_HL, "hl");
-    line.args[1] = Token(SYM_LITERAL, 0xFC00, "$fc00");
-    info.add(line);
-
+    cur_instr.init();
+    cur_instr.ins = 0xC60A;
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 1;
+    prog.add(cur_instr);
+    // ld hl, $FC00 
+    cur_instr.init();
+    cur_instr.ins = 0x21FC00;
+    cur_instr.size = 3;
+    cur_instr.adr = TEXT_START_ADDR + 2;
+    prog.add(cur_instr);
     // ld bc, $00BB
-    line.init();
-    line.line_num = 8;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 3;    
-    line.args[0] = Token(SYM_REG, REG_BC, "bc");
-    line.args[1] = Token(SYM_LITERAL, 0x00BB, "$00bb");
-    info.add(line);
-
+    cur_instr.init();
+    cur_instr.ins = 0x0100BB;
+    cur_instr.size = 3;
+    cur_instr.adr = TEXT_START_ADDR + 3;
+    prog.add(cur_instr);
     // ld b, 8
-    line.init();
-    line.line_num = 11;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 6;
-    line.args[0] = Token(SYM_REG, REG_B, "b");
-    line.args[1] = Token(SYM_LITERAL, 8, "8");
-    info.add(line);
-
+    cur_instr.init();
+    cur_instr.ins = 0x0608;
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 4;
+    prog.add(cur_instr);
     // ld a, b
-    line.init();
-    line.line_num = 12;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 7;
-    line.args[0] = Token(SYM_REG, REG_A, "a");
-    line.args[1] = Token(SYM_REG, REG_B, "b");
-    info.add(line);
-
+    cur_instr.init();
+    cur_instr.ins = 0x78;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 5;
+    prog.add(cur_instr);
     // add a, 5
-    line.init();
-    line.line_num = 13;
-    line.opcode = Token(SYM_INSTR, INSTR_ADD, "add");
-    line.addr = TEXT_START_ADDR + 8;
-    line.args[0] = Token(SYM_REG, REG_A, "a");
-    line.args[1] = Token(SYM_LITERAL, 5, "5");
-    info.add(line);
-
-    // ld b, a
-    line.init();
-    line.line_num = 14;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 9;
-    line.args[0] = Token(SYM_REG, REG_B, "b");
-    line.args[1] = Token(SYM_REG, REG_A, "a");
-    info.add(line);
-
+    cur_instr.init();
+    cur_instr.ins = 0xC605;
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 6;
+    prog.add(cur_instr);
+    // ld b,a 
+    cur_instr.init();
+    cur_instr.ins = 0x06;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 7;
+    prog.add(cur_instr);
     // ld bc, 46
-    line.init();
-    line.line_num = 17;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 10;
-    line.args[0] = Token(SYM_REG, REG_BC, "bc");
-    line.args[1] = Token(SYM_LITERAL, 46, "46");
-    info.add(line);
-
+    cur_instr.init();
+    cur_instr.ins = 0x012E;
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 8;
+    prog.add(cur_instr);
     // ld h, b
-    line.init();
-    line.line_num = 18;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 11;
-    line.args[0] = Token(SYM_REG, REG_H, "h");
-    line.args[1] = Token(SYM_REG, REG_B, "b");
-    info.add(line);
-
-    // ld l, c
-    line.init();
-    line.line_num = 19;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 12;
-    line.args[0] = Token(SYM_REG, REG_L, "l");
-    line.args[1] = Token(SYM_REG, REG_C, "c");
-    info.add(line);
-
+    cur_instr.init();
+    cur_instr.ins = 0x60;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 9;
+    prog.add(cur_instr);
+    // ld l,c
+    cur_instr.init();
+    cur_instr.ins = 0x69;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 10;
+    prog.add(cur_instr);
     // ld bc, 52
-    line.init();
-    line.line_num = 20;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 13;
-    line.args[0] = Token(SYM_REG, REG_BC, "bc");
-    line.args[1] = Token(SYM_LITERAL, 52, "52");
-    info.add(line);
-
+    cur_instr.init();
+    cur_instr.ins = 0x0134;
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 11;
+    prog.add(cur_instr);
     // add hl, bc
-    line.init();
-    line.line_num = 21;
-    line.opcode = Token(SYM_INSTR, INSTR_ADD, "add");
-    line.addr = TEXT_START_ADDR + 14;
-    line.args[0] = Token(SYM_REG, REG_HL, "hl");
-    line.args[1] = Token(SYM_REG, REG_BC, "bc");
-    info.add(line);
-
+    cur_instr.init();
+    cur_instr.ins = 0x09;
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 12;
+    prog.add(cur_instr);
     // ld b, h
-    line.init();
-    line.line_num = 22;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 15;
-    line.args[0] = Token(SYM_REG, REG_B, "b");
-    line.args[1] = Token(SYM_REG, REG_H, "h");
-    info.add(line);
+    cur_instr.init();
+    cur_instr.ins = 0x44;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 13;
+    prog.add(cur_instr);
     // ld c, l
-    line.init();
-    line.line_num = 23;
-    line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
-    line.addr = TEXT_START_ADDR + 16;
-    line.args[0] = Token(SYM_REG, REG_C, "c");
-    line.args[1] = Token(SYM_REG, REG_L, "l");
-    info.add(line);
+    cur_instr.init();
+    cur_instr.ins = 0x4D;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 14;
+    prog.add(cur_instr);
 
 
-    return info;
+    return prog;
 }
+
 
 TEST_CASE("test_add_sub", "[classic]")
 {
+    int status;
+    Lexer lexer;
     Assembler assem;
-    SourceInfo exp_source;
+    SourceInfo lex_source;
+    Program exp_program;
+    Program out_program;
 
-    exp_source = get_add_sub_expected_source();
-    assem.loadSource(exp_source);
+    lexer.setVerbose(GLOBAL_VERBOSE);
+
+    std::cout << "\t Reading file " << add_sub_filename << std::endl;
+    status = lexer.read(add_sub_filename);
+    REQUIRE(status == 0);
+
+    std::cout << "\t Lexing file " << add_sub_filename << std::endl;
+    lexer.lex();
+
+    // Get the source 
+    lex_source = lexer.getSource();
+    std::cout << "\t Lexer generated " << lex_source.getNumLines() << " line of output" << std::endl;
+
+    assem.loadSource(lex_source);
     assem.assemble();
 
+    exp_program = get_add_sub_expected_program();
+    out_program = assem.getProgram();
+
+    REQUIRE(exp_program.numInstr() == out_program.numInstr());
+
+    for(unsigned int idx = 0; idx < out_program.numInstr(); ++idx)
+    {
+        Instr out_instr = out_program.get(idx);
+        Instr exp_instr = exp_program.get(idx);
+
+        if(out_instr != exp_instr)
+        {
+            std::cout << "Difference in instruction " << idx + 1 << std::endl;
+            std::cout << "Expected : " << exp_instr.toString() << std::endl;
+            std::cout << "Got      : " << out_instr.toString() << std::endl;
+        }
+        REQUIRE(out_instr == exp_instr);
+    }
 }
