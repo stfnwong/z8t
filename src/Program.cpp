@@ -41,6 +41,16 @@ bool Instr::operator!=(const Instr& that) const
     return !(*this == that);
 }
 
+std::string Instr::toString(void) const
+{
+    std::ostringstream oss;
+
+    oss << "[" << std::hex << std::setw(4) << std::setfill('0') 
+        << this->adr << "] 0x" << this->ins;
+
+    return oss.str();
+}
+
 
 
 Program::Program() {} 

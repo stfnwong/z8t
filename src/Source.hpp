@@ -13,6 +13,8 @@
 #include <vector>
 #include <unordered_map>
 
+// TODO : find real start address
+#define TEXT_START_ADDR 0x0
 
 /*
  * Instruction constants

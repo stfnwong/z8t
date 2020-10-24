@@ -171,7 +171,7 @@ SourceInfo get_add_sub_expected_source(void)
 }
 
 
-TEST_CASE("test_lexer_init", "[classic]")
+TEST_CASE("test_add_sub", "[classic]")
 {
     int status;
     std::string infile = "asm/add_sub.asm";

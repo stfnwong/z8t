@@ -27,6 +27,8 @@ struct Instr
 
         bool operator==(const Instr& that) const;
         bool operator!=(const Instr& that) const;
+
+        std::string toString(void) const;
 };
 
 
