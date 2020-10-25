@@ -165,3 +165,48 @@ TEST_CASE("test_add_sub", "[classic]")
         REQUIRE(out_instr == exp_instr);
     }
 }
+
+
+// TODO: will need to change all the addresses...
+/*
+ * GCD Program
+ */
+Program get_gcd_expected_program(void)
+{
+    Program prog;
+    Instr cur_instr;
+
+    // cp b
+    cur_instr.init();
+    cur_instr.ins = 0xB8;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR;
+    prog.add(cur_instr);
+    // ret z
+    cur_instr.init();
+    cur_instr.ins = 0xC8;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 2;
+    prog.add(cur_instr);
+    // jr c, else
+    cur_instr.init();
+    cur_instr.ins = 0x3800;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 3;
+    prog.add(cur_instr);
+    // sub b
+    cur_instr.init();
+    cur_instr.ins = 0x90;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 4;
+    prog.add(cur_instr);
+    // jr gcd
+    cur_instr.init();
+    cur_instr.ins = 0x1800;
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 5;
+    prog.add(cur_instr);
+
+
+    return prog;
+}

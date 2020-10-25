@@ -71,6 +71,8 @@ std::string Token::toString(void) const
             return "INSTR <" + std::string(this->repr) + ">";
         case SYM_LITERAL:
             return "LITERAL <" + std::string(this->repr) + ">";
+        case SYM_LITERAL_IND:
+            return "LITERAL_IND <" + std::string(this->repr) + ">";
         case SYM_LABEL:
             return "LABEL <" + std::string(this->repr) + ">";
         case SYM_REG:

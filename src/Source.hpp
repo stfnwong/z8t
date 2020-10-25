@@ -164,6 +164,9 @@ const Token Z80_TOKENS[] =
     Token(SYM_REG,  REG_BC, "bc"),
     Token(SYM_REG,  REG_DE, "de"),
     Token(SYM_REG,  REG_SP, "sp"),
+    Token(SYM_REG,  REG_BC_IND, "(bc)"),
+    Token(SYM_REG,  REG_DE_IND, "(de)"),
+    Token(SYM_REG,  REG_HL_IND, "(hl)"),
     // directives
     // conditions
     Token(SYM_COND, COND_C,  "C"), 

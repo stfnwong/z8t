@@ -45,13 +45,8 @@ void Assembler::assemble(void)
 
         cur_line  = this->source.get(i);
         line_hash = cur_line.argHash();
-        // TODO : debug only, remove 
-        std::cout << "[" << __func__ << "] assembling line : " << std::endl;
-        std::cout << cur_line.toString() << std::endl;
 
-        // TODO : return a std::pair, second element is size in bytes
         auto lookup_val = instr_lookup.find(line_hash);
-
         if(lookup_val != instr_lookup.end())
         {
             auto instr_size = lookup_val->second;
@@ -76,7 +71,6 @@ void Assembler::assemble(void)
         }
         cur_instr.adr = cur_line.addr;
         this->program.add(cur_instr);
-
     }
 }
 
@@ -90,4 +84,3 @@ Program Assembler::getProgram(void) const
 {
     return this->program;
 }
-

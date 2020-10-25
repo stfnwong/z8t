@@ -52,6 +52,16 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t>> instr_lookup = {
     {(INSTR_AND << 16) | (REG_L       << 8),                   std::pair(0xA5, 1)},   // and l
     {(INSTR_AND << 16) | (REG_HL_IND  << 8),                   std::pair(0xA6, 1)},   // and (hl)
     {(INSTR_AND << 16) | (SYM_LITERAL << 8),                   std::pair(0xE6, 2)},   // and *
+    // cp 
+    {(INSTR_CP  << 16) | (REG_A       << 8),                   std::pair(0xBF, 1)},   // cp a
+    {(INSTR_CP  << 16) | (REG_B       << 8),                   std::pair(0xB8, 1)},   // cp b
+    {(INSTR_CP  << 16) | (REG_C       << 8),                   std::pair(0xB9, 1)},   // cp c
+    {(INSTR_CP  << 16) | (REG_D       << 8),                   std::pair(0xBA, 1)},   // cp d
+    {(INSTR_CP  << 16) | (REG_E       << 8),                   std::pair(0xBB, 1)},   // cp e
+    {(INSTR_CP  << 16) | (REG_H       << 8),                   std::pair(0xBC, 1)},   // cp h
+    {(INSTR_CP  << 16) | (REG_L       << 8),                   std::pair(0xBD, 1)},   // cp l
+    {(INSTR_CP  << 16) | (REG_HL      << 8),                   std::pair(0xBE, 1)},   // cp (hl)
+    {(INSTR_CP  << 16) | (SYM_LITERAL << 8),                   std::pair(0xFE, 2)},   // cp *
     // inc 
     {(INSTR_INC << 16) | (REG_A       << 8),                   std::pair(0x3C, 1)},   // inc a
     {(INSTR_INC << 16) | (REG_B       << 8),                   std::pair(0x15, 1)},   // inc b
@@ -65,6 +75,23 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t>> instr_lookup = {
     {(INSTR_INC << 16) | (REG_HL      << 8),                   std::pair(0x23, 1)},   // inc hl
     {(INSTR_INC << 16) | (REG_SP      << 8),                   std::pair(0x33, 1)},   // inc sp
     {(INSTR_INC << 16) | (REG_HL_IND  << 8),                   std::pair(0x34, 1)},   // inc (hl)
+    // jr 
+    {(INSTR_JR  << 16) | (SYM_LITERAL << 8),                   std::pair(0x18, 2)},   // jr *
+    {(INSTR_JR  << 16) | (COND_Z      << 8) | SYM_LITERAL,     std::pair(0x28, 2)},   // jr z, *
+    {(INSTR_JR  << 16) | (COND_C      << 8) | SYM_LITERAL,     std::pair(0x28, 2)},   // jr c, *
+    {(INSTR_JR  << 16) | (COND_NZ     << 8) | SYM_LITERAL,     std::pair(0x20, 2)},   // jr nz, *
+    {(INSTR_JR  << 16) | (COND_NC     << 8) | SYM_LITERAL,     std::pair(0x30, 2)},   // jr nc, *
+    // jp 
+    {(INSTR_JP  << 16) | (COND_NZ     << 8) | SYM_LITERAL,     std::pair(0xC3, 3)},   // jp nz, **
+    {(INSTR_JP  << 16) | (COND_NC     << 8) | SYM_LITERAL,     std::pair(0xD3, 3)},   // jp nc, **
+    {(INSTR_JP  << 16) | (COND_PO     << 8) | SYM_LITERAL,     std::pair(0xE3, 3)},   // jp po, **
+    {(INSTR_JP  << 16) | (COND_P      << 8) | SYM_LITERAL,     std::pair(0xF3, 3)},   // jp p, **
+    {(INSTR_JP  << 16) | (SYM_LITERAL << 8),                   std::pair(0xC4, 3)},   // jp **
+    {(INSTR_JP  << 16) | (REG_HL_IND  << 8),                   std::pair(0xE9, 3)},   // jp (hl)
+    {(INSTR_JP  << 16) | (COND_Z      << 8) | SYM_LITERAL,     std::pair(0xCA, 3)},   // jp z, **
+    {(INSTR_JP  << 16) | (COND_C      << 8) | SYM_LITERAL,     std::pair(0xDA, 3)},   // jp c, **
+    {(INSTR_JP  << 16) | (COND_PE     << 8) | SYM_LITERAL,     std::pair(0xEA, 3)},   // jp pe, **
+    {(INSTR_JP  << 16) | (COND_M      << 8) | SYM_LITERAL,     std::pair(0xFA, 3)},   // jp m, **
     // ld (a)
     {(INSTR_LD << 16)  | (REG_A       << 8) | REG_A,           std::pair(0x7F, 1)},   // ld a, a
     {(INSTR_LD << 16)  | (REG_A       << 8) | REG_B,           std::pair(0x78, 1)},   // ld a, b

@@ -181,7 +181,6 @@ Token Lexer::next_token(void)
     // not a pre-defined token
     if(token.type == SYM_NULL)
     {
-        // TODO: could become jump table
         // Check if this is a literal
         if(tok_string[0] == '$' || std::isdigit(tok_string[0]))
         {
@@ -189,14 +188,34 @@ Token Lexer::next_token(void)
         }
         else if(tok_string[0] == '(')
         {
-            // TODO : find closing paren, get literal, set type
-            //int idx = 0;
-            //while(tok_string[idx] != ')')
-            //    idx++;
-            // TODO : hack version - replace with something more robust 
-            
-            std::cout << "[" << __func__ << "] when indirection is implemented, this branch will parse indirections" << std::endl; 
+            // This must be a literal indirect (or its invalid) because if it
+            // was a register indirect we would have a valid token before we 
+            // check if the type was SYM_NULL.
+            unsigned int close_idx = 0;         // shuts warning up, even though we don't need this kind of size
+            while(tok_string[close_idx] != ')' && close_idx < tok_string.size())
+                close_idx++;
+            if(close_idx >= tok_string.size())
+            {
+                if(this->verbose)
+                {
+                    std::cout << "[" << __func__ << "] no matching closing paren on line " 
+                        << std::dec << this->cur_line << std::endl;
+                }
+                return token;
+            }
+            // we know that tok_string[0] is an opening paren
+            std::string tok_substr = tok_string.substr(1, close_idx-1);
+            token = this->tok_string_to_literal(tok_substr);
+
+            // if this is still null....
+            //if(token.type == SYM_NULL)
+            //{
+            //    return token;
+            //}
             token.type = SYM_LITERAL_IND;
+
+            std::cout << " [" << __func__  << "] returning token " << token.toString() << std::endl;
+            return token;       // TODO : common exit point?
         } 
         // presume this is a label
         else
@@ -247,6 +266,8 @@ void Lexer::parse_two_arg(void)
     Token token;
 
     token = this->next_token();
+    // TODO : debug, remove 
+    std::cout << "[" << __func__ << "] first token " << token.toString() << std::endl;
     if(token.type == SYM_NULL)
     {
         this->line_info.error = true;
@@ -266,6 +287,8 @@ void Lexer::parse_two_arg(void)
     this->line_info.args[0] = token;
 
     token = this->next_token();
+    // TODO : debug, remove 
+    std::cout << "[" << __func__ << "] second token " << token.toString() << std::endl;
     if(token.type == SYM_NULL)
     {
         this->line_info.error = true;
@@ -298,10 +321,14 @@ void Lexer::parse_instruction(const Token& token)
             break;
 
         case INSTR_AND: 
+        case INSTR_CP:
         case INSTR_DEC:
+        case INSTR_INC:
         case INSTR_OR:
             this->parse_one_arg();
             break;
+
+        // instructions with no operands
 
         default:
             this->line_info.error = true;
