@@ -206,16 +206,7 @@ Token Lexer::next_token(void)
             // we know that tok_string[0] is an opening paren
             std::string tok_substr = tok_string.substr(1, close_idx-1);
             token = this->tok_string_to_literal(tok_substr);
-
-            // if this is still null....
-            //if(token.type == SYM_NULL)
-            //{
-            //    return token;
-            //}
             token.type = SYM_LITERAL_IND;
-
-            std::cout << " [" << __func__  << "] returning token " << token.toString() << std::endl;
-            return token;       // TODO : common exit point?
         } 
         // presume this is a label
         else
@@ -266,8 +257,6 @@ void Lexer::parse_two_arg(void)
     Token token;
 
     token = this->next_token();
-    // TODO : debug, remove 
-    std::cout << "[" << __func__ << "] first token " << token.toString() << std::endl;
     if(token.type == SYM_NULL)
     {
         this->line_info.error = true;
@@ -287,8 +276,6 @@ void Lexer::parse_two_arg(void)
     this->line_info.args[0] = token;
 
     token = this->next_token();
-    // TODO : debug, remove 
-    std::cout << "[" << __func__ << "] second token " << token.toString() << std::endl;
     if(token.type == SYM_NULL)
     {
         this->line_info.error = true;
