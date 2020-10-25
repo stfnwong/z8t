@@ -63,12 +63,8 @@ typedef enum {
     SYM_LITERAL_IND,
     SYM_LABEL,
     SYM_REG,
-    SYM_COND
-} TokenType;
-
-// Register names 
-typedef enum Z80_REG
-{
+    SYM_COND,
+    // registers 
     REG_NULL,
     REG_A, 
     REG_B, 
@@ -87,13 +83,8 @@ typedef enum Z80_REG
     REG_SP,
     REG_BC_IND,     // indirect, ie: (BC)
     REG_HL_IND,     // indirect, ie: (HL)
-    REG_DE_IND      // indirect, ie: (DE)
-} Z80_REG;
-
-
-// Condition codes
-typedef enum
-{
+    REG_DE_IND,     // indirect, ie: (DE)
+    // conditions
     COND_C,
     COND_NC, 
     COND_Z,
@@ -102,7 +93,7 @@ typedef enum
     COND_P,
     COND_PE,
     COND_PO
-} Z80_COND;
+} TokenType;
 
 
 /*

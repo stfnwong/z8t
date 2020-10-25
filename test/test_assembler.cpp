@@ -28,7 +28,7 @@ Program get_add_sub_expected_program(void)
 
     // ld a, 8  
     cur_instr.init();
-    cur_instr.ins = 0x7F08;
+    cur_instr.ins = 0x3E08;
     cur_instr.size = 2;
     cur_instr.adr = TEXT_START_ADDR;
     prog.add(cur_instr);
@@ -76,8 +76,8 @@ Program get_add_sub_expected_program(void)
     prog.add(cur_instr);
     // ld bc, 46
     cur_instr.init();
-    cur_instr.ins = 0x012E;
-    cur_instr.size = 2;
+    cur_instr.ins = 0x01002E;
+    cur_instr.size = 3;
     cur_instr.adr = TEXT_START_ADDR + 8;
     prog.add(cur_instr);
     // ld h, b
@@ -94,14 +94,14 @@ Program get_add_sub_expected_program(void)
     prog.add(cur_instr);
     // ld bc, 52
     cur_instr.init();
-    cur_instr.ins = 0x0134;
-    cur_instr.size = 2;
+    cur_instr.ins = 0x010034;
+    cur_instr.size = 3;
     cur_instr.adr = TEXT_START_ADDR + 11;
     prog.add(cur_instr);
     // add hl, bc
     cur_instr.init();
     cur_instr.ins = 0x09;
-    cur_instr.size = 2;
+    cur_instr.size = 1;
     cur_instr.adr = TEXT_START_ADDR + 12;
     prog.add(cur_instr);
     // ld b, h
@@ -116,7 +116,6 @@ Program get_add_sub_expected_program(void)
     cur_instr.size = 1;
     cur_instr.adr = TEXT_START_ADDR + 14;
     prog.add(cur_instr);
-
 
     return prog;
 }
