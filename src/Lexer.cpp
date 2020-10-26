@@ -401,6 +401,8 @@ void Lexer::parse_line(void)
                 << ") : " << this->line_info.errstr << std::endl;
         }
     }   
+    // TODO : if we fold in assembler then this is where we call a method 
+    // to assemble the line (and update the address). 
 
     this->line_info.addr = this->cur_addr;
     this->cur_addr++;
