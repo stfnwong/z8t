@@ -12,7 +12,6 @@
 #include <string>
 
 #include "Assembler.hpp"
-#include "Lexer.hpp"
 #include "Source.hpp"
 #include "Program.hpp"
 
