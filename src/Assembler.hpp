@@ -170,7 +170,7 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t>> instr_lookup = {
     {(INSTR_LD << 16)  | (REG_HL_IND  << 8) | REG_B,           std::pair(0x70, 1)},   // ld (hl), b
     {(INSTR_LD << 16)  | (REG_HL_IND  << 8) | REG_C,           std::pair(0x71, 1)},   // ld (hl), c
     {(INSTR_LD << 16)  | (REG_HL_IND  << 8) | REG_D,           std::pair(0x72, 1)},   // ld (hl), d
-    {(INSTR_LD << 16)  | (REG_HL_IND  << 8) | REG_H,           std::pair(0x73, 1)},   // ld (hl), e
+    {(INSTR_LD << 16)  | (REG_HL_IND  << 8) | REG_E,           std::pair(0x73, 1)},   // ld (hl), e
     {(INSTR_LD << 16)  | (REG_HL_IND  << 8) | REG_H,           std::pair(0x74, 1)},   // ld (hl), h
     {(INSTR_LD << 16)  | (REG_HL_IND  << 8) | REG_L,           std::pair(0x75, 1)},   // ld (hl), l
     {(INSTR_LD << 16)  | (REG_HL_IND  << 8) | REG_HL_IND,      std::pair(0x76, 1)},   // ld (hl), (hl)
@@ -239,6 +239,11 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t>> instr_lookup = {
 
 
 /*
+ * get the size of an instruction from the lookup table
+ */
+uint8_t instr_get_size(uint32_t arg_hash);
+
+/*
  * Assembler 
  * Takes source text and transforms into a Program object 
  * which can be written out as a program executable.
@@ -300,7 +305,7 @@ class Assembler
 
     // assemble from intermediate repr
     private:
-        void assem_line(const TextLine& line);
+        void assem_instr(void);
 
     public:
         Assembler();
@@ -309,7 +314,6 @@ class Assembler
 
         void  init(void);
         void  assemble(void);
-        //void loadSource(const SourceInfo& s);
         void  setVerbose(const bool v);
         bool  getVerbose(void) const;
         int   read(const std::string& filename);

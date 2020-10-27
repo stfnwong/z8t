@@ -72,7 +72,7 @@ std::string Instr::toString(void) const
 
     oss << "[" << std::hex << std::setw(4) << std::setfill('0') 
         << this->adr << "] 0x" << this->ins << " (" 
-        << unsigned(this->size) << " bytes)" << std::endl;
+        << unsigned(this->size) << " bytes)";
 
     return oss.str();
 }

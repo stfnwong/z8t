@@ -10,10 +10,23 @@
 #include <iostream>
 #include "Assembler.hpp"
 
+uint8_t instr_get_size(uint32_t arg_hash)
+{
+    auto lookup_val = instr_lookup.find(arg_hash);
+    if(lookup_val != instr_lookup.end())
+        return lookup_val->second.second;
 
+    return 0;
+}
+
+/*
+ *  ASSEMBLER
+ */
 Assembler::Assembler()
 {
     this->init();
+    this->token_buf_size = 128;
+    this->init_mem();
 }
 
 void Assembler::init(void)
@@ -22,10 +35,7 @@ void Assembler::init(void)
     this->cur_pos        = 0;
     this->verbose        = false;
     this->cur_pos        = 0;
-    this->cur_line       = 0;
     this->cur_addr       = TEXT_START_ADDR;     
-    this->token_buf_size = 128;
-    this->init_mem();
     this->source_info.init();
     this->program.init();
 }
@@ -405,13 +415,13 @@ void Assembler::parse_line(void)
                 << ") : " << this->line_info.errstr << std::endl;
         }
     }   
+    // TODO: this isn't going to work - we need to do both passes first (to get the labels right) 
+    // and then call assem_instr in a loop
     // TODO : if we fold in assembler then this is where we call a method 
     // to assemble the line (and update the address). 
-
     this->line_info.addr = this->cur_addr;
-    this->cur_addr++;
+    this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
 }
-
 
 /*
  * read()
@@ -459,52 +469,49 @@ const SourceInfo& Assembler::getSource(void) const
     return this->source_info;
 }
 
-void Assembler::setVerbose(const bool v)
-{
-    this->verbose = v;
-}
-bool Assembler::getVerbose(void) const
-{
-    return this->verbose;
-}
 
 /*
- * assemble
+ * assem_instr()
  */
 // TODO : re-write without loop
-void Assembler::assem_line(const TextLine& line)
+void Assembler::assem_instr(void)
 {
     // TODO ; just worry about stuff that goes in the text section, not sure what the 
     // data section layout actually is yet..
     Instr cur_instr;
+    TextLine line;
     uint32_t line_hash;
 
-    line_hash = line.argHash();
-    auto lookup_val = instr_lookup.find(line_hash);
-    if(lookup_val != instr_lookup.end())
+    for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
     {
-        auto instr_size = lookup_val->second;
-        cur_instr.size = instr_size.second;
-        if(cur_instr.size == 1)
-            cur_instr.ins  = instr_size.first;
-        else if(cur_instr.size == 2 && line.args[0].type == SYM_LITERAL)
-            cur_instr.ins = (instr_size.first << 8) | (line.args[0].val & 0xFF);
-        else if(cur_instr.size == 2 && line.args[1].type == SYM_LITERAL)
-            cur_instr.ins = (instr_size.first << 8) | (line.args[1].val & 0xFF);
-        // ld bc, ** | ld de, ** | ld hl, ** | ld sp, **
-        else if(cur_instr.size == 3 && line.args[1].type == SYM_LITERAL)
-            cur_instr.ins = (instr_size.first << 16) | (line.args[1].val & 0xFFFF);
-        else if(cur_instr.size == 3 && line.args[0].type == SYM_LITERAL_IND)
-            cur_instr.ins = (instr_size.first << 16) | (line.args[0].val & 0xFFFF);
+        line = this->source_info.get(idx);
+        line_hash = line.argHash();
+        auto lookup_val = instr_lookup.find(line_hash);
+        if(lookup_val != instr_lookup.end())
+        {
+            auto instr_size = lookup_val->second;
+            cur_instr.size = instr_size.second;
+            if(cur_instr.size == 1)
+                cur_instr.ins  = instr_size.first;
+            else if(cur_instr.size == 2 && line.args[0].type == SYM_LITERAL)
+                cur_instr.ins = (instr_size.first << 8) | (line.args[0].val & 0xFF);
+            else if(cur_instr.size == 2 && line.args[1].type == SYM_LITERAL)
+                cur_instr.ins = (instr_size.first << 8) | (line.args[1].val & 0xFF);
+            // ld bc, ** | ld de, ** | ld hl, ** | ld sp, **
+            else if(cur_instr.size == 3 && line.args[1].type == SYM_LITERAL)
+                cur_instr.ins = (instr_size.first << 16) | (line.args[1].val & 0xFFFF);
+            else if(cur_instr.size == 3 && line.args[0].type == SYM_LITERAL_IND)
+                cur_instr.ins = (instr_size.first << 16) | (line.args[0].val & 0xFFFF);
+        }
+        else
+        {
+            std::cerr << "[" << __func__ << "] skipping instruction " << line.toInstrString() 
+                << " with hash " << std::hex << line_hash << std::endl;
+            return;
+        }
+        cur_instr.adr = line.addr;      // TODO: this is wrong
+        this->program.add(cur_instr);
     }
-    else
-    {
-        std::cerr << "[" << __func__ << "] skipping instruction " << line.toInstrString() 
-            << " with hash " << std::hex << line_hash << std::endl;
-        return;
-    }
-    cur_instr.adr = line.addr;      // TODO: this is wrong
-    this->program.add(cur_instr);
 }
 
 /*
@@ -538,9 +545,22 @@ void Assembler::assemble(void)
     }
 
     // Resolve symbols 
+    this->resolve_labels();
+
+    // now walk over the sourceinfo and assemble
+    this->assem_instr();
 }
 
 Program Assembler::getProgram(void) const
 {
     return this->program;
+}
+
+void Assembler::setVerbose(const bool v)
+{
+    this->verbose = v;
+}
+bool Assembler::getVerbose(void) const
+{
+    return this->verbose;
 }
