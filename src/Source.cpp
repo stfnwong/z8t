@@ -112,10 +112,13 @@ Token TokenLookup::lookup(const std::string& s) const
  */
 OpcodeLookup::OpcodeLookup()
 {
-    for(const Token& opcode : Z80_OPCODES)
+    for(const Token& opcode : Z80_TOKENS)
     {
-        this->val_to_opcode[opcode.val] = opcode;
-        this->name_to_opcode[opcode.repr] = opcode;
+        if(opcode.type == SYM_INSTR)
+        {
+            this->val_to_opcode[opcode.val] = opcode;
+            this->name_to_opcode[opcode.repr] = opcode;
+        }
     }
 }
 
@@ -171,6 +174,15 @@ bool Symbol::operator==(const Symbol& that) const
 bool Symbol::operator!=(const Symbol& that) const
 {
     return !(*this == that);
+}
+
+std::string Symbol::toString(void) const
+{
+    std::ostringstream oss;
+
+    oss << this->label << " " << std::hex << this->addr;
+
+    return oss.str();
 }
 
 /*
@@ -364,8 +376,10 @@ uint32_t TextLine::argHash(void) const
     else
     {
         hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((this->args[0].val & 0xFF) << 8) | 
-               ((this->args[1].val & 0xFF));
+               ((this->args[0].val & 0xFF) << 8);
+
+        if(this->args[1].val >= 0)
+            hash = hash | ((this->args[1].val & 0xFF));
     }
 
     return hash;
@@ -392,8 +406,11 @@ std::string TextLine::toString(void) const
     else
         oss << ".";
     oss << "]  ";
+    // address
     oss << std::right << "0x" << std::hex << std::setw(4) << std::setfill('0') << this->addr << " ";
+    // mnemonic
     oss << std::left << std::setw(12) << std::setfill(' ') << this->opcode.repr;
+    // opcode
     oss << "0x" << std::right << std::hex << std::setw(4) << std::setfill('0') << this->opcode.val << "   ";
     // Insert flag chars
     oss << "...";

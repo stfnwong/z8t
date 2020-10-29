@@ -18,6 +18,7 @@
 constexpr const bool GLOBAL_VERBOSE = true;
 const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
+const std::string gcd_filename = "asm/gcd.asm";
 
 /*
  * helper function for lexing source
@@ -45,7 +46,6 @@ SourceInfo lex_helper(const std::string& filename)
 }
 
 
-// TODO : fold in lexer test cases to the top of this file
 SourceInfo get_add_sub_expected_source(void)
 {
     SourceInfo info;
@@ -334,7 +334,6 @@ TEST_CASE("test_lex_indirect", "[classic]")
 }
 
 
-// TODO: addresses are wrong
 Program get_add_sub_expected_program(void)
 {
     Program prog;
@@ -435,7 +434,7 @@ Program get_add_sub_expected_program(void)
 }
 
 
-TEST_CASE("test_add_sub", "[classic]")
+TEST_CASE("test_asm_add_sub", "[classic]")
 {
     int status;
     Assembler assem;
@@ -452,11 +451,11 @@ TEST_CASE("test_add_sub", "[classic]")
     out_program = assem.getProgram();
 
     // TODO: debug, remove 
-    for(unsigned int idx = 0; idx < out_program.numInstr(); ++idx)
-    {
-        Instr instr = out_program.get(idx);
-        std::cout << "(" << idx + 1 << ")" << instr.toString() << std::endl;
-    }
+    //for(unsigned int idx = 0; idx < out_program.numInstr(); ++idx)
+    //{
+    //    Instr instr = out_program.get(idx);
+    //    std::cout << "(" << idx + 1 << ")" << instr.toString() << std::endl;
+    //}
 
     std::cout << "Assembler produced " << out_program.numInstr() << " instructions" << std::endl;
     REQUIRE(exp_program.numInstr() == out_program.numInstr());
@@ -519,4 +518,38 @@ Program get_gcd_expected_program(void)
 
 
     return prog;
+}
+
+TEST_CASE("test_asm_gcd", "[classic]")
+{
+    int status;
+    Assembler assem;
+    SourceInfo lex_source;
+    Program exp_program;
+    Program out_program;
+
+    assem.setVerbose(GLOBAL_VERBOSE);
+    status = assem.read(gcd_filename);
+    REQUIRE(status == 0);
+    assem.assemble();
+
+    exp_program = get_gcd_expected_program();
+    out_program = assem.getProgram();
+
+    std::cout << "Assembler produced " << out_program.numInstr() << " instructions" << std::endl;
+    REQUIRE(exp_program.numInstr() == out_program.numInstr());
+
+    for(unsigned int idx = 0; idx < out_program.numInstr(); ++idx)
+    {
+        Instr out_instr = out_program.get(idx);
+        Instr exp_instr = exp_program.get(idx);
+
+        if(out_instr != exp_instr)
+        {
+            std::cout << "Difference in instruction " << idx + 1 << std::endl;
+            std::cout << "Expected : " << exp_instr.toString() << std::endl;
+            std::cout << "Got      : " << out_instr.toString() << std::endl;
+        }
+        REQUIRE(out_instr == exp_instr);
+    }
 }

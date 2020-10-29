@@ -14,12 +14,11 @@
 #include <unordered_map>
 
 // TODO : find real start address
-#define TEXT_START_ADDR 0x0
+#define TEXT_START_ADDR 0x1000
 
 /*
  * Instruction constants
  */
-// TODO : these should just be one giant enum so that the hashing works correctly
 typedef enum {
     INSTR_ADD, 
     INSTR_ADC,
@@ -92,7 +91,16 @@ typedef enum {
     COND_M,
     COND_P,
     COND_PE,
-    COND_PO
+    COND_PO,
+    // directives
+    DIR_DEFB,   // define byte
+    DIR_DEFW,   // define word
+    DIR_DEFS,   // define space
+    DIR_DEFM,   // define message (sequence of bytes)
+    DIR_END,
+    DIR_INCLUDE,
+    DIR_INCBIN,
+    DIR_SEEK
 } TokenType;
 
 
@@ -120,7 +128,6 @@ struct Token
 // hash on a key like 
 //
 // SYM_TYPE | ARG1_VAL | ARG2_VAL
-// ie:
 
 // Collection of all valid tokens 
 const Token Z80_TOKENS[] =
@@ -167,16 +174,21 @@ const Token Z80_TOKENS[] =
     Token(SYM_REG,  REG_BC_IND, "(bc)"),
     Token(SYM_REG,  REG_DE_IND, "(de)"),
     Token(SYM_REG,  REG_HL_IND, "(hl)"),
-    // directives
     // conditions
-    Token(SYM_COND, COND_C,  "C"), 
-    Token(SYM_COND, COND_NC, "NC"),
-    Token(SYM_COND, COND_Z,  "Z"), 
-    Token(SYM_COND, COND_NZ, "NZ"),
-    Token(SYM_COND, COND_M,  "M"), 
-    Token(SYM_COND, COND_P,  "P"), 
-    Token(SYM_COND, COND_PE, "PE"),
-    Token(SYM_COND, COND_PO, "PO"),
+    Token(SYM_COND, COND_C,  "c"), 
+    Token(SYM_COND, COND_NC, "nc"),
+    Token(SYM_COND, COND_Z,  "z"), 
+    Token(SYM_COND, COND_NZ, "nz"),
+    Token(SYM_COND, COND_M,  "m"), 
+    Token(SYM_COND, COND_P,  "p"), 
+    Token(SYM_COND, COND_PE, "pe"),
+    Token(SYM_COND, COND_PO, "po"),
+    // directives
+    Token(SYM_DIRECTIVE, DIR_DEFB, "defb"),
+    Token(SYM_DIRECTIVE, DIR_DEFW, "defw"),
+    Token(SYM_DIRECTIVE, DIR_DEFS, "defs"),
+    Token(SYM_DIRECTIVE, DIR_END, "end"),
+    Token(SYM_DIRECTIVE, DIR_INCLUDE, "include"),
 };
 
 
@@ -195,22 +207,9 @@ class TokenLookup
 
 
 /*
- * List of Accepted instruction Opcodes
- * TODO: consider replacing these with just a token since the real 
- * opcode depends on the combination of args
+ * OpcodeLookup
+ * Same as above, but only for opcodes
  */
-const Token Z80_OPCODES[] = 
-{
-    Token(SYM_INSTR, INSTR_ADD, "add" ),
-    Token(SYM_INSTR, INSTR_AND, "and" ),
-    Token(SYM_INSTR, INSTR_DEC, "dec" ),
-    Token(SYM_INSTR, INSTR_LD , "ld"  ),
-    Token(SYM_INSTR, INSTR_INC, "inc" ),
-    Token(SYM_INSTR, INSTR_POP, "pop" ),
-    Token(SYM_INSTR, INSTR_PUSH, "push"),
-};
-
-
 class OpcodeLookup
 {
     std::unordered_map<int, Token> val_to_opcode;
@@ -238,6 +237,7 @@ struct Symbol
         void init(void);
         bool operator==(const Symbol& that) const;
         bool operator!=(const Symbol& that) const;
+        std::string toString(void) const;
 };
 
 /*

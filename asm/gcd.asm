@@ -23,3 +23,10 @@ else:
     ld a, c
  
     jr gcd
+    ; some extra instrs for testing one or two parse
+    ; TODO : move these to a new file for testing lexing pass only
+    ;jr a, b 
+    ;jr 45
+    ;jr b
+    ;jr c, 22
+

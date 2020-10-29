@@ -294,11 +294,13 @@ class Assembler
         Token next_token(void);
 
         void skip_whitespace(void);
-        void skip_comment(void);
+        void skip_line(void);
         void skip_seperators(void);
+        void skip_to_next_token(void);
         void scan_token(void);
         void parse_one_arg(void);
         void parse_two_arg(void);
+        void parse_one_or_two_arg(void);
         void parse_instruction(const Token& token);
         void parse_line(void);
         void resolve_labels(void);
