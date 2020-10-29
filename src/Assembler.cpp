@@ -168,8 +168,8 @@ void Assembler::scan_token(void)
     if(this->verbose)
     {
         std::cout << "[" << __func__ << "] (line " << std::dec 
-            << this->cur_line << ") : token_buf contains <" 
-            << std::string(this->token_buf) << "> " << std::endl;
+            << this->cur_line << ") : token_buf contains [" 
+            << std::string(this->token_buf) << "] " << std::endl;
     }
 }
 
@@ -255,6 +255,9 @@ Token Assembler::next_token(void)
         }
     }
 
+    if(this->verbose)
+        std::cout << "[" << __func__ << "] token is " << token.toString() << std::endl;
+
     return token;
 }
 
@@ -262,7 +265,7 @@ Token Assembler::next_token(void)
 /*
  * parse_one_arg()
  */
-void Assembler::parse_one_arg(void)
+void Assembler::parse_arg(int arg_idx)
 {
     Token token;
 
@@ -270,7 +273,7 @@ void Assembler::parse_one_arg(void)
     if(token.type == SYM_NULL)
     {
         this->line_info.error = true;
-        this->line_info.errstr = "First argument must be REG, LITERAL, COND, or LABEL (got "
+        this->line_info.errstr = "Argument " + std::to_string(arg_idx) + " must be REG, LITERAL, COND, or LABEL (got "
             + std::string(token.toString()) + ")";
 
         if(this->verbose)
@@ -282,59 +285,11 @@ void Assembler::parse_one_arg(void)
     {
         this->line_info.is_label = true;
         this->line_info.label = token.repr;
-        this->line_info.sym_arg = 0;
+        this->line_info.sym_arg = arg_idx;
     }
-    this->line_info.args[0] = token;
+    this->line_info.args[arg_idx] = token;
 }
 
-// TODO: split in parse_first_operand and parse_second_operand
-/*
- * parse_two_arg()
- */
-void Assembler::parse_two_arg(void)
-{
-    Token token;
-
-    token = this->next_token();
-    if(token.type == SYM_NULL)
-    {
-        this->line_info.error = true;
-        this->line_info.errstr = "First argument must be REG, LITERAL, COND, or LABEL (got "
-            + std::string(token.toString()) + ")";
-
-        if(this->verbose)
-            std::cout << this->line_info.error << std::endl;
-        
-        return;
-    }
-    if(token.type == SYM_LABEL)
-    {
-        this->line_info.is_label = true;
-        this->line_info.label = token.repr;
-        this->line_info.sym_arg = 0;
-    }
-    this->line_info.args[0] = token;
-
-    token = this->next_token();
-    if(token.type == SYM_NULL)
-    {
-        this->line_info.error = true;
-        this->line_info.errstr = "Second argument must be REG, LITERAL, COND, or LABEL (got "
-            + std::string(token.toString()) + ")";
-
-        if(this->verbose)
-            std::cout << this->line_info.error << std::endl;
-        
-        return;
-    }
-    if(token.type == SYM_LABEL)
-    {
-        this->line_info.is_label = true;
-        this->line_info.label = token.repr;
-        this->line_info.sym_arg = 1;
-    }
-    this->line_info.args[1] = token;
-}
 
 /*
  * pase_one_or_two_arg()
@@ -346,7 +301,7 @@ void Assembler::parse_one_or_two_arg(void)
     // TODO: debug, remove 
     std::cout << "[" << __func__ << "] line is currently " << start_line << std::endl;
 
-    this->parse_one_arg();
+    this->parse_arg(0);
     std::cout << "[" << __func__ << "] args[0] is " << this->line_info.args[0].toString() << std::endl;
     // TODO: this is bad - how complicated would it be to have a feature where 
     // you pass like an 'expected type' and it gets that instead. Note that so far the 
@@ -360,32 +315,11 @@ void Assembler::parse_one_or_two_arg(void)
     // try to skip any extra whitespace 
     //this->skip_whitespace();
     this->skip_to_next_token();
-
     std::cout << "[" << __func__ << "] line is currently " << start_line << " after first argument " << std::endl;
+
     if(this->cur_line == start_line)
     {
-        // TODO : this is just a copy of parse_one_arg. Pasted here for
-        // testing but really needs to be refactored
-        Token token;
-
-        token = this->next_token();
-        if(token.type == SYM_NULL)
-        {
-            this->line_info.error = true;
-            this->line_info.errstr = "First argument must be REG, LITERAL, COND, or LABEL (got "
-                + std::string(token.toString()) + ")";
-
-            if(this->verbose)
-                std::cout << this->line_info.error << std::endl;
-            
-            return;
-        }
-        if(token.type == SYM_LABEL)
-        {
-            this->line_info.is_label = true;
-            this->line_info.label = token.repr;
-        }
-        this->line_info.args[1] = token;
+        this->parse_arg(1);
     }
 }
 
@@ -406,7 +340,17 @@ void Assembler::parse_instruction(const Token& token)
     {
         case INSTR_ADD:
         case INSTR_LD: 
-            this->parse_two_arg();
+            this->parse_arg(0);
+            this->parse_arg(1);
+            // TODO: this is garbage...
+            if(this->line_info.args[0].type == SYM_COND)
+            {
+                this->line_info.args[0] = Token(SYM_REG, REG_C, "c");
+            }
+            if(this->line_info.args[1].type == SYM_COND)
+            {
+                this->line_info.args[1] = Token(SYM_REG, REG_C, "c");
+            }
             break;
 
         // TODO: jr and ret can take the cond c which will get confused with the register c
@@ -420,14 +364,21 @@ void Assembler::parse_instruction(const Token& token)
         case INSTR_DEC:
         case INSTR_INC:
         case INSTR_OR:
-        case INSTR_RET:
         case INSTR_SUB:
         case INSTR_XOR:
-            this->parse_one_arg();
+            this->parse_arg(0);
+            if(this->line_info.args[0].type == SYM_COND)
+            {
+                this->line_info.args[0] = Token(SYM_REG, REG_C, "c");
+            }
+
             std::cout << "[" << __func__ << "] args[0] is " << this->line_info.args[0].toString() << std::endl;
             break;
 
         // instructions with no operands
+        case INSTR_RET:
+            this->parse_arg(0);
+            break;
 
         default:
             this->line_info.error = true;

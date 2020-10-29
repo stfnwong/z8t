@@ -298,8 +298,7 @@ class Assembler
         void skip_seperators(void);
         void skip_to_next_token(void);
         void scan_token(void);
-        void parse_one_arg(void);
-        void parse_two_arg(void);
+        void parse_arg(int arg_idx);
         void parse_one_or_two_arg(void);
         void parse_instruction(const Token& token);
         void parse_line(void);

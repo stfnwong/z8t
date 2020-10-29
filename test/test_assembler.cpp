@@ -536,7 +536,7 @@ TEST_CASE("test_asm_gcd", "[classic]")
     exp_program = get_gcd_expected_program();
     out_program = assem.getProgram();
 
-    std::cout << "Assembler produced " << out_program.numInstr() << " instructions" << std::endl;
+    std::cout << "Assembler produced " << std::dec << out_program.numInstr() << " instructions" << std::endl;
     REQUIRE(exp_program.numInstr() == out_program.numInstr());
 
     for(unsigned int idx = 0; idx < out_program.numInstr(); ++idx)

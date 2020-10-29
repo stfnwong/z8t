@@ -364,8 +364,10 @@ uint32_t TextLine::argHash(void) const
     if(this->args[0].type == SYM_LITERAL)
     {
         hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((this->args[0].type & 0xFF) << 8) | 
-               ((this->args[1].val & 0xFF));
+               ((this->args[0].type & 0xFF) << 8);
+
+        if(this->args[1].val >= 0)
+            hash = hash | ((this->args[1].val & 0xFF));
     }
     else if(this->args[1].type == SYM_LITERAL)
     {
