@@ -8,11 +8,8 @@
 gcd:
     cp b
     ret z                   ; while a != b
- 
     jr c, else              ; if a > b
- 
     sub b                   ; a = a - b
- 
     jr gcd
  
 else:

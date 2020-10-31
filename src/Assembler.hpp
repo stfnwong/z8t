@@ -17,6 +17,7 @@
 
 // Map of pairs. Each pair is <instr, size>
 const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t>> instr_lookup = {
+    // format 
     // (OPCODE << 16)  | (ARG1 << 8) | (ARG2) , (instr, size)
     // add 
     {(INSTR_ADD << 16) | (REG_A       << 8) | REG_A,           std::pair(0x87, 1)},   // add a, a 
@@ -78,7 +79,7 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t>> instr_lookup = {
     // jr 
     {(INSTR_JR  << 16) | (SYM_LITERAL << 8),                   std::pair(0x18, 2)},   // jr *
     {(INSTR_JR  << 16) | (COND_Z      << 8) | SYM_LITERAL,     std::pair(0x28, 2)},   // jr z, *
-    {(INSTR_JR  << 16) | (COND_C      << 8) | SYM_LITERAL,     std::pair(0x28, 2)},   // jr c, *
+    {(INSTR_JR  << 16) | (COND_C      << 8) | SYM_LITERAL,     std::pair(0x38, 2)},   // jr c, *
     {(INSTR_JR  << 16) | (COND_NZ     << 8) | SYM_LITERAL,     std::pair(0x20, 2)},   // jr nz, *
     {(INSTR_JR  << 16) | (COND_NC     << 8) | SYM_LITERAL,     std::pair(0x30, 2)},   // jr nc, *
     // jp 

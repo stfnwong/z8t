@@ -283,8 +283,7 @@ void Assembler::parse_arg(int arg_idx)
     }
     if(token.type == SYM_LABEL)
     {
-        this->line_info.is_label = true;
-        this->line_info.label = token.repr;
+        this->line_info.symbol = token.repr;
         this->line_info.sym_arg = arg_idx;
     }
     this->line_info.args[arg_idx] = token;
@@ -330,9 +329,11 @@ void Assembler::parse_instruction(const Token& token)
 {
     // get the corresponding opcode
     this->line_info.opcode = this->opcode_lookup.get(token.repr);
-    // TODO: debug, remove 
-    std::cout << "[" << __func__ << "] parsing instruction token " 
-        << token.toString() << std::endl;
+    if(this->verbose)
+    {
+        std::cout << "[" << __func__ << "] parsing instruction token " 
+            << token.toString() << std::endl;
+    }
 
     // Since this is already a token object we can just
     // jump based on the value
@@ -402,18 +403,14 @@ void Assembler::resolve_labels(void)
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
     {
         TextLine cur_line = this->source_info.get(idx);
-        // TODO: debug, remove
-        std::cout << "[" << __func__ << "] checking line " << cur_line.line_num << " for symbols..." << std::endl;
         if(cur_line.sym_arg >= 0)
         {
+            label_addr = this->symbol_table.getAddr(cur_line.args[cur_line.sym_arg].repr);
             if(this->verbose)
             {
-                std::cout << "[" << __func__ << "] resolving label [" << cur_line.args[cur_line.sym_arg].repr << "]" 
-                    << " on line " << std::dec << cur_line.line_num << std::endl;
+                std::cout << "[" << __func__ << "] resolving label for symbol " << cur_line.args[cur_line.sym_arg].repr 
+                    << " with address " << std::hex << label_addr << std::endl;
             }
-            label_addr = this->symbol_table.getAddr(cur_line.args[cur_line.sym_arg].repr);
-            std::cout << "[" << __func__ << "] label for symbol " << cur_line.args[cur_line.sym_arg].repr 
-                << " has address " << std::hex << label_addr << std::endl;
             if(label_addr > 0)
             {
                 cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, label_addr, std::to_string(label_addr));
@@ -481,8 +478,6 @@ void Assembler::parse_line(void)
     }   
     this->line_info.addr = this->cur_addr;
     this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
-    // TODO : debug, remove
-    //std::cout << this->line_info.toString() << std::endl;
 }
 
 /*
@@ -546,11 +541,8 @@ void Assembler::assem_instr(void)
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
     {
         line = this->source_info.get(idx);
-        // TODO : debug, remove 
-        std::cout << "[" << __func__ << "] assembling line " << std::endl;
-        std::cout << line.toString() << std::endl;
-
         line_hash = line.argHash();
+
         auto lookup_val = instr_lookup.find(line_hash);
         if(lookup_val != instr_lookup.end())
         {
@@ -570,8 +562,11 @@ void Assembler::assem_instr(void)
         }
         else
         {
-            std::cerr << "[" << __func__ << "] skipping instruction " << line.toInstrString() 
-                << " with hash " << std::hex << line_hash << std::endl;
+            if(this->verbose)
+            {
+                std::cerr << "[" << __func__ << "] skipping instruction " << line.toInstrString() 
+                    << " with hash " << std::hex << line_hash << std::endl;
+            }
             continue;
         }
         cur_instr.adr = line.addr;      
