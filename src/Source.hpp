@@ -302,7 +302,6 @@ struct TextLine
 
 // TODO ; in keeping with the text/data segment distinction, this should be at some point
 // renamed into something that indicates that its a collection of TextLine objects
-// TODO : are iterators acceptable enough that I could implement one here?
 class SourceInfo
 {
     private: 
