@@ -334,6 +334,24 @@ int Program::readObj(const std::string& filename)
     return 0;
 }
 
+/*
+ * toString()
+ */
+std::string Program::toString(void) const
+{
+    std::ostringstream oss;
+
+    oss << "Program contains " << std::dec << this->instructions.size()
+        << " instructions" << std::endl;
+
+    for(unsigned int idx = 0; idx < this->instructions.size(); ++idx)
+    {
+        oss << this->instructions[idx].toString() << std::endl;
+    }
+
+    return oss.str();
+}
+
 
 void Program::setVerbose(const bool v)
 {

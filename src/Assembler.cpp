@@ -297,24 +297,17 @@ void Assembler::parse_one_or_two_arg(void)
 {
     unsigned int start_line = this->cur_line;
 
-    // TODO: debug, remove 
-    std::cout << "[" << __func__ << "] line is currently " << start_line << std::endl;
-
     this->parse_arg(0);
-    std::cout << "[" << __func__ << "] args[0] is " << this->line_info.args[0].toString() << std::endl;
     // TODO: this is bad - how complicated would it be to have a feature where 
     // you pass like an 'expected type' and it gets that instead. Note that so far the 
     // only case for this is because we have a register c and a condition c
     if(this->line_info.args[0].type == SYM_REG)
     {
         this->line_info.args[0] = Token(SYM_COND, COND_C,  "c"); 
-        std::cout << "[" << __func__ << "] changed args[0] to be " 
-            << this->line_info.args[0].toString() << std::endl;
     }
-    // try to skip any extra whitespace 
-    //this->skip_whitespace();
+
     this->skip_to_next_token();
-    std::cout << "[" << __func__ << "] line is currently " << start_line << " after first argument " << std::endl;
+    //std::cout << "[" << __func__ << "] line is currently " << start_line << " after first argument " << std::endl;
 
     if(this->cur_line == start_line)
     {
@@ -343,7 +336,8 @@ void Assembler::parse_instruction(const Token& token)
         case INSTR_LD: 
             this->parse_arg(0);
             this->parse_arg(1);
-            // TODO: this is garbage...
+
+            // FIXME: This is a dumb hack to get the arg types right
             if(this->line_info.args[0].type == SYM_COND)
             {
                 this->line_info.args[0] = Token(SYM_REG, REG_C, "c");
@@ -373,7 +367,7 @@ void Assembler::parse_instruction(const Token& token)
                 this->line_info.args[0] = Token(SYM_REG, REG_C, "c");
             }
 
-            std::cout << "[" << __func__ << "] args[0] is " << this->line_info.args[0].toString() << std::endl;
+            //std::cout << "[" << __func__ << "] args[0] is " << this->line_info.args[0].toString() << std::endl;
             break;
 
         // instructions with no operands
@@ -397,7 +391,8 @@ void Assembler::parse_instruction(const Token& token)
  */
 void Assembler::resolve_labels(void)
 {
-    uint16_t label_addr;
+    int16_t label_addr;
+    int16_t target_addr;
 
     // walk over the sourceinfo and check for labels
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
@@ -408,12 +403,14 @@ void Assembler::resolve_labels(void)
             label_addr = this->symbol_table.getAddr(cur_line.args[cur_line.sym_arg].repr);
             if(this->verbose)
             {
-                std::cout << "[" << __func__ << "] resolving label for symbol " << cur_line.args[cur_line.sym_arg].repr 
-                    << " with address " << std::hex << label_addr << std::endl;
+                std::cout << "[" << __func__ << "] resolving [" << cur_line.args[cur_line.sym_arg].repr 
+                    << "] with address [0x" << std::hex << label_addr << "], on line " << std::dec << cur_line.line_num 
+                    << " [0x" << std::hex << cur_line.addr << "]" << std::endl;
             }
             if(label_addr > 0)
             {
-                cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, label_addr, std::to_string(label_addr));
+                target_addr = label_addr - cur_line.addr;
+                cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, target_addr, std::to_string(target_addr));
                 this->source_info.update(idx, cur_line);
             }
         }
@@ -429,7 +426,11 @@ void Assembler::parse_line(void)
     Token token;
 
     if(this->verbose)
-        std::cout << "[" << __func__ << "] parsing line " << this->cur_line << std::endl;
+    {
+        std::cout << "[" << __func__ << "] parsing line " 
+            << this->cur_line << " with address " 
+            << std::hex << this->cur_addr << std::endl;
+    }
 
     this->line_info.init();
     this->line_info.line_num = this->cur_line;
@@ -452,8 +453,9 @@ void Assembler::parse_line(void)
         sym.addr  = this->cur_addr;
         this->symbol_table.add(sym);
         this->line_info.label = sym.label;
-        // TODO: debug, remove 
-        std::cout << "[" << __func__ << "] added symbol [" << sym.label << "] to table" << std::endl;
+
+        if(this->verbose)
+            std::cout << "[" << __func__ << "] added symbol [" << sym.toString() << "] to table" << std::endl;
 
         // Scan the next token
         token = this->next_token();
@@ -519,9 +521,9 @@ void Assembler::loadSource(const std::string& src)
 }
 
 /*
- * getSource()
+ * getSourceInfo()
  */
-const SourceInfo& Assembler::getSource(void) const
+const SourceInfo& Assembler::getSourceInfo(void) const
 {
     return this->source_info;
 }
@@ -597,22 +599,6 @@ void Assembler::assemble(void)
         }
         this->parse_line();
         this->source_info.add(this->line_info);
-    }
-
-    if(this->verbose)
-    {
-        std::cout << "[" << __func__ << "] parsed " 
-            << this->source_info.getNumLines() << " lines of source"
-            << std::endl;
-    }
-
-    if(this->verbose)
-    {
-        for(unsigned int idx = 0; idx < this->symbol_table.size(); idx++)
-        {
-            Symbol s = this->symbol_table.get(idx);
-            std::cout << s.toString() << std::endl;
-        }
     }
 
     // Resolve symbols 

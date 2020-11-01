@@ -128,6 +128,11 @@ class Program
          * readObj()
          */
         int readObj(const std::string& filename);
+        /*
+         * toString()
+         * Render the program object as a string
+         */
+        std::string toString(void) const;
 
         void setVerbose(const bool v);
         bool getVerbose(void) const;

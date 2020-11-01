@@ -281,7 +281,7 @@ struct TextLine
     Token       args[2];
     int8_t      sym_arg;        // which arg has a symbol (so we don't have to check later)
     uint16_t    line_num;
-    uint16_t    addr;
+    int16_t     addr;
     bool        is_label;
     bool        error;
 
@@ -314,6 +314,7 @@ class SourceInfo
 
         void init(void);
         void add(const TextLine& l);
+        bool hasError(void) const;
         TextLine get(const unsigned int idx) const;
         void update(const unsigned int idx, const TextLine& l);
         unsigned int getNumLines(void) const;

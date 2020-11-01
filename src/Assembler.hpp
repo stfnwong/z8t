@@ -320,7 +320,7 @@ class Assembler
         bool  getVerbose(void) const;
         int   read(const std::string& filename);
         void  loadSource(const std::string& src);
-        const SourceInfo& getSource(void) const;
+        const SourceInfo& getSourceInfo(void) const;
 
         // getters, setters 
         Program getProgram(void) const;

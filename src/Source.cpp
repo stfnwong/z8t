@@ -525,15 +525,38 @@ SourceInfo::SourceInfo() {}
 //}
 
 
+/*
+ * init()
+ */
 void SourceInfo::init(void)
 {
     this->info.clear();
 }
 
+/*
+ * add()
+ */
 void SourceInfo::add(const TextLine& l)
 {
     this->info.push_back(l);
 }
+
+/*
+ * hasError()
+ */
+bool SourceInfo::hasError(void) const
+{
+    // if it turns out to be a bottleneck then we can optimize this by
+    // not checking each line 
+    for(unsigned int idx = 0; idx < this->info.size(); ++idx)
+    {
+        if(this->info[idx].error)
+            return true;
+    }
+
+    return false;
+}
+
 
 /*
  * get()

@@ -7,16 +7,16 @@
 
 gcd:
     cp b
-    ret z                   ; while a != b
-    jr c, else              ; if a > b
-    sub b                   ; a = a - b
+    ret z         ; while a != b
+    jr c, else    ; if a > b
+    sub b         ; a = a - b
     jr gcd
  
 else:
-    ld c, a                 ; Save a
-    ld a, b                 ; Swap b into a so we can do the subtraction
-    sub c                   ; b = b - a
-    ld b, a                 ; Put a and b back where they belong
+    ld c, a       ; Save a
+    ld a, b       ; Swap b into a so we can do the subtraction
+    sub c         ; b = b - a
+    ld b, a       ; Put a and b back where they belong
     ld a, c
  
     jr gcd

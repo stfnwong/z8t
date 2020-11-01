@@ -30,7 +30,7 @@ TOOL_SOURCES = $(wildcard $(TOOL_DIR)/*.cpp)
 
 .PHONY: clean
 
-# Generic build 
+# ======== REGULAR OBJECTS ======= #
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEPS)
 	$(CXX) -c $< -o $@ $(CXXFLAGS)
 
@@ -39,15 +39,17 @@ OBJECTS := $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 $(OBJECTS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# ======== UNIT TESTS ======= #
 TEST_OBJECTS  := $(TEST_SOURCES:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 $(TEST_OBJECTS): $(OBJ_DIR)/%.o : $(TEST_DIR)/%.cpp 
 	$(CXX) $(CXXFLAGS) $(INCS) -c $< -o $@ 
 
-#TOOL_OBJECTS := $(TOOL_SOURCES:$(TOOL_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-#
-#$(TOOL_OBJECTS): $(OBJ_DIR)/%.o : $(TOOL_DIR)/%.cpp
-#	$(CXX) $(CXXFLAGS) $(INCS) -c $< -o $@
+# ======== TOOLS ======= #
+TOOL_OBJECTS := $(TOOL_SOURCES:$(TOOL_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+
+$(TOOL_OBJECTS): $(OBJ_DIR)/%.o : $(TOOL_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCS) -c $< -o $@
 
 # ==== TEST TARGETS ==== #
 TESTS=test_assembler  test_source test_token
@@ -56,11 +58,11 @@ $(TESTS): $(TEST_OBJECTS) $(OBJECTS)
 		-o $(TEST_BIN_DIR)/$@ $(LIBS) $(TEST_LIBS)
 
 ## ===== TOOL TARGETS ===== # 
-#TOOLS = c8asm c8dis
-#
-#$(TOOLS): $(OBJECTS) $(TOOL_OBJECTS)
-#	$(CXX) $(LDFLAGS) $(OBJECTS) $(OBJ_DIR)/$@.o \
-#		$(INCS) -o $(BIN_DIR)/$@ $(LIBS)
+TOOLS = z8tasm 
+
+$(TOOLS): $(OBJECTS) $(TOOL_OBJECTS)
+	$(CXX) $(LDFLAGS) $(OBJECTS) $(OBJ_DIR)/$@.o \
+		$(INCS) -o $(BIN_DIR)/$@ $(LIBS)
 
 # Main targets 
 all : test tools
