@@ -34,8 +34,8 @@ std::pair<Token, int> next_token(const std::string& src, unsigned int offset)
     Token tok;
     unsigned int idx = offset;
 
-    std::cout << "[" << __func__ << "] input from " << std::dec << offset << " is ["
-        << src.substr(offset, src.length()) << "]" << std::endl;
+    std::cout << "[" << __func__ << "] input from offset (" << std::dec << idx << ") is \""
+        << src.substr(offset, src.length()) << "\"" << std::endl;
 
     while(idx < src.length())
     {
@@ -45,7 +45,7 @@ std::pair<Token, int> next_token(const std::string& src, unsigned int offset)
         if(src[idx] == ';')
             break;
         // eat whitespace
-        if(src[idx] == ' ' || src[idx] == '\n')
+        if(src[idx] == ' ' || src[idx] == '\n' || src[idx] == '\t')
         {
             idx++;
             continue;

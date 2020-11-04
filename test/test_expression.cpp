@@ -24,23 +24,25 @@ TEST_CASE("test_next_token", "[classic]")
         std::pair<Token, int>(Token(SYM_NULL, -1, "1"), 2),
         std::pair<Token, int>(Token(SYM_NULL, -1, "/"), 3),
         std::pair<Token, int>(Token(SYM_NULL, -1, "("), 5),
-        std::pair<Token, int>(Token(SYM_NULL, -1, "2"), 6), 
+        std::pair<Token, int>(Token(SYM_NULL, -1, "2"), 7), 
         std::pair<Token, int>(Token(SYM_NULL, -1, "*"), 8),
         std::pair<Token, int>(Token(SYM_NULL, -1, "3"), 10),
         std::pair<Token, int>(Token(SYM_NULL, -1, ")"), 11)
     };
     const std::string expr_input = "1 / (2 * 3)";
 
-    // we expect to make exp_pairs.size() calls to next_token()
+    std::cout << "Expecting " << std::dec << exp_pairs.size() << " pairs" << std::endl;
     std::pair<Token, int> out_pair;
+    for(unsigned int idx = 0; idx < exp_pairs.size(); ++idx)
+    {
+        if(idx == 0)
+            out_pair = next_token(expr_input, 0);
+        else
+            out_pair = next_token(expr_input, out_pair.second);
 
-    out_pair = next_token(expr_input, 0);
-    std::cout << "First pair :" << out_pair.first.toString() << ",  " << std::to_string(out_pair.second) << std::endl;
+        std::cout << "Pair " << std::dec << idx+1 << " : " << out_pair.first.toString()
+            << ",  " << std::to_string(out_pair.second) << std::endl;
 
-    REQUIRE(out_pair == exp_pairs[0]);
-
-    out_pair = next_token(expr_input, out_pair.second);
-    std::cout << "Second pair :" << out_pair.first.toString() << ",  " << std::to_string(out_pair.second) << std::endl;
-    REQUIRE(out_pair == exp_pairs[1]);
-
+        REQUIRE(out_pair == exp_pairs[idx]);
+    }
 }
