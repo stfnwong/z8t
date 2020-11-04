@@ -17,18 +17,20 @@
 /*
  * Options
  */
-struct AsmOpts
+struct DisOpts
 {
     std::string infile;
     std::string outfile;
     std::string literal;
     bool verbose;
+    bool print_adr;
 
     public:
-        AsmOpts() : infile("\0"), 
+        DisOpts() : infile("\0"), 
                     outfile("\0"),
                     literal("\0"),
-                    verbose(false) {} 
+                    verbose(false),
+                    print_adr(false) {} 
 };
 
 
@@ -79,60 +81,60 @@ int main(int argc, char *argv[])
     }
 
     // we can disassemble a uint32_t literal from the command line 
-    if(dis_opts.literal != "\0")
-    {
-        uint32_t instr_literal = std::strtoul(dis_opts.literal.c_str(), nullptr, 16);
-        TextInfo dis_out = dis_instr(instr_literal, 0);
-
-        if(dis_opts.print_adr)
-        {
-            std::cout << "[0x" << std::hex << std::setw(8) << std::setfill('0')
-                << dis_out.addr << "] ";
-        }
-        std::cout << dis_out.toInstrString() << std::endl;
-
-        return 0;
-    }
-    // otherwise, check that we have a valid infile 
-    else if(dis_opts.infile == "\0")
-    {
-        std::cerr << "Invalid input filename" << std::endl;
-        std::cerr << "Use -i <filename> to specify" << std::endl;
-        exit(-1);
-    }
-
-    Program prog;
-    status = prog.load(dis_opts.infile);
-    if(status < 0)
-    {
-        std::cerr << "Failed to load input file [" << 
-            dis_opts.infile << "]" << std::endl;
-        exit(-1);
-    }
-
-    if(dis_opts.verbose)
-    {
-        std::cout << "Found " << prog.numDataSeg() << " data segments in program [" 
-            << dis_opts.infile << "]" << std::endl;
-        std::cout << "Found " << prog.numInstrs() << " instructions in program [" 
-            << dis_opts.infile << "]" << std::endl;
-        std::cout << std::endl;
-    }
-
-    // Dump representation to console
-    // TODO: data segment
-    for(unsigned int idx = 0; idx < prog.numInstrs(); ++idx)
-    {
-        Instr cur_instr = prog.getInstr(idx);
-        TextInfo dis_out = dis_instr(cur_instr.ins, cur_instr.adr);
-
-        if(dis_opts.print_adr)
-        {
-            std::cout << "[0x" << std::hex << std::setw(8) << std::setfill('0')
-                << dis_out.addr << "] ";
-        }
-        std::cout << dis_out.toInstrString() << std::endl;
-    }
+//    if(dis_opts.literal != "\0")
+//    {
+//        uint32_t instr_literal = std::strtoul(dis_opts.literal.c_str(), nullptr, 16);
+//        TextInfo dis_out = dis_instr(instr_literal, 0);
+//
+//        if(dis_opts.print_adr)
+//        {
+//            std::cout << "[0x" << std::hex << std::setw(8) << std::setfill('0')
+//                << dis_out.addr << "] ";
+//        }
+//        std::cout << dis_out.toInstrString() << std::endl;
+//
+//        return 0;
+//    }
+//    // otherwise, check that we have a valid infile 
+//    else if(dis_opts.infile == "\0")
+//    {
+//        std::cerr << "Invalid input filename" << std::endl;
+//        std::cerr << "Use -i <filename> to specify" << std::endl;
+//        exit(-1);
+//    }
+//
+//    Program prog;
+//    status = prog.load(dis_opts.infile);
+//    if(status < 0)
+//    {
+//        std::cerr << "Failed to load input file [" << 
+//            dis_opts.infile << "]" << std::endl;
+//        exit(-1);
+//    }
+//
+//    if(dis_opts.verbose)
+//    {
+//        std::cout << "Found " << prog.numDataSeg() << " data segments in program [" 
+//            << dis_opts.infile << "]" << std::endl;
+//        std::cout << "Found " << prog.length() << " instructions in program [" 
+//            << dis_opts.infile << "]" << std::endl;
+//        std::cout << std::endl;
+//    }
+//
+//    // Dump representation to console
+//    // TODO: data segment
+//    for(unsigned int idx = 0; idx < prog.length(); ++idx)
+//    {
+//        Instr cur_instr = prog.getInstr(idx);
+//        TextInfo dis_out = dis_instr(cur_instr.ins, cur_instr.adr);
+//
+//        if(dis_opts.print_adr)
+//        {
+//            std::cout << "[0x" << std::hex << std::setw(8) << std::setfill('0')
+//                << dis_out.addr << "] ";
+//        }
+//        std::cout << dis_out.toInstrString() << std::endl;
+//    }
 
     return 0;
 }

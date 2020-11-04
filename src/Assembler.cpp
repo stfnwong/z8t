@@ -181,20 +181,16 @@ Token Assembler::tok_string_to_literal(const std::string& tok_string) const
 {
     Token token;
 
+    token.repr = tok_string;
+    token.type = SYM_LITERAL;
     try
     {
         if(tok_string[0] == '$')
-        {
-            token.repr = tok_string;
             token.val = std::stoi(tok_string.substr(1, tok_string.size()-1), nullptr, 16);
-            token.type = SYM_LITERAL;
-        }
+        else if(tok_string[0] == '%')
+            token.val = std::stoi(tok_string.substr(1, tok_string.size()-1), nullptr, 2);
         else
-        {
-            token.repr = tok_string;
             token.val = std::stoi(tok_string, nullptr, 10);
-            token.type = SYM_LITERAL;
-        }
     }
     catch(std::exception& ex)
     {
@@ -220,7 +216,7 @@ Token Assembler::next_token(void)
     if(token.type == SYM_NULL)
     {
         // Check if this is a literal
-        if(tok_string[0] == '$' || std::isdigit(tok_string[0]))
+        if(tok_string[0] == '$' || tok_string[0] == '%' || std::isdigit(tok_string[0]))
         {
             token = this->tok_string_to_literal(tok_string);
         }
@@ -385,6 +381,66 @@ void Assembler::parse_instruction(const Token& token)
             }
     }
 }
+
+/*
+ * parse_directive()
+ */
+void Assembler::parse_directive(const Token& token)
+{
+    Token arg_token;
+
+    switch(token.val)
+    {
+        // TODO : this is actually and arbitrary comma seperated list of args....
+        case DIR_DEFB:
+            arg_token = this->next_token();
+            if(arg_token.type != SYM_LITERAL)
+            {
+                this->line_info.error = true;
+                this->line_info.errstr = "org directive got invalid argument " + std::string(arg_token.repr);
+                break;
+            }
+            // This only accepts a byte anyway, so we may as well just mask off the lower 8 bits
+            this->line_info.data.push_back(arg_token.val & 0xFF);
+            break;
+
+        case DIR_DEFW:
+            arg_token = this->next_token();
+            if(arg_token.type != SYM_LITERAL)
+            {
+                this->line_info.error = true;
+                this->line_info.errstr = "org directive got invalid argument " + std::string(arg_token.repr);
+                break;
+            }
+            this->line_info.data.push_back(arg_token.val & 0xFFF);
+            break;
+
+        case DIR_ORG:   // updates the current address
+            arg_token = this->next_token();
+            if(arg_token.type != SYM_LITERAL)
+            {
+                this->line_info.error = true;
+                this->line_info.errstr = "org directive got invalid argument " + std::string(arg_token.repr);
+                break;
+            }
+            this->cur_addr = arg_token.val;
+            break;
+
+        case DIR_END:
+            // stop assembling
+            break;
+
+        default:
+            this->line_info.error = true;
+            this->line_info.errstr = "Invalid directive " + std::string(token.repr);
+            if(this->verbose)
+            {
+                std::cout << "[" << __func__ << "] (line " << this->cur_line 
+                    << ") : " << this->line_info.errstr << std::endl;
+            }
+    }
+}
+
 
 /*
  * resolve_labels()

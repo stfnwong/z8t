@@ -146,9 +146,9 @@ void Program::writeMem(const uint16_t addr, const uint16_t val)
 }
 
 /*
- * numInstr()
+ * length()
  */
-unsigned int Program::numInstr(void) const
+unsigned int Program::length(void) const
 {
     return this->instructions.size();
 }

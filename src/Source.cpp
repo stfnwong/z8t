@@ -66,21 +66,21 @@ std::string Token::toString(void) const
     switch(this->type)
     {
         case SYM_EOF:
-            return "EOF <" + std::string(this->repr) + ">";
+            return "EOF <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_INSTR:
-            return "INSTR <" + std::string(this->repr) + ">";
+            return "INSTR <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_LITERAL:
-            return "LITERAL <" + std::string(this->repr) + ">";
+            return "LITERAL <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_LITERAL_IND:
-            return "LITERAL_IND <" + std::string(this->repr) + ">";
+            return "LITERAL_IND <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_LABEL:
-            return "LABEL <" + std::string(this->repr) + ">";
+            return "LABEL <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_REG:
-            return "REGISTER <" + std::string(this->repr) + ">";
+            return "REGISTER <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_COND:
-            return "CONDITION <" + std::string(this->repr) + ">";
+            return "CONDITION <" + std::string(this->repr) + "> " + std::to_string(this->val);
         default:
-            return "NULL <" + std::string(this->repr) + ">";
+            return "NULL <" + std::string(this->repr) + "> " + std::to_string(this->val);
     }
 }
 
@@ -122,6 +122,10 @@ OpcodeLookup::OpcodeLookup()
     }
 }
 
+/*
+ * get()
+ * Get opcode by val
+ */
 Token OpcodeLookup::get(const int val) const
 {
     auto op = this->val_to_opcode.find(val);
@@ -132,6 +136,10 @@ Token OpcodeLookup::get(const int val) const
 }
 
 
+/*
+ * get()
+ * Get opcode by name
+ */
 Token OpcodeLookup::get(const std::string& name) const
 {
     auto op = this->name_to_opcode.find(name);
@@ -352,6 +360,8 @@ void TextLine::init(void)
 
     for(int i = 0; i < 2; ++i)
         this->args[i].init();
+
+    this->data.clear();
 }
 
 /*

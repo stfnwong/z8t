@@ -101,10 +101,15 @@ class Program
         void writeMem(const uint16_t addr, const uint16_t val);
 
         /*
-         * numInstr()
-         * Returns the length of the instruction vector.
+         * length()
+         * Returns the number of instructions in the program.
          */
-        unsigned int numInstr(void) const;
+        unsigned int length(void) const;
+
+        /*
+         * numBytes()
+         * TODO: Returns the length of the program in bytes
+         */
 
         /*
          * save()

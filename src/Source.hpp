@@ -93,13 +93,16 @@ typedef enum {
     COND_PE,
     COND_PO,
     // directives
-    DIR_DEFB,   // define byte
-    DIR_DEFW,   // define word
-    DIR_DEFS,   // define space
-    DIR_DEFM,   // define message (sequence of bytes)
-    DIR_END,
-    DIR_INCLUDE,
-    DIR_INCBIN,
+    DIR_DEFB,    // define byte
+    DIR_DEFW,    // define word
+    DIR_DEFS,    // define space
+    DIR_DEFM,    // define message (sequence of bytes)
+    DIR_DEFINE,  // define a macro (ala #define in C)
+    DIR_END,     // stop assembling at this point
+    DIR_EQU,     // set a labels value to the literal after equ (rather than the current address)
+    DIR_INCLUDE, // include text content
+    DIR_INCBIN,  // include binary content
+    DIR_ORG,     // adjust current address (eg: for mapped memory)
     DIR_SEEK
 } TokenType;
 
@@ -123,6 +126,16 @@ struct Token
         void init(void);
 
         std::string toString(void) const;
+};
+
+// Argument - this is for the data section 
+struct Argument
+{
+    uint8_t size;       // how many bytes are actually used
+    uint32_t val;
+
+    public:
+        Argument();
 };
 
 // hash on a key like 
@@ -184,11 +197,11 @@ const Token Z80_TOKENS[] =
     Token(SYM_COND, COND_PE, "pe"),
     Token(SYM_COND, COND_PO, "po"),
     // directives
-    Token(SYM_DIRECTIVE, DIR_DEFB, "defb"),
-    Token(SYM_DIRECTIVE, DIR_DEFW, "defw"),
-    Token(SYM_DIRECTIVE, DIR_DEFS, "defs"),
-    Token(SYM_DIRECTIVE, DIR_END, "end"),
-    Token(SYM_DIRECTIVE, DIR_INCLUDE, "include"),
+    Token(SYM_DIRECTIVE, DIR_DEFB,    ".defb"),
+    Token(SYM_DIRECTIVE, DIR_DEFW,    ".defw"),
+    Token(SYM_DIRECTIVE, DIR_DEFS,    ".defs"),
+    Token(SYM_DIRECTIVE, DIR_END,     ".end"),
+    Token(SYM_DIRECTIVE, DIR_INCLUDE, ".include"),
 };
 
 
@@ -284,6 +297,8 @@ struct TextLine
     int16_t     addr;
     bool        is_label;
     bool        error;
+    // data segment...
+    std::vector<uint8_t> data;      // any word data, etc
 
     public:
         TextLine();

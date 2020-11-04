@@ -302,6 +302,7 @@ class Assembler
         void parse_arg(int arg_idx);
         void parse_one_or_two_arg(void);
         void parse_instruction(const Token& token);
+        void parse_directive(const Token& token);
         void parse_line(void);
         void resolve_labels(void);
 

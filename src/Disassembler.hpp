@@ -12,6 +12,7 @@
 #include "Source.hpp"
 
 
+// TODO: need to rename this map
 // Map of pairs. Each pair is <repr, size>
 const std::unordered_map<uint8_t, std::pair<std::string, uint8_t>> dis_instr_lookup = {
     // format 
@@ -242,4 +243,4 @@ const std::unordered_map<uint8_t, std::pair<std::string, uint8_t>> dis_instr_loo
 TextLine dis_program(const uint8_t *code_buffer, int pc);
 
 
-#endif /*__DISASSEMBLER_HPP/
+#endif /*__DISASSEMBLER_HPP*/
