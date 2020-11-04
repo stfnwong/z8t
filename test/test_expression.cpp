@@ -20,19 +20,20 @@
 TEST_CASE("test_next_token", "[classic]")
 {
     // the sequence of tokens emitted by repeat calls should look like
-    std::vector<std::pair<Token, int>> exp_pairs = {
-        std::pair<Token, int>(Token(SYM_NULL, -1, "1"), 2),
-        std::pair<Token, int>(Token(SYM_NULL, -1, "/"), 3),
-        std::pair<Token, int>(Token(SYM_NULL, -1, "("), 5),
-        std::pair<Token, int>(Token(SYM_NULL, -1, "2"), 7), 
-        std::pair<Token, int>(Token(SYM_NULL, -1, "*"), 8),
-        std::pair<Token, int>(Token(SYM_NULL, -1, "3"), 10),
-        std::pair<Token, int>(Token(SYM_NULL, -1, ")"), 11)
+    std::vector<std::pair<ExprToken, int>> exp_pairs = {
+        std::pair<ExprToken, int>(ExprToken(TOK_LITERAL,     0, "1"), 2),
+        std::pair<ExprToken, int>(ExprToken(TOK_SLASH,       0, "/"), 3),
+        std::pair<ExprToken, int>(ExprToken(TOK_LEFT_PAREN,  0, "("), 5),
+        std::pair<ExprToken, int>(ExprToken(TOK_LITERAL,     0, "2"), 7), 
+        std::pair<ExprToken, int>(ExprToken(TOK_STAR,        0, "*"), 8),
+        std::pair<ExprToken, int>(ExprToken(TOK_LITERAL,     0, "3"), 10),
+        std::pair<ExprToken, int>(ExprToken(TOK_RIGHT_PAREN, 0, ")"), 11)
     };
     const std::string expr_input = "1 / (2 * 3)";
 
     std::cout << "Expecting " << std::dec << exp_pairs.size() << " pairs" << std::endl;
-    std::pair<Token, int> out_pair;
+
+    std::pair<ExprToken, int> out_pair;
     for(unsigned int idx = 0; idx < exp_pairs.size(); ++idx)
     {
         if(idx == 0)
@@ -41,7 +42,7 @@ TEST_CASE("test_next_token", "[classic]")
             out_pair = next_token(expr_input, out_pair.second);
 
         std::cout << "Pair " << std::dec << idx+1 << " : " << out_pair.first.toString()
-            << ",  " << std::to_string(out_pair.second) << std::endl;
+            << ",  next index: " << std::to_string(out_pair.second) << std::endl;
 
         REQUIRE(out_pair == exp_pairs[idx]);
     }
