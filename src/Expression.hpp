@@ -79,6 +79,7 @@ struct ExprToken
 
         bool operator==(const ExprToken& that) const;
         bool operator!=(const ExprToken& that) const;
+        bool isOperator(void) const;
         std::string toString(void) const;
 };
 
@@ -102,7 +103,6 @@ struct Expression
         bool operator!=(const Expression& that) const;
 
         std::string toString(void) const;
-
 };
 
 /*
