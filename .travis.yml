@@ -21,3 +21,4 @@ script:
     - ./bin/test/test_token
     - ./bin/test/test_assembler
     - ./bin/test/test_source
+    - ./bin/test/test_program

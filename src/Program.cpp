@@ -190,13 +190,6 @@ int Program::save(const std::string& filename)
         return -1;
     }
 
-    //N = (uint16_t) this->instructions.size();
-    //outfile.write(reinterpret_cast<char*>(&N), sizeof(uint16_t));
-
-    //outfile.write(reinterpret_cast<char*>
-    //            (&this->instructions[0].adr),
-    //            sizeof(uint16_t));
-    
     for(unsigned int idx = 0; idx < this->instructions.size(); ++idx)
     {
         outfile.write(reinterpret_cast<char*>
@@ -238,13 +231,6 @@ int Program::load(const std::string& filename)
         return -1;
     }
 
-    //infile.read(reinterpret_cast<char*>(&num_records), sizeof(uint16_t));
-    //if(num_records == 0)
-    //{
-    //    std::cerr << "[" << __func__ << "] no records in file " 
-    //        << filename << std::endl;
-    //    return -1;
-    //}
     infile.seekg(0, infile.end);
 
     int idx = 0;
@@ -296,19 +282,6 @@ int Program::load(const std::string& filename)
         this->instructions.push_back(instr);
         instr.init();
     }
-
-    // Load the first (only) address pointer 
-    //infile.read(reinterpret_cast<char*>(&addr), sizeof(uint16_t));
-
-    //Instr instr;
-    //for(unsigned int idx = 0; idx < num_records; ++idx)
-    //{
-    //    infile.read(reinterpret_cast<char*>(&instr.ins), sizeof(uint16_t));
-    //    //infile.read(reinterpret_cast<char*>(&instr.adr), sizeof(uint16_t));
-    //    instr.adr = addr;
-    //    this->instructions.push_back(instr);
-    //    addr++;
-    //}
     infile.close();
 
     return 0;
