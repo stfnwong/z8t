@@ -7,6 +7,8 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+
+#include "Instruction.hpp"
 #include "Program.hpp"
 
 
@@ -90,6 +92,25 @@ Program::Program(const Program& that)
         this->instructions.push_back(that.instructions[i]);
 }
 
+// operators 
+bool Program::operator==(const Program& that) const
+{
+    if(this->instructions.size() != that.instructions.size())
+        return false;
+    for(unsigned int idx = 0; idx < this->instructions.size(); ++idx)
+    {
+        if(this->instructions[idx] != that.instructions[idx])
+            return false;
+    }
+
+    return true;
+}
+
+bool Program::operator!=(const Program& that) const
+{
+    return !(*this == that);
+}
+
 
 /*
  * instr_to_string()
@@ -146,9 +167,9 @@ void Program::writeMem(const uint16_t addr, const uint16_t val)
 }
 
 /*
- * numInstr()
+ * length()
  */
-unsigned int Program::numInstr(void) const
+unsigned int Program::length(void) const
 {
     return this->instructions.size();
 }
@@ -165,29 +186,25 @@ int Program::save(const std::string& filename)
         outfile.open(filename, std::ios::binary);
     }
     catch(std::ios_base::failure& e) {
-        std::cerr << "[" << __FUNCTION__ << "] " << e.what() << std::endl;
+        std::cerr << "[" << __func__ << "] " << e.what() << std::endl;
         return -1;
     }
 
-    N = (uint16_t) this->instructions.size();
-    outfile.write(reinterpret_cast<char*>(&N), sizeof(uint16_t));
+    //N = (uint16_t) this->instructions.size();
+    //outfile.write(reinterpret_cast<char*>(&N), sizeof(uint16_t));
 
-    // Debug, remove 
-    std::cout << "[" << __FUNCTION__ << "] first address is " 
-        << std::hex << std::setw(4) << this->instructions[0].adr 
-        << std::endl;
-
-    outfile.write(reinterpret_cast<char*>
-                (&this->instructions[0].adr),
-                sizeof(uint16_t));
+    //outfile.write(reinterpret_cast<char*>
+    //            (&this->instructions[0].adr),
+    //            sizeof(uint16_t));
+    
     for(unsigned int idx = 0; idx < this->instructions.size(); ++idx)
     {
         outfile.write(reinterpret_cast<char*>
                 (&this->instructions[idx].ins),
-                sizeof(uint16_t));
+                this->instructions[idx].size * sizeof(uint8_t));
         if(this->verbose)
         {
-            std::cout << "Wrote instruction " << idx << "/" 
+            std::cout << "Wrote instruction " << idx + 1 << "/" 
                 << this->instructions.size() << "\r";
         }
     }
@@ -201,6 +218,9 @@ int Program::save(const std::string& filename)
 
 /*
  * load()
+ * Read and decode each byte in the stream. Use the code_to_instr_repr
+ * table to work out the instruction size and advance the file pointer
+ * correctly.
  */
 int Program::load(const std::string& filename)
 {
@@ -214,29 +234,81 @@ int Program::load(const std::string& filename)
         infile.open(filename, std::ios_base::binary);
     }
     catch(std::ios_base::failure& e) {
-        std::cerr << "[" << __FUNCTION__ << "] " << e.what() << std::endl;
+        std::cerr << "[" << __func__ << "] " << e.what() << std::endl;
         return -1;
     }
 
-    infile.read(reinterpret_cast<char*>(&num_records), sizeof(uint16_t));
-    if(num_records == 0)
-    {
-        std::cerr << "[" << __FUNCTION__ << "] no records in file " 
-            << filename << std::endl;
-        return -1;
-    }
-    // Load the first (only) address pointer 
-    infile.read(reinterpret_cast<char*>(&addr), sizeof(uint16_t));
+    //infile.read(reinterpret_cast<char*>(&num_records), sizeof(uint16_t));
+    //if(num_records == 0)
+    //{
+    //    std::cerr << "[" << __func__ << "] no records in file " 
+    //        << filename << std::endl;
+    //    return -1;
+    //}
+    infile.seekg(0, infile.end);
+
+    int idx = 0;
+    int length = infile.tellg();
+    infile.seekg(0, infile.beg);
+
+    std::cout << "[" << __func__ << "] file length is " << length << std::endl;
 
     Instr instr;
-    for(unsigned int idx = 0; idx < num_records; ++idx)
+    while(idx < length)
     {
-        infile.read(reinterpret_cast<char*>(&instr.ins), sizeof(uint16_t));
-        //infile.read(reinterpret_cast<char*>(&instr.adr), sizeof(uint16_t));
-        instr.adr = addr;
+        uint8_t opcode;
+        uint32_t instr_code;
+        uint32_t buf;
+
+        infile.read(reinterpret_cast<char*>(&opcode), sizeof(uint8_t));
+
+        std::cout << "[" << __func__ << "] read opcode 0x" << std::hex 
+            << unsigned(opcode) << std::endl;
+        
+        auto instr_lookup = code_to_instr_repr.find(opcode);
+        if(instr_lookup != code_to_instr_repr.end())
+        {
+            instr.size = instr_lookup->second.second;
+
+            std::cout << "[" << __func__ << "] size: " << unsigned(instr.size) << " bytes" << std::endl;
+
+            // TODO : better to read into a single unit32_t?
+            if(instr.size == 1)
+                instr.ins = opcode;
+            else if(instr.size == 2)
+            {
+                //infile.read(&buf, sizeof(uint8_t));
+                infile.read(reinterpret_cast<char*>(&buf), sizeof(uint8_t));
+                instr.ins = buf | (opcode << 8);
+                //instr.ins = instr.ins | (opcode << 8);
+            }
+            else if(instr.size == 3)
+            {
+                //infile.read(&buf, 2 * sizeof(uint8_t));
+                infile.read(reinterpret_cast<char*>(&buf), 2 * sizeof(uint8_t));
+                instr.ins = buf | (opcode << 16);
+            }
+        }
+        std::cout << "[" << __func__ << "] read instr as " << instr.toString() << std::endl;
+        instr.adr = TEXT_START_ADDR + idx;
+        idx += instr.size;
+
         this->instructions.push_back(instr);
-        addr++;
+        instr.init();
     }
+
+    // Load the first (only) address pointer 
+    //infile.read(reinterpret_cast<char*>(&addr), sizeof(uint16_t));
+
+    //Instr instr;
+    //for(unsigned int idx = 0; idx < num_records; ++idx)
+    //{
+    //    infile.read(reinterpret_cast<char*>(&instr.ins), sizeof(uint16_t));
+    //    //infile.read(reinterpret_cast<char*>(&instr.adr), sizeof(uint16_t));
+    //    instr.adr = addr;
+    //    this->instructions.push_back(instr);
+    //    addr++;
+    //}
     infile.close();
 
     return 0;
@@ -254,7 +326,7 @@ int Program::writeObj(const std::string& filename)
         outfile.open(filename, std::ios_base::binary);
     }
     catch(std::ios_base::failure& e) {
-        std::cerr << "[" << __FUNCTION__ << "] " << e.what() << std::endl;
+        std::cerr << "[" << __func__ << "] " << e.what() << std::endl;
         return -1;
     }
 
@@ -272,7 +344,7 @@ int Program::writeObj(const std::string& filename)
         outfile.write(reinterpret_cast<char*>(&lb), sizeof(uint8_t));
         if(this->verbose)
         {
-            std::cout << "[" << __FUNCTION__ << "] Writing instruction "
+            std::cout << "[" << __func__ << "] Writing instruction "
                 << i << "/" << this->instructions.size() << "\r";
         }
     }
@@ -297,7 +369,7 @@ int Program::readObj(const std::string& filename)
         infile.open(filename, std::ios_base::binary);
     }
     catch(std::ios_base::failure& e) {
-        std::cerr << "[" << __FUNCTION__ << "] " << e.what() << std::endl;
+        std::cerr << "[" << __func__ << "] " << e.what() << std::endl;
         return -1;
     }
 
@@ -306,7 +378,7 @@ int Program::readObj(const std::string& filename)
     num_bytes = infile.tellg(); 
     if(num_bytes % 4 != 0)
     {
-        std::cerr << "[" << __FUNCTION__ << "] contains " 
+        std::cerr << "[" << __func__ << "] contains " 
             << num_bytes << " bytes (" << num_bytes / 4 << " records)"
             << std::endl;
         return -1;

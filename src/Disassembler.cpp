@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <sstream>
 #include "Disassembler.hpp"
+#include "Instruction.hpp"
 
 // TODO: possibly write a version that accepts a vector of
 // uint8_t (may need a conversion step)
@@ -32,30 +33,30 @@ std::string dis_instr_to_repr(uint8_t *code_buffer, int buf_size)
     while(pc < buf_size)
     {
         code = code_buffer[pc];
-        auto instr = dis_instr_lookup.find(code);
-        //if(instr != dis_instr_lookup.end())
-        //{
-        //    instr_repr = instr->second.first;
-        //    instr_size = instr->second.second;
+        auto instr = code_to_instr_repr.find(code);
+        if(instr != code_to_instr_repr.end())
+        {
+            instr_repr = instr->second.first;
+            instr_size = instr->second.second;
 
-        //    // TODO : for [ld (**) hl] there will need to be a special case here since
-        //    // the literal arg comes first
-        //    oss << instr_repr;
+            // TODO : for [ld (**) hl] there will need to be a special case here since
+            // the literal arg comes first
+            oss << instr_repr;
 
-        //    // consume one more byte from the stream
-        //    if(instr_size > 1)
-        //        oss << "$" << std::hex << unsigned(code_buffer[pc+1]);
-        //    if(instr_size > 2)
-        //        oss << std::hex << unsigned(code_buffer[pc+2]);
+            // consume one more byte from the stream
+            if(instr_size > 1)
+                oss << "$" << std::hex << unsigned(code_buffer[pc+1]);
+            if(instr_size > 2)
+                oss << std::hex << unsigned(code_buffer[pc+2]);
 
-        //    oss << std::endl;
-        //}
-        //else
-        //{
-        //    std::cerr << "[" << __func__ << "] no instruction startig with byte " 
-        //        << std::hex << unsigned(code) << std::endl;
-        //    break;
-        //}
+            oss << std::endl;
+        }
+        else
+        {
+            std::cerr << "[" << __func__ << "] no instruction startig with byte " 
+                << std::hex << unsigned(code) << std::endl;
+            break;
+        }
         pc += instr_size;
     }
 

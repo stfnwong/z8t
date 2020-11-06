@@ -604,16 +604,16 @@ TEST_CASE("test_asm_add_sub", "[classic]")
     out_program = assem.getProgram();
 
     // TODO: debug, remove 
-    //for(unsigned int idx = 0; idx < out_program.numInstr(); ++idx)
+    //for(unsigned int idx = 0; idx < out_program.length(); ++idx)
     //{
     //    Instr instr = out_program.get(idx);
     //    std::cout << "(" << idx + 1 << ")" << instr.toString() << std::endl;
     //}
 
-    std::cout << "Assembler produced " << out_program.numInstr() << " instructions" << std::endl;
-    REQUIRE(exp_program.numInstr() == out_program.numInstr());
+    std::cout << "Assembler produced " << out_program.length() << " instructions" << std::endl;
+    REQUIRE(exp_program.length() == out_program.length());
 
-    for(unsigned int idx = 0; idx < out_program.numInstr(); ++idx)
+    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
     {
         Instr out_instr = out_program.get(idx);
         Instr exp_instr = exp_program.get(idx);
@@ -695,10 +695,10 @@ TEST_CASE("test_asm_gcd", "[classic]")
     exp_program = get_gcd_expected_program();
     out_program = assem.getProgram();
 
-    std::cout << "Assembler produced " << std::dec << out_program.numInstr() << " instructions" << std::endl;
-    //REQUIRE(exp_program.numInstr() == out_program.numInstr());
+    std::cout << "Assembler produced " << std::dec << out_program.length() << " instructions" << std::endl;
+    //REQUIRE(exp_program.length() == out_program.length());
 
-    for(unsigned int idx = 0; idx < out_program.numInstr(); ++idx)
+    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
     {
         Instr out_instr = out_program.get(idx);
         Instr exp_instr = exp_program.get(idx);

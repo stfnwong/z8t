@@ -9,14 +9,15 @@
 #include <fstream>
 #include <iostream>
 #include "Assembler.hpp"
+#include "Instruction.hpp"
 
 /*
  * instr_get_size()
  */
 uint8_t instr_get_size(uint32_t arg_hash)
 {
-    auto lookup_val = instr_lookup.find(arg_hash);
-    if(lookup_val != instr_lookup.end())
+    auto lookup_val = instr_hash_to_code.find(arg_hash);
+    if(lookup_val != instr_hash_to_code.end())
         return lookup_val->second.second;
 
     return 0;
@@ -545,8 +546,8 @@ void Assembler::assem_instr(void)
         line = this->source_info.get(idx);
         line_hash = line.argHash();
 
-        auto lookup_val = instr_lookup.find(line_hash);
-        if(lookup_val != instr_lookup.end())
+        auto lookup_val = instr_hash_to_code.find(line_hash);
+        if(lookup_val != instr_hash_to_code.end())
         {
             auto instr_size = lookup_val->second;
             cur_instr.size = instr_size.second;
@@ -582,6 +583,7 @@ void Assembler::assem_instr(void)
 void Assembler::assemble(void)
 {
     this->init();
+    this->cur_char = this->source[0];
     if(this->verbose)
         std::cout << "[" << __func__ << "] verbose is true" << std::endl;
 

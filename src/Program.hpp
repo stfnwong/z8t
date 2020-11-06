@@ -67,6 +67,9 @@ class Program
         ~Program();
         Program(const Program& that);
 
+        bool operator==(const Program& that) const;
+        bool operator!=(const Program& that) const;
+
         /*
          * init()
          * Reset the program object
@@ -101,10 +104,10 @@ class Program
         void writeMem(const uint16_t addr, const uint16_t val);
 
         /*
-         * numInstr()
+         * length()
          * Returns the length of the instruction vector.
          */
-        unsigned int numInstr(void) const;
+        unsigned int length(void) const;
 
         /*
          * save()
