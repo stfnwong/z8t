@@ -65,6 +65,24 @@ bool ExprToken::isOperator(void) const
 }
 
 /*
+ * isParen()
+ */
+bool ExprToken::isParen(void) const
+{
+    switch(this->type)
+    {
+        case TOK_LEFT_PAREN:
+        case TOK_RIGHT_PAREN:
+            return true;
+        default:
+            return false;
+    }
+
+    return false;   // shut linter up
+}
+
+
+/*
  * toString()
  */
 std::string ExprToken::toString(void) const
@@ -107,10 +125,51 @@ std::string ExprToken::toString(void) const
 }
 
 
+// ======== EXPRESSION ======== //
+Expression::Expression() : expr_string(""), eval(0) {} 
+
+Expression::Expression(const std::string& expr, float val) : expr_string(expr), eval(val) {} 
+
 /*
+ * Expression::==
+ */
+bool Expression::operator==(const Expression& that) const
+{
+    if(this->expr_string != that.expr_string)
+        return false;
+    if(this->eval != that.eval)
+        return false;
+
+    return true;
+}
+
+/*
+ * Expression::!=
+ */
+bool Expression::operator!=(const Expression& that) const
+{
+    return !(*this == that);
+}
+
+int Expression::evalInt(void) const
+{
+    return static_cast<int>(this->eval);     
+}
+
+/*
+ * toString()
+ */
+std::string Expression::toString(void) const
+{
+    return this->expr_string + " " + std::to_string(this->eval);
+}
+
+
+/*
+ * next_expr_token()
  * Scan string from offset and return a token
  */
-std::pair<ExprToken, int> next_token(const std::string& src, unsigned int offset)
+std::pair<ExprToken, int> next_expr_token(const std::string& src, unsigned int offset)
 {
     ExprToken tok;
     unsigned int idx = offset;
@@ -155,4 +214,88 @@ std::pair<ExprToken, int> next_token(const std::string& src, unsigned int offset
     tok.type = tok_char_to_type(tok.repr[0]);
 
     return std::pair<ExprToken, int>(tok, idx);
+}
+
+/*
+ * eval_expr_string()
+ * Parse an expression string and return an Expression object
+ */
+Expression eval_expr_string(const std::string& expr_string)
+{
+    Expression expr;
+    ExprToken top_token;
+    // token stacks (TODO : does it turn out to be faster/better to use vectors here?)
+    std::stack<ExprToken> output_stack;
+    std::stack<ExprToken> op_stack;
+
+    unsigned int idx = 0;
+    std::pair<ExprToken, int> out_pair;
+
+    while(idx < expr_string.length())
+    {
+        out_pair = next_expr_token(expr_string, out_pair.second);
+        idx += out_pair.second;
+
+        ExprToken cur_token = out_pair.first;
+
+        if(cur_token.type == TOK_LITERAL)
+            output_stack.push(cur_token);
+        else if(cur_token.isOperator() || cur_token.isParen())
+        {
+            // TODO : debug, remove 
+            std::cout << "[" << __func__ << "] adding token " << cur_token.toString() << " to stack..." << std::endl;
+            while(!op_stack.empty())
+            {
+                // TODO : need to implement left-associativity
+                top_token = op_stack.top();
+                if(top_token.type != TOK_LEFT_PAREN)
+                {
+                    output_stack.push(top_token);
+                    op_stack.pop();
+                }
+            }
+            op_stack.push(cur_token);
+        }
+        else if(cur_token.type == TOK_LEFT_PAREN)
+            op_stack.push(cur_token);
+        else if(cur_token.type == TOK_RIGHT_PAREN)
+        {
+            do
+            {
+                top_token = op_stack.top();
+                if(top_token.type != TOK_LEFT_PAREN)
+                {
+                    output_stack.push(top_token);
+                    op_stack.pop();
+                }
+            } while(top_token.type != TOK_LEFT_PAREN);
+            
+            // if there is still a left paren then there is a missing right paren. 
+            // discard the top operator (and ideally emit some error message)
+            top_token = op_stack.top();
+            if(top_token.type == TOK_LEFT_PAREN)
+                op_stack.pop();     // TODO: also some error, traceback, etc...
+        }
+
+        // TODO: eval here?
+    }
+
+    while(!op_stack.empty())
+    {
+        top_token = op_stack.top();
+        output_stack.push(top_token);
+        op_stack.pop();
+    }
+
+    // For now, just print the stack 
+    idx = 0;
+    while(!output_stack.empty())
+    {
+        top_token = output_stack.top();
+        std::cout << "[" << __func__ << "] sp " << std::dec << idx << " : " << top_token.toString() << std::endl;
+        output_stack.pop();
+        idx++;
+    }
+
+    return expr;
 }

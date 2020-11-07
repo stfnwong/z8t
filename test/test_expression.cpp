@@ -17,7 +17,7 @@
 #include "Expression.hpp"
 
 
-TEST_CASE("test_next_token_simple", "[classic]")
+TEST_CASE("test_next_expr_token_simple", "[classic]")
 {
     // the sequence of tokens emitted by repeat calls should look like
     std::vector<std::pair<ExprToken, int>> exp_pairs = {
@@ -35,15 +35,15 @@ TEST_CASE("test_next_token_simple", "[classic]")
     for(unsigned int idx = 0; idx < exp_pairs.size(); ++idx)
     {
         if(idx == 0)
-            out_pair = next_token(expr_input, 0);
+            out_pair = next_expr_token(expr_input, 0);
         else
-            out_pair = next_token(expr_input, out_pair.second);
+            out_pair = next_expr_token(expr_input, out_pair.second);
 
         REQUIRE(out_pair == exp_pairs[idx]);
     }
 }
 
-TEST_CASE("test_next_token_negative", "[classic]")
+TEST_CASE("test_next_expr_token_negative", "[classic]")
 {
     std::vector<std::pair<ExprToken, int>> exp_pairs = {
         std::pair<ExprToken, int>(ExprToken(TOK_MINUS,       0, "-"), 1),
@@ -63,20 +63,18 @@ TEST_CASE("test_next_token_negative", "[classic]")
     for(unsigned int idx = 0; idx < exp_pairs.size(); ++idx)
     {
         if(idx == 0)
-            out_pair = next_token(expr_input, 0);
+            out_pair = next_expr_token(expr_input, 0);
         else
-            out_pair = next_token(expr_input, out_pair.second);
+            out_pair = next_expr_token(expr_input, out_pair.second);
 
         REQUIRE(out_pair == exp_pairs[idx]);
     }
 }
 
-
 TEST_CASE("test_eval_expr_string", "[classic]")
 {
     const std::string expr_input = "-1 / (-2 * -3)";
-    Expression<float> exp_expr(expr_input, -1 / (-2 * -3));
-    float dummy_var = 1.0;
+    Expression exp_expr(expr_input, -1 / (-2 * -3));
 
-    Expression<float> out_expr = eval_expr_string(expr_input, dummy_var);
+    Expression out_expr = eval_expr_string(expr_input);
 }
