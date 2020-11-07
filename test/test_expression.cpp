@@ -31,8 +31,6 @@ TEST_CASE("test_next_token_simple", "[classic]")
     };
     const std::string expr_input = "1 / (2 * 3)";
 
-    std::cout << "Expecting " << std::dec << exp_pairs.size() << " pairs" << std::endl;
-
     std::pair<ExprToken, int> out_pair;
     for(unsigned int idx = 0; idx < exp_pairs.size(); ++idx)
     {
@@ -40,9 +38,6 @@ TEST_CASE("test_next_token_simple", "[classic]")
             out_pair = next_token(expr_input, 0);
         else
             out_pair = next_token(expr_input, out_pair.second);
-
-        std::cout << "Pair " << std::dec << idx+1 << " : " << out_pair.first.toString()
-            << ",  next index: " << std::to_string(out_pair.second) << std::endl;
 
         REQUIRE(out_pair == exp_pairs[idx]);
     }
@@ -64,8 +59,6 @@ TEST_CASE("test_next_token_negative", "[classic]")
     };
     const std::string expr_input = "-1 / (-2 * -3)";
 
-    std::cout << "Expecting " << std::dec << exp_pairs.size() << " pairs" << std::endl;
-
     std::pair<ExprToken, int> out_pair;
     for(unsigned int idx = 0; idx < exp_pairs.size(); ++idx)
     {
@@ -74,9 +67,16 @@ TEST_CASE("test_next_token_negative", "[classic]")
         else
             out_pair = next_token(expr_input, out_pair.second);
 
-        std::cout << "Pair " << std::dec << idx+1 << " : " << out_pair.first.toString()
-            << ",  next index: " << std::to_string(out_pair.second) << std::endl;
-
         REQUIRE(out_pair == exp_pairs[idx]);
     }
+}
+
+
+TEST_CASE("test_eval_expr_string", "[classic]")
+{
+    const std::string expr_input = "-1 / (-2 * -3)";
+    Expression<float> exp_expr(expr_input, -1 / (-2 * -3));
+    float dummy_var = 1.0;
+
+    Expression<float> out_expr = eval_expr_string(expr_input, dummy_var);
 }

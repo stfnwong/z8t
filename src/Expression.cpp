@@ -107,33 +107,6 @@ std::string ExprToken::toString(void) const
 }
 
 
-// ======== EXPRESSION ======== //
-Expression::Expression() : expr_string(""), eval(0) {} 
-
-bool Expression::operator==(const Expression& that) const
-{
-    if(this->expr_string != that.expr_string)
-        return false;
-    if(this->eval != that.eval)
-        return false;
-
-    return true;
-}
-
-bool Expression::operator!=(const Expression& that) const
-{
-    return !(*this == that);
-}
-
-/*
- * toString()
- */
-std::string Expression::toString(void) const
-{
-    return this->expr_string + " " + std::to_string(this->eval);
-}
-
-
 /*
  * Scan string from offset and return a token
  */
@@ -141,9 +114,6 @@ std::pair<ExprToken, int> next_token(const std::string& src, unsigned int offset
 {
     ExprToken tok;
     unsigned int idx = offset;
-
-    std::cout << "[" << __func__ << "] input from offset (" << std::dec << idx << ") is \""
-        << src.substr(offset, src.length()) << "\"" << std::endl;
 
     while(idx < src.length())
     {
@@ -185,89 +155,4 @@ std::pair<ExprToken, int> next_token(const std::string& src, unsigned int offset
     tok.type = tok_char_to_type(tok.repr[0]);
 
     return std::pair<ExprToken, int>(tok, idx);
-}
-
-
-/*
- * Parse an expression string and return an Expression object
- */
-Expression eval_expr_string(const std::string& expr_string)
-{
-    Expression expr;
-    ExprToken top_token;
-    // token stacks 
-    std::stack<ExprToken> output_stack;
-    std::stack<ExprToken> op_stack;
-
-    int idx = 0;
-
-    std::pair<ExprToken, int> out_pair;
-
-    while(idx < expr_string.length())
-    {
-        out_pair = next_token(expr_string, out_pair.second);
-        idx += out_pair.second;
-
-        ExprToken cur_token = out_pair.first;
-
-        if(cur_token.type == TOK_LITERAL)
-            output_stack.push(cur_token);
-        else if(cur_token.isOperator())
-        {
-            while(!op_stack.empty())
-            {
-                // TODO : need to implement left-associativity
-                top_token = op_stack.top();
-                if(top_token.type != TOK_LEFT_PAREN)
-                {
-                    output_stack.push(top_token);
-                    op_stack.pop();
-                }
-            }
-            op_stack.push(cur_token);
-        }
-        else if(cur_token.type == TOK_LEFT_PAREN)
-            op_stack.push(cur_token);
-        else if(cur_token.type == TOK_RIGHT_PAREN)
-        {
-            do
-            {
-                top_token = op_stack.top();
-                if(top_token.type != TOK_LEFT_PAREN)
-                {
-                    output_stack.push(top_token);
-                    op_stack.pop();
-                }
-            } while(top_token.type != TOK_LEFT_PAREN);
-            
-            // if there is still a left paren then there is a missing right paren. 
-            // discard the top operator (and ideally emit some error message)
-            top_token = op_stack.top();
-            if(top_token.type == TOK_LEFT_PAREN)
-                op_stack.pop();     // TODO: also some error, traceback, etc...
-        }
-
-        // TODO: eval here?
-
-        //switch(cur_token.type)
-        //{
-        //    case TOK_PLUS:
-        //    case TOK_MINUS:
-        //    case TOK_STAR:
-        //    case TOK_SLASH:
-        //    case TOK_LEFT_PAREN:
-        //    case TOK_RIGHT_PAREN:
-        //        op_stack.push(cur_token);
-        //        break;
-
-        //    default:
-        //        output_stack.push(cur_token);
-        //        break;
-        //}
-    }
-
-
-
-
-    return expr;
 }

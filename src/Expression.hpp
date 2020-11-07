@@ -90,20 +90,60 @@ struct ExprToken
  * some plain old datatype (usually ints) rather than more general expressions
  */
 // TODO: inherit from Token? (eg: ExprToken)?
-struct Expression
+// TODO : should this be templated (to make typed results simpler...)?
+template <typename T> struct Expression
 {
     std::string expr_string;
-    int eval;
+    T eval;
     // TODO : maybe a vector of ExprTokens?
 
     public:
         Expression();
+        Expression(const std::string& expr, T val);
 
         bool operator==(const Expression& that) const;
         bool operator!=(const Expression& that) const;
 
         std::string toString(void) const;
 };
+
+
+
+// ======== EXPRESSION ======== //
+template <typename T> Expression<T>::Expression() : expr_string(""), eval(0) {} 
+
+template <typename T> Expression<T>::Expression(const std::string& expr, T val) : expr_string(expr), eval(val) {} 
+
+/*
+ * Expression::==
+ */
+template <typename T> bool Expression<T>::operator==(const Expression& that) const
+{
+    if(this->expr_string != that.expr_string)
+        return false;
+    if(this->eval != that.eval)
+        return false;
+
+    return true;
+}
+
+/*
+ * Expression::!=
+ */
+template <typename T> bool Expression<T>::operator!=(const Expression& that) const
+{
+    return !(*this == that);
+}
+
+/*
+ * toString()
+ */
+template <typename T> std::string Expression<T>::toString(void) const
+{
+    return this->expr_string + " " + std::to_string(this->eval);
+}
+
+
 
 /*
  * Scan string from offset and return a token
@@ -113,8 +153,83 @@ std::pair<ExprToken, int> next_token(const std::string& src, unsigned int offset
 /*
  * Parse an expression string and return an Expression object
  */
-Expression eval_expr_string(const std::string& expr_string, int offset);
+template <typename T> Expression<T> eval_expr_string(const std::string& expr_string, T force_template)
+{
+    Expression<T> expr;
+    ExprToken top_token;
+    // token stacks 
+    std::stack<ExprToken> output_stack;
+    std::stack<ExprToken> op_stack;
 
+    int idx = 0;
 
+    std::pair<ExprToken, int> out_pair;
+
+    while(idx < expr_string.length())
+    {
+        out_pair = next_token(expr_string, out_pair.second);
+        idx += out_pair.second;
+
+        ExprToken cur_token = out_pair.first;
+
+        if(cur_token.type == TOK_LITERAL)
+            output_stack.push(cur_token);
+        else if(cur_token.isOperator())
+        {
+            while(!op_stack.empty())
+            {
+                // TODO : need to implement left-associativity
+                top_token = op_stack.top();
+                if(top_token.type != TOK_LEFT_PAREN)
+                {
+                    output_stack.push(top_token);
+                    op_stack.pop();
+                }
+            }
+            op_stack.push(cur_token);
+        }
+        else if(cur_token.type == TOK_LEFT_PAREN)
+            op_stack.push(cur_token);
+        else if(cur_token.type == TOK_RIGHT_PAREN)
+        {
+            do
+            {
+                top_token = op_stack.top();
+                if(top_token.type != TOK_LEFT_PAREN)
+                {
+                    output_stack.push(top_token);
+                    op_stack.pop();
+                }
+            } while(top_token.type != TOK_LEFT_PAREN);
+            
+            // if there is still a left paren then there is a missing right paren. 
+            // discard the top operator (and ideally emit some error message)
+            top_token = op_stack.top();
+            if(top_token.type == TOK_LEFT_PAREN)
+                op_stack.pop();     // TODO: also some error, traceback, etc...
+        }
+
+        // TODO: eval here?
+    }
+
+    while(!op_stack.empty())
+    {
+        top_token = op_stack.top();
+        output_stack.push(top_token);
+        op_stack.pop();
+    }
+
+    // For now, just print the stack 
+    idx = 0;
+    while(!output_stack.empty())
+    {
+        top_token = output_stack.top();
+        std::cout << "[" << __func__ << "] sp " << std::dec << idx << " : " << top_token.toString() << std::endl;
+        output_stack.pop();
+        idx++;
+    }
+
+    return expr;
+}
 
 #endif /*__EXPRESSION_HPP*/
