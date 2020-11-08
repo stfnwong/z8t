@@ -15,6 +15,17 @@
 #include "Expression.hpp"
 
 
+inline int Precedence(const ExprTokenType& tok_type)
+{
+    return OP_INFO_MAP[tok_type].prec;
+}
+
+inline Assoc Associativity(const ExprTokenType& tok_type)
+{
+    return OP_INFO_MAP[tok_type].assoc;
+}
+
+
 // ======== EXPRTOKEN ======== //
 ExprToken::ExprToken() : type(TOK_NULL), val(0), repr("") {} 
 
@@ -119,7 +130,7 @@ std::string ExprToken::toString(void) const
             oss << "TOK_NULL";
             break;
     }
-    oss << "<" << this->repr << ">  " << std::dec << this->val;
+    oss << " <" << this->repr << ">  " << std::dec << this->val;
 
     return oss.str();
 }
@@ -164,12 +175,78 @@ std::string Expression::toString(void) const
     return this->expr_string + " " + std::to_string(this->eval);
 }
 
+/*
+ * OP_INFO
+ */
+bool OpInfo::operator==(const OpInfo& that) const
+{
+    if(this->prec != that.prec)
+        return false;
+    if(this->assoc != that.assoc)
+        return false;
+    return true;
+}
+
+bool OpInfo::operator!=(const OpInfo& that) const
+{
+    return !(*this == that);
+}
+
+std::string OpInfo::toString(void) const
+{
+    switch(this->assoc)
+    {
+        case Assoc::left_to_right:
+            return "Left-to-Right (" + std::to_string(this->prec) + ")";
+        case Assoc::right_to_left:
+            return "Right-to-Left (" + std::to_string(this->prec) + ")";
+        default:
+            return "None (" + std::to_string(this->prec) + ")";
+    }
+
+    return "None (" + std::to_string(this->prec) + ")";
+}
+
 
 /*
- * next_expr_token()
+ * PARSE_RESULT
+ */
+ParseResult::ParseResult() : token(ExprToken()), pos(0) {} 
+
+ParseResult::ParseResult(const ExprToken& tok, int p) : token(tok), pos(p) {} 
+
+bool ParseResult::operator==(const ParseResult& that) const
+{
+    if(this->token != that.token)
+        return false;
+    if(this->pos != that.pos)
+        return false;
+    
+    return true;
+}
+
+bool ParseResult::operator!=(const ParseResult& that) const
+{
+    return !(*this == that);
+}
+
+std::string ParseResult::toString(void) const
+{
+    std::ostringstream oss;
+
+    oss << this->token.toString() << " next pos: [" << std::dec << this->pos << "]";
+
+    return oss.str();
+}
+
+
+// ======== PARSING FUNCTIONS ======== //
+
+/*
+ * expr_next_token()
  * Scan string from offset and return a token
  */
-std::pair<ExprToken, int> next_expr_token(const std::string& src, unsigned int offset)
+ParseResult expr_next_token(const std::string& src, unsigned int offset)
 {
     ExprToken tok;
     unsigned int idx = offset;
@@ -213,7 +290,7 @@ std::pair<ExprToken, int> next_expr_token(const std::string& src, unsigned int o
     }
     tok.type = tok_char_to_type(tok.repr[0]);
 
-    return std::pair<ExprToken, int>(tok, idx);
+    return ParseResult(tok, idx);
 }
 
 /*
@@ -224,76 +301,65 @@ Expression eval_expr_string(const std::string& expr_string)
 {
     Expression expr;
     ExprToken top_token;
+    ExprToken cur_token;
     // token stacks (TODO : does it turn out to be faster/better to use vectors here?)
-    std::stack<ExprToken> output_stack;
-    std::stack<ExprToken> op_stack;
+    std::stack<ExprToken> output;
+    std::stack<ExprToken> stack;
 
     unsigned int idx = 0;
-    std::pair<ExprToken, int> out_pair;
+    ParseResult parse_result;
 
     while(idx < expr_string.length())
     {
-        out_pair = next_expr_token(expr_string, out_pair.second);
-        idx += out_pair.second;
+        parse_result = expr_next_token(expr_string, parse_result.pos);
+        idx += parse_result.pos;
 
-        ExprToken cur_token = out_pair.first;
+        cur_token = parse_result.token;
 
         if(cur_token.type == TOK_LITERAL)
-            output_stack.push(cur_token);
+            output.push(cur_token);
         else if(cur_token.isOperator() || cur_token.isParen())
         {
-            // TODO : debug, remove 
-            std::cout << "[" << __func__ << "] adding token " << cur_token.toString() << " to stack..." << std::endl;
-            while(!op_stack.empty())
+            if(cur_token.type != TOK_LEFT_PAREN)
             {
-                // TODO : need to implement left-associativity
-                top_token = op_stack.top();
-                if(top_token.type != TOK_LEFT_PAREN)
+                while(!stack.empty() 
+                   && ((cur_token.type == TOK_RIGHT_PAREN) && (stack.top().type != TOK_RIGHT_PAREN))
+                   || (Precedence(stack.top().type) > Precedence(cur_token.type))
+                   || (Precedence(stack.top().type) == Precedence(cur_token.type))
+                   && (Associativity(cur_token.type) == Assoc::left_to_right)
+                   )
                 {
-                    output_stack.push(top_token);
-                    op_stack.pop();
+                    top_token = stack.top();
+                    output.push(top_token);
+                    stack.pop();
                 }
-            }
-            op_stack.push(cur_token);
-        }
-        else if(cur_token.type == TOK_LEFT_PAREN)
-            op_stack.push(cur_token);
-        else if(cur_token.type == TOK_RIGHT_PAREN)
-        {
-            do
-            {
-                top_token = op_stack.top();
-                if(top_token.type != TOK_LEFT_PAREN)
-                {
-                    output_stack.push(top_token);
-                    op_stack.pop();
-                }
-            } while(top_token.type != TOK_LEFT_PAREN);
-            
-            // if there is still a left paren then there is a missing right paren. 
-            // discard the top operator (and ideally emit some error message)
-            top_token = op_stack.top();
-            if(top_token.type == TOK_LEFT_PAREN)
-                op_stack.pop();     // TODO: also some error, traceback, etc...
-        }
 
-        // TODO: eval here?
+                // if we popped until '(' (because the token is a ')') then discard parens
+                if(cur_token.type == TOK_RIGHT_PAREN)
+                    stack.pop();
+            }
+
+            // Everything except the closing paren can be discarded
+            if(cur_token.type != TOK_RIGHT_PAREN)
+                stack.push(cur_token);
+        }
     }
 
-    while(!op_stack.empty())
+    // Any remaining tokens are just moved directly to the output
+    while(!stack.empty())
     {
-        top_token = op_stack.top();
-        output_stack.push(top_token);
-        op_stack.pop();
+        top_token = stack.top();
+        output.push(top_token);
+        stack.pop();
     }
 
     // For now, just print the stack 
     idx = 0;
-    while(!output_stack.empty())
+    while(!output.empty())
     {
-        top_token = output_stack.top();
+        top_token = output.top();
         std::cout << "[" << __func__ << "] sp " << std::dec << idx << " : " << top_token.toString() << std::endl;
-        output_stack.pop();
+        output.pop();
         idx++;
     }
 

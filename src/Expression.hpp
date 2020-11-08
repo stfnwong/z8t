@@ -113,20 +113,58 @@ struct Expression
 /*
  * Precedence map 
  */
-enum class Associativity { none, left_to_right, right_to_left };
+enum class Assoc { none, left_to_right, right_to_left };
+
+struct OpInfo
+{
+    int prec;
+    Assoc assoc;
+
+    public:
+        OpInfo() : prec(0), assoc(Assoc::none) {} 
+        OpInfo(int p, Assoc a) : prec(p), assoc(a) {} 
+        OpInfo(const OpInfo& that) = default;
+
+        bool operator==(const OpInfo& that) const;
+        bool operator!=(const OpInfo& that) const;
+        std::string toString(void) const;
+};
+
+
 // TODO: xor? 
-//std::unordered_map <std::string, std::pair<int, int>> PRECEDENCE_MAP = {
-//    {"+", std::pair(2, Associativity::left_to_right)},
-//    {"-", std::pair(2, Associativity::left_to_right)},
-//    {"*", std::pair(3, Associativity::left_to_right)},
-//    {"/", std::pair(4, Associativity::left_to_right)},
-//};
+static std::unordered_map <ExprTokenType, OpInfo> OP_INFO_MAP = {
+    {TOK_PLUS,  OpInfo(2, Assoc::left_to_right)},
+    {TOK_MINUS, OpInfo(2, Assoc::left_to_right)},
+    {TOK_STAR,  OpInfo(3, Assoc::left_to_right)},
+    {TOK_SLASH, OpInfo(4, Assoc::left_to_right)},
+};
+
+
+/*
+ * ParseResult
+ * Output from a single call to expr_next_token. Holds the 
+ * extracted ExprTokenType and the position in the stream 
+ * from which to read the next token
+ */
+struct ParseResult
+{
+    ExprToken token;
+    int       pos;
+
+    public:
+        ParseResult();
+        ParseResult(const ExprToken& tok, int p);
+        ParseResult(const ParseResult& that) = default;
+        bool operator==(const ParseResult& that) const;
+        bool operator!=(const ParseResult& that) const;
+        std::string toString(void) const;
+};
 
 
 /*
  * Scan string from offset and return a token
  */
-std::pair<ExprToken, int> next_expr_token(const std::string& src, unsigned int offset);
+ParseResult expr_next_token(const std::string& src, unsigned int offset);
 
 /*
  * Parse an expression string and return an Expression object
