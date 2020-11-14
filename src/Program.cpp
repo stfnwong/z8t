@@ -72,7 +72,7 @@ std::string Instr::toString(void) const
 {
     std::ostringstream oss;
 
-    oss << "[" << std::hex << std::setw(4) << std::setfill('0') 
+    oss << "[" << std::hex << std::setw(2 * this->size) << std::setfill('0') 
         << this->adr << "] 0x" << this->ins << " (" 
         << unsigned(this->size) << " bytes)";
 
@@ -179,7 +179,6 @@ unsigned int Program::length(void) const
  */
 int Program::save(const std::string& filename)
 {
-    uint16_t N;
     std::ofstream outfile;
 
     try {
@@ -218,8 +217,6 @@ int Program::save(const std::string& filename)
 int Program::load(const std::string& filename)
 {
     std::ifstream infile;
-    uint16_t num_records;
-    uint16_t addr;
 
     this->instructions.clear();
 
@@ -237,7 +234,8 @@ int Program::load(const std::string& filename)
     int length = infile.tellg();
     infile.seekg(0, infile.beg);
 
-    std::cout << "[" << __func__ << "] file length is " << length << std::endl;
+    if(this->verbose)
+        std::cout << "[" << __func__ << "] file length is " << length << std::endl;
 
     Instr instr;
     while(idx < length)
@@ -248,34 +246,36 @@ int Program::load(const std::string& filename)
 
         infile.read(reinterpret_cast<char*>(&opcode), sizeof(uint8_t));
 
-        std::cout << "[" << __func__ << "] read opcode 0x" << std::hex 
-            << unsigned(opcode) << std::endl;
+        if(this->verbose)
+        {
+            std::cout << "[" << __func__ << "] read opcode 0x" << std::hex 
+                << unsigned(opcode) << std::endl;
+        }
         
         auto instr_lookup = code_to_instr_repr.find(opcode);
         if(instr_lookup != code_to_instr_repr.end())
         {
             instr.size = instr_lookup->second.second;
 
-            std::cout << "[" << __func__ << "] size: " << unsigned(instr.size) << " bytes" << std::endl;
+            if(this->verbose)
+                std::cout << "[" << __func__ << "] size: " << unsigned(instr.size) << " bytes" << std::endl;
 
             // TODO : better to read into a single unit32_t?
             if(instr.size == 1)
                 instr.ins = opcode;
             else if(instr.size == 2)
             {
-                //infile.read(&buf, sizeof(uint8_t));
                 infile.read(reinterpret_cast<char*>(&buf), sizeof(uint8_t));
                 instr.ins = buf | (opcode << 8);
-                //instr.ins = instr.ins | (opcode << 8);
             }
             else if(instr.size == 3)
             {
-                //infile.read(&buf, 2 * sizeof(uint8_t));
                 infile.read(reinterpret_cast<char*>(&buf), 2 * sizeof(uint8_t));
                 instr.ins = buf | (opcode << 16);
             }
         }
-        std::cout << "[" << __func__ << "] read instr as " << instr.toString() << std::endl;
+        if(this->verbose)
+            std::cout << "[" << __func__ << "] read instr as " << instr.toString() << std::endl;
         instr.adr = TEXT_START_ADDR + idx;
         idx += instr.size;
 
@@ -377,6 +377,35 @@ int Program::readObj(const std::string& filename)
     infile.close();
 
     return 0;
+}
+
+/*
+ * toArray()
+ */
+std::vector<uint8_t> Program::toArray(void) const
+{
+    std::vector<uint8_t> array;
+
+    // Do some things to get the endianness right. We want the output
+    // vector to be in "stream-order".
+    for(unsigned int idx = 0; idx < this->instructions.size(); ++idx)
+    {
+        Instr cur_instr = this->instructions[idx];
+        uint32_t mask = 0xFF << (8 * (cur_instr.size-1));
+
+        std::cout << "[" << __func__ << "] instr : " << cur_instr.toString() << std::endl;
+        std::cout << "[" << __func__ << "] mask :" << std::hex << std::setw(8) << std::setfill('0') 
+            << unsigned(mask) << " for instruction with size " << unsigned(cur_instr.size) << std::endl;
+
+        for(int byte = cur_instr.size; byte > 0; --byte)
+        {
+            uint8_t cur_byte = (cur_instr.ins & mask) >> ((byte-1) * 8);
+            array.push_back(cur_byte);
+            mask = mask >> 8;
+        }
+    }
+
+    return array;
 }
 
 /*

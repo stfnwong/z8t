@@ -131,6 +131,7 @@ class Program
          * readObj()
          */
         int readObj(const std::string& filename);
+        std::vector<uint8_t> toArray(void) const;
         /*
          * toString()
          * Render the program object as a string

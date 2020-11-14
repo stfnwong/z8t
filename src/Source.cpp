@@ -283,6 +283,15 @@ TextLine::TextLine()
     this->init();
 }
 
+TextLine::TextLine(const Token& opcode, const Token& arg1, const Token& arg2)
+{
+    this->init();       // make sure rest of object has some valid defaults
+    this->opcode = opcode;
+    this->args[0] = arg1;
+    this->args[1] = arg2;
+}
+
+
 /*
  * copy ctor
  */
@@ -361,27 +370,18 @@ uint32_t TextLine::argHash(void) const
 {
     uint32_t hash = 0;
 
-    if(this->args[0].type == SYM_LITERAL)
+    // opcode 
+    hash = hash | ((this->opcode.val & 0xFF) << 16);
+    // first arg 
+    for(int argn = 0; argn < 2; ++argn)
     {
-        hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((this->args[0].type & 0xFF) << 8);
-
-        if(this->args[1].val >= 0)
-            hash = hash | ((this->args[1].val & 0xFF));
-    }
-    else if(this->args[1].type == SYM_LITERAL)
-    {
-        hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((this->args[0].val & 0xFF) << 8) | 
-               ((this->args[1].type & 0xFF));
-    }
-    else
-    {
-        hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((this->args[0].val & 0xFF) << 8);
-
-        if(this->args[1].val >= 0)
-            hash = hash | ((this->args[1].val & 0xFF));
+        if(this->args[argn].val >= 0)
+        {
+            if(this->args[argn].type == SYM_LITERAL_IND || this->args[argn].type == SYM_LITERAL)
+                hash = hash | (this->args[argn].type << ((1 - argn) * 8));
+            else 
+                hash = hash | (this->args[argn].val << ((1 - argn) * 8));
+        }
     }
 
     return hash;

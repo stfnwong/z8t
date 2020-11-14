@@ -95,14 +95,14 @@ int main(int argc, char *argv[])
         {
             std::cerr << "Failed to load input file [" << 
                 asm_opts.infile << "]" << std::endl;
-            exit(-1);
+            return -1;
         }
     }
     else
     {
         std::cerr << "Invalid input filename" << std::endl;
         std::cerr << "Use -i <filename> to specify" << std::endl;
-        exit(-1);
+        return -1;
     }
 
     assem.assemble();
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 
     // After (possibly) printing error strings, exit
     if(lexed_source.hasError())
-        exit(-1);
+        return -1;
 
     // TODO: maybe make this a super verbose option
     //if(asm_opts.verbose)
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
         {
             std::cerr << "[ERROR] writing program to file [" <<
                 asm_opts.outfile << "]" << std::endl;
-            exit(-1);
+            return -1;
         }
     }
     
