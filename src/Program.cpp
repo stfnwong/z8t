@@ -72,8 +72,8 @@ std::string Instr::toString(void) const
 {
     std::ostringstream oss;
 
-    oss << "[" << std::hex << std::setw(2 * this->size) << std::setfill('0') 
-        << this->adr << "] 0x" << this->ins << " (" 
+    oss << "[" << std::hex << std::setw(4) << std::setfill('0') 
+        << this->adr << "] 0x" << std::setw(2 * this->size) << this->ins << " (" 
         << unsigned(this->size) << " bytes)";
 
     return oss.str();
@@ -392,10 +392,6 @@ std::vector<uint8_t> Program::toArray(void) const
     {
         Instr cur_instr = this->instructions[idx];
         uint32_t mask = 0xFF << (8 * (cur_instr.size-1));
-
-        std::cout << "[" << __func__ << "] instr : " << cur_instr.toString() << std::endl;
-        std::cout << "[" << __func__ << "] mask :" << std::hex << std::setw(8) << std::setfill('0') 
-            << unsigned(mask) << " for instruction with size " << unsigned(cur_instr.size) << std::endl;
 
         for(int byte = cur_instr.size; byte > 0; --byte)
         {

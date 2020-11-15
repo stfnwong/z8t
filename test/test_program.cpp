@@ -56,7 +56,6 @@ TEST_CASE("test_to_array", "[classic]")
 {
     Assembler assem;
     Program prog;
-    const std::string filename = "asm/add_sub.asm";
     const std::string src_fragment = "ld a, 20\nld b, 20\nadd a,b";
     const std::vector<uint8_t> expected_vector = {
         0x3E, 0x14,     // ld a, 20
@@ -64,38 +63,18 @@ TEST_CASE("test_to_array", "[classic]")
         0x80            // add a,b
     };
 
-    // TODO: move to helper function later 
     assem.setVerbose(GLOBAL_VERBOSE);
     assem.loadSource(src_fragment);
-    //std::cout << "\t Reading file " << filename << std::endl;
-    //status = assem.read(filename);
-    //if(status != 0)
-    //{
-    //    std::cout << "[" << __func__ << "] failed to read file " << filename << std::endl;
-    //    return info;
-    //}
-    //
-    //std::cout << "\t Lexing file " << filename << std::endl;
     assem.assemble();
 
     prog = assem.getProgram();
-    std::cout << "Program string : " << std::endl;
-    std::cout << prog.toString() << std::endl;
     std::vector<uint8_t> prog_vector = prog.toArray();
-
-    std::cout << std::dec << prog_vector.size() << " bytes in output program" << std::endl;
-    for(unsigned int byte = 0; byte < prog_vector.size(); ++byte)
-    {
-        std::cout << std::setw(2) << std::setfill('0') << std::hex << unsigned(prog_vector[byte]) << "h ";
-    }
-    std::cout << std::endl;
 
     REQUIRE(prog_vector.size() == expected_vector.size());
     for(unsigned int idx = 0; idx < expected_vector.size(); ++idx)
     {
         REQUIRE(prog_vector[idx] == expected_vector[idx]);
     }
-
 }
 
 //TEST_CASE("test_program_end_to_end", "[classic]")

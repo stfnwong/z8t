@@ -107,7 +107,7 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
     {(INSTR_LD << 16)  | (REG_A       << 8) | SYM_LITERAL,     std::pair(0x3E, 2)},   // ld a, *
     {(INSTR_LD << 16)  | (REG_A       << 8) | SYM_LITERAL_IND, std::pair(0x3A, 2)},   // ld a, (**)
     // ld (b)
-    {(INSTR_LD << 16)  | (REG_B       << 8) | REG_A,           std::pair(0x06, 1)},   // ld b, a
+    {(INSTR_LD << 16)  | (REG_B       << 8) | REG_A,           std::pair(0x47, 1)},   // ld b, a
     {(INSTR_LD << 16)  | (REG_B       << 8) | REG_B,           std::pair(0x40, 1)},   // ld b, b
     {(INSTR_LD << 16)  | (REG_B       << 8) | REG_C,           std::pair(0x41, 1)},   // ld b, c
     {(INSTR_LD << 16)  | (REG_B       << 8) | REG_D,           std::pair(0x42, 1)},   // ld b, d
@@ -335,7 +335,7 @@ const std::map<const uint8_t, std::pair<std::string, uint8_t>> code_to_instr_rep
     {0x3E, std::pair("ld a, ", 2)},       // ld a, *
     {0x3A, std::pair("ld a, ", 2)},       // ld a, (**)
     // ld (b)
-    {0x06, std::pair("ld b, a", 1)},      // ld b, a
+    {0x47, std::pair("ld b, a", 1)},      // ld b, a
     {0x40, std::pair("ld b, b", 1)},      // ld b, b
     {0x41, std::pair("ld b, c", 1)},      // ld b, c
     {0x42, std::pair("ld b, d", 1)},      // ld b, d

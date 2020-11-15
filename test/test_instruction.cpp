@@ -108,10 +108,13 @@ TEST_CASE("test_all_instructions", "[sanity]")
 
     for(unsigned int idx = 0; idx < input_instrs.size(); ++idx)
     {
-        std::cout << "[" << std::dec << idx << "/" << std::dec << input_instrs.size() << "] : " 
-            << input_instrs[idx].toInstrString() << std::endl;
         uint32_t line_hash = input_instrs[idx].argHash();
         auto lookup_val = instr_hash_to_code.find(line_hash);
+        if(lookup_val == instr_hash_to_code.end())
+        {
+            std::cout << "Error in instruction [" << std::dec << idx << "/" << std::dec << input_instrs.size() << "] : " 
+                << input_instrs[idx].toInstrString() << std::endl;
+        }
         REQUIRE(lookup_val != instr_hash_to_code.end());
     }
 }
