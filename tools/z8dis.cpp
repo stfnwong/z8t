@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     const char* const short_opts = "avhi:o:l:";
     const option long_opts[] = {};
     int argn = 0;
-    int status;
+    //int status;
 
     // get args
     while(1) 

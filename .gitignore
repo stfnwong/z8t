@@ -1,3 +1,5 @@
 # Ignore swap files 
 *.swp
 *.swo
+# Ignore anything under $ROOT_DIR/bin
+bin/*

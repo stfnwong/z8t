@@ -18,7 +18,6 @@ TextLine dis_program(const uint8_t *code_buffer, int buf_size)
 {
     TextLine line;
     uint8_t code;
-    int op_size = 1;
     int pc = 0;
 
     while(pc < buf_size)

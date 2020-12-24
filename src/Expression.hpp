@@ -109,6 +109,10 @@ struct Expression
         std::string toString(void) const;
 };
 
+// TODO: there are probably too many lines of code in this file already. Try 
+// to clean some of them up.
+using ExprStack = std::vector<ExprToken>;
+
 
 /*
  * Precedence map 
@@ -139,6 +143,16 @@ static std::unordered_map <ExprTokenType, OpInfo> OP_INFO_MAP = {
     {TOK_SLASH, OpInfo(4, Assoc::left_to_right)},
 };
 
+inline int Precedence(const ExprTokenType& tok_type)
+{
+    return OP_INFO_MAP[tok_type].prec;
+}
+
+inline Assoc Associativity(const ExprTokenType& tok_type)
+{
+    return OP_INFO_MAP[tok_type].assoc;
+}
+
 
 /*
  * ParseResult
@@ -148,8 +162,8 @@ static std::unordered_map <ExprTokenType, OpInfo> OP_INFO_MAP = {
  */
 struct ParseResult
 {
-    ExprToken token;
-    int       pos;
+    ExprToken    token;
+    unsigned int pos;
 
     public:
         ParseResult();
