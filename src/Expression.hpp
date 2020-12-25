@@ -131,6 +131,7 @@ struct ExprToken
         std::string toString(void) const;
 };
 
+
 /*
  * Expression.
  * Holds an expression string and some result which the expresion evaluates
@@ -157,7 +158,7 @@ struct Expression
 
 // TODO: there are probably too many lines of code in this file already. Try 
 // to clean some of them up.
-using ExprStack = std::vector<ExprToken>;
+//using ExprStack = std::vector<ExprToken>;
 
 
 /*
@@ -179,6 +180,43 @@ struct ParseResult
         bool operator==(const ParseResult& that) const;
         bool operator!=(const ParseResult& that) const;
         std::string toString(void) const;
+};
+
+/*
+ * Expression stack based on a vector.
+ * This should give better iteration, printing, etc
+ */
+struct ExprStack : public std::vector<ExprToken>
+{
+    void push(const ExprToken& t)
+    {
+        std::vector<ExprToken>::push_back(t);
+    }
+    
+    const ExprToken& top(void)
+    {
+        return std::vector<ExprToken>::back();
+    }
+
+    ExprToken pop(void)
+    {
+        ExprToken t = std::move(this->top());
+        std::vector<ExprToken>::pop_back();
+        return t;
+    }
+
+    bool empty(void) const
+    {
+        return std::vector<ExprToken>::empty();
+    }
+
+    std::string toString(void) const
+    {
+        std::ostringstream oss;
+
+
+        return oss.str();
+    }
 };
 
 // TODO: consider this implementation instead...

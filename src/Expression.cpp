@@ -308,6 +308,7 @@ ParseResult expr_next_token(const std::string& src, unsigned int offset)
     return ParseResult(tok, idx);
 }
 
+
 /*
  * expr_tokenize()
  */
@@ -332,8 +333,8 @@ ExprStack expr_tokenize(const std::string& expr_string)
 ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
 {
     ExprStack postfix_stack;
-    std::stack<ExprToken> output_stack;
-    std::stack<ExprToken> operator_stack;
+    ExprStack output_stack;
+    ExprStack operator_stack;
 
     ExprToken cur_token;        // TODO : change scope to be inside loop?
     ExprToken op_tok;
