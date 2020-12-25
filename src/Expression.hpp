@@ -200,13 +200,13 @@ struct ExprStack
         bool operator==(const ExprStack& that) const;
         bool operator!=(const ExprStack& that) const;
 
-        void push(const ExprToken& t);
+        void             push(const ExprToken& t);
         const ExprToken& top(void);
-        ExprToken pop(void);
-        bool empty(void) const;
-        unsigned int size(void) const;
+        ExprToken        pop(void);
+        bool             empty(void) const;
+        unsigned int     size(void) const;
 
-        std::string toString(void) const;
+        std::string      toString(void) const;
 
 };
 
@@ -228,9 +228,5 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack);
  */
 ParseResult expr_next_token(const std::string& src, unsigned int offset);
 
-/*
- * Parse an expression string and return an Expression object
- */
-Expression eval_expr_string(const std::string& expr_string);
 
 #endif /*__EXPRESSION_HPP*/

@@ -90,17 +90,3 @@ TEST_CASE("test_expr_tokenize", "[expression]")
         std::cout << "[" << idx << "] : " << postfix_stack[idx].toString() << std::endl;
 
 }
-
-TEST_CASE("test_eval_expr_string", "[expression]")
-{
-    //const std::string expr_input = "-1 / (-2 * -3)";
-    //Expression exp_expr(expr_input, -1 / (-2 * -3));
-    const std::string expr_input = "3 + 4 * 2 / (1 - 5)";
-    Expression exp_expr(expr_input, 3 + 4 * 2 / (1 - 5));
-
-    std::cout << "Checking expr_string [" << expr_input << "]" << std::endl;
-
-    Expression out_expr = eval_expr_string(expr_input);
-
-    std::cout << "output : " << out_expr.toString() << std::endl;
-}
