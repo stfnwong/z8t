@@ -21,13 +21,14 @@ typedef enum
 {
     TOK_NULL,
     TOK_LITERAL,
-    TOK_STRING,
-    TOK_LEFT_PAREN,
-    TOK_RIGHT_PAREN,
-    TOK_PLUS,
-    TOK_MINUS,
-    TOK_STAR,
-    TOK_SLASH
+    TOK_STRING,     
+    TOK_LPAREN,     // '('
+    TOK_RPAREN,     // ')'
+    TOK_PLUS,       // '+'
+    TOK_MINUS,      // '-'
+    TOK_STAR,       // '*'
+    TOK_SLASH,      // '/'
+    TOK_CARET       // '^'
 } ExprTokenType;
 
 
@@ -52,15 +53,58 @@ inline ExprTokenType tok_char_to_type(const char tok_char)
         case '/':
             return TOK_SLASH;
         case '(':
-            return TOK_LEFT_PAREN;
+            return TOK_LPAREN;
         case ')':
-            return TOK_RIGHT_PAREN;
+            return TOK_RPAREN;
         default:
             return TOK_NULL;
     }
 
     return TOK_NULL;        // shut compiler/linter up
 }
+
+// TODO: xor? 
+/*
+ * Precedence map 
+ */
+enum class Assoc { none, left_to_right, right_to_left };
+
+struct OpInfo
+{
+    int prec;
+    Assoc assoc;
+
+    public:
+        OpInfo() : prec(0), assoc(Assoc::none) {} 
+        OpInfo(int p, Assoc a) : prec(p), assoc(a) {} 
+        OpInfo(const OpInfo& that) = default;
+
+        bool operator==(const OpInfo& that) const;
+        bool operator!=(const OpInfo& that) const;
+        std::string toString(void) const;
+};
+
+// Mapping of precedence for each operator
+static std::unordered_map <ExprTokenType, OpInfo> OP_INFO_MAP = 
+{
+    {TOK_PLUS,  OpInfo(2, Assoc::left_to_right)},
+    {TOK_MINUS, OpInfo(2, Assoc::left_to_right)},
+    {TOK_STAR,  OpInfo(3, Assoc::left_to_right)},
+    {TOK_SLASH, OpInfo(3, Assoc::left_to_right)},
+    {TOK_CARET, OpInfo(4, Assoc::right_to_left)}
+};
+
+inline int Precedence(const ExprTokenType& tok_type)
+{
+    return OP_INFO_MAP[tok_type].prec;
+}
+
+inline Assoc Associativity(const ExprTokenType& tok_type)
+{
+    return OP_INFO_MAP[tok_type].assoc;
+}
+
+
 
 /*
  * ExprToken
@@ -78,10 +122,12 @@ struct ExprToken
         ExprToken(const ExprTokenType t, int val, const std::string& r);
         ExprToken(const ExprToken& that) = default;
 
+        ExprToken& operator=(const ExprToken& that);        // TODO: default?
         bool operator==(const ExprToken& that) const;
         bool operator!=(const ExprToken& that) const;
         bool isOperator(void) const;
         bool isParen(void) const;
+
         std::string toString(void) const;
 };
 
@@ -115,46 +161,6 @@ using ExprStack = std::vector<ExprToken>;
 
 
 /*
- * Precedence map 
- */
-enum class Assoc { none, left_to_right, right_to_left };
-
-struct OpInfo
-{
-    int prec;
-    Assoc assoc;
-
-    public:
-        OpInfo() : prec(0), assoc(Assoc::none) {} 
-        OpInfo(int p, Assoc a) : prec(p), assoc(a) {} 
-        OpInfo(const OpInfo& that) = default;
-
-        bool operator==(const OpInfo& that) const;
-        bool operator!=(const OpInfo& that) const;
-        std::string toString(void) const;
-};
-
-
-// TODO: xor? 
-static std::unordered_map <ExprTokenType, OpInfo> OP_INFO_MAP = {
-    {TOK_PLUS,  OpInfo(2, Assoc::left_to_right)},
-    {TOK_MINUS, OpInfo(2, Assoc::left_to_right)},
-    {TOK_STAR,  OpInfo(3, Assoc::left_to_right)},
-    {TOK_SLASH, OpInfo(4, Assoc::left_to_right)},
-};
-
-inline int Precedence(const ExprTokenType& tok_type)
-{
-    return OP_INFO_MAP[tok_type].prec;
-}
-
-inline Assoc Associativity(const ExprTokenType& tok_type)
-{
-    return OP_INFO_MAP[tok_type].assoc;
-}
-
-
-/*
  * ParseResult
  * Output from a single call to expr_next_token. Holds the 
  * extracted ExprTokenType and the position in the stream 
@@ -169,11 +175,24 @@ struct ParseResult
         ParseResult();
         ParseResult(const ExprToken& tok, int p);
         ParseResult(const ParseResult& that) = default;
+        ParseResult& operator=(const ParseResult& that);
         bool operator==(const ParseResult& that) const;
         bool operator!=(const ParseResult& that) const;
         std::string toString(void) const;
 };
 
+// TODO: consider this implementation instead...
+//using ParseResult = std::pair<ExprToken, unsigned int>;
+
+// Tokenize a string into an (infix) expression stack
+ExprStack expr_tokenize(const std::string& expr_string);
+
+/*
+ * expr_infix_to_postfix()
+ * Take a stack containing expression tokens in infix notation
+ * and transform it into a stack of tokens in postfix notation
+ */
+ExprStack expr_infix_to_postfix(const ExprStack& infix_stack);
 
 /*
  * Scan string from offset and return a token
