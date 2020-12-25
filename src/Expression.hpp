@@ -186,37 +186,28 @@ struct ParseResult
  * Expression stack based on a vector.
  * This should give better iteration, printing, etc
  */
-struct ExprStack : public std::vector<ExprToken>
+struct ExprStack
 {
-    void push(const ExprToken& t)
-    {
-        std::vector<ExprToken>::push_back(t);
-    }
-    
-    const ExprToken& top(void)
-    {
-        return std::vector<ExprToken>::back();
-    }
+    std::vector<ExprToken> stack;
 
-    ExprToken pop(void)
-    {
-        ExprToken t = std::move(this->top());
-        std::vector<ExprToken>::pop_back();
-        return t;
-    }
+    public:
+        ExprStack();
+        ExprStack(const std::vector<ExprToken>& s);
+        ExprStack(const ExprStack& that) = default;
 
-    bool empty(void) const
-    {
-        return std::vector<ExprToken>::empty();
-    }
+        const ExprToken& operator[](unsigned int idx) const;
+        ExprToken& operator[](unsigned int idx);
+        bool operator==(const ExprStack& that) const;
+        bool operator!=(const ExprStack& that) const;
 
-    std::string toString(void) const
-    {
-        std::ostringstream oss;
+        void push(const ExprToken& t);
+        const ExprToken& top(void);
+        ExprToken pop(void);
+        bool empty(void) const;
+        unsigned int size(void) const;
 
+        std::string toString(void) const;
 
-        return oss.str();
-    }
 };
 
 // TODO: consider this implementation instead...

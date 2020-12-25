@@ -255,6 +255,85 @@ std::string ParseResult::toString(void) const
 }
 
 
+/*
+ * ExprStack
+ */
+
+// constructors
+ExprStack::ExprStack() {} 
+ExprStack::ExprStack(const std::vector<ExprToken>& s) : stack(s) {} 
+
+// operators 
+const ExprToken& ExprStack::operator[](unsigned int idx) const
+{
+    return this->stack[idx];
+}
+
+ExprToken& ExprStack::operator[](unsigned int idx)
+{
+    return this->stack[idx];
+}
+
+// note : may be slow...
+bool ExprStack::operator==(const ExprStack& that) const
+{
+    if(this->size() != that.size())
+        return false;
+    for(unsigned int idx = 0; idx < this->size(); ++idx)
+    {
+        if(this->stack[idx] != that.stack[idx])
+            return false;
+    }
+
+    return true;
+}
+
+bool ExprStack::operator!=(const ExprStack& that) const
+{
+    return !(*this == that);
+}
+
+// methods
+void ExprStack::push(const ExprToken& t)
+{
+    this->stack.push_back(t);
+}
+
+const ExprToken& ExprStack::top(void)
+{
+    return this->stack.back();
+}
+
+ExprToken ExprStack::pop(void)
+{
+    ExprToken t = std::move(this->top());
+    this->stack.pop_back();
+    return t;
+}
+
+bool ExprStack::empty(void) const
+{
+    return this->stack.empty();
+}
+
+unsigned int ExprStack::size(void) const
+{
+    return this->stack.size();
+}
+
+std::string ExprStack::toString(void) const
+{
+    std::ostringstream oss;
+
+    for(unsigned int idx = 0; idx < this->size(); ++idx)
+    {
+        oss << this->stack[idx].repr << " ";
+    }
+
+    return oss.str();
+}
+
+
 // ======== PARSING FUNCTIONS ======== //
 
 /*
@@ -321,7 +400,7 @@ ExprStack expr_tokenize(const std::string& expr_string)
     {
         // ==== Tokenize 
         parse_result = expr_next_token(expr_string, parse_result.pos);
-        tok_stack.push_back(parse_result.token);
+        tok_stack.push(parse_result.token);
     }
 
     return tok_stack;
@@ -332,7 +411,6 @@ ExprStack expr_tokenize(const std::string& expr_string)
  */
 ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
 {
-    ExprStack postfix_stack;
     ExprStack output_stack;
     ExprStack operator_stack;
 
@@ -400,6 +478,9 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
                 operator_stack.pop();       // discard
             // also would discard functions here, but for now functions aren't supported.
         }
+        // TODO: debug, remove 
+        std::cout << "[" << std::dec << std::setw(4) << tok_idx << "]" 
+            << std::setw(6) << operator_stack.toString() << "   " << output_stack.toString() << std::endl;
     }
 
     // pop any remaining tokens on the operator stack to the output stack
@@ -410,16 +491,7 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
         operator_stack.pop();
     }
 
-    // Copy the output stack to postfix_stack
-    // TODO: remove this step and just construct directly into the stack
-    while(!output_stack.empty())
-    {
-        ExprToken out_tok = output_stack.top();
-        postfix_stack.push_back(out_tok);
-        output_stack.pop();
-    }
-
-    return postfix_stack;
+    return output_stack;
 }
 
 /*

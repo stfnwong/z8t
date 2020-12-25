@@ -71,13 +71,6 @@ TEST_CASE("test_expr_next_token_negative", "[expression]")
     }
 }
 
-/*
- * Test for Expression stack type
- */
-TEST_CASE("test_expr_stack", "[expression]")
-{
-    ExprStack expr_stack;
-}
 
 // TODO: this test is too minimal to be kept in the final version
 TEST_CASE("test_expr_tokenize", "[expression]")
