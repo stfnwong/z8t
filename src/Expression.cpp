@@ -82,7 +82,7 @@ ExprToken& ExprToken::operator=(ExprToken&& that)
 }
 
 /*
- * ==
+ * ExprToken::==
  */
 bool ExprToken::operator==(const ExprToken& that) const
 {
@@ -95,7 +95,7 @@ bool ExprToken::operator==(const ExprToken& that) const
 }
 
 /*
- * !=
+ * ExprToken::!=
  */
 bool ExprToken::operator!=(const ExprToken& that) const
 {
@@ -103,7 +103,7 @@ bool ExprToken::operator!=(const ExprToken& that) const
 }
 
 /*
- * isOperator()
+ * ExprToken::isOperator()
  */
 bool ExprToken::isOperator(void) const
 {
@@ -124,7 +124,7 @@ bool ExprToken::isOperator(void) const
 }
 
 /*
- * isParen()
+ * ExprToken::isParen()
  */
 bool ExprToken::isParen(void) const
 {
@@ -141,16 +141,19 @@ bool ExprToken::isParen(void) const
 }
 
 /*
- * precedence()
+ * ExprToken::literal()
+ * Return a literal value for this token
  */
-//int ExprToken::precedence(void) const
-//{
-//    return OP_INFO_MAP[this->type].prec;
-//}
+float ExprToken::literal(void) const
+{
+    if(this->type == TOK_LITERAL)
+        return std::stoi(this->repr);
 
+    return 0.0;
+}
 
 /*
- * toString()
+ * ExprToken::toString()
  */
 std::string ExprToken::toString(void) const
 {
@@ -190,8 +193,6 @@ std::string ExprToken::toString(void) const
 
     return oss.str();
 }
-
-
 
 
 /*
@@ -279,12 +280,7 @@ void ExprStack::push(const ExprToken& t)
     this->stack.push_back(t);
 }
 
-//const ExprToken& ExprStack::top(void)
-//{
-//    return this->stack.back();
-//}
-
-ExprToken& ExprStack::top(void)
+const ExprToken& ExprStack::top(void)
 {
     return this->stack.back();
 }
@@ -376,6 +372,7 @@ ParseResult expr_next_token(const std::string& src, unsigned int offset)
 
 /*
  * expr_tokenize()
+ * Tokenize a string into an ExprStack
  */
 ExprStack expr_tokenize(const std::string& expr_string)
 {
@@ -390,22 +387,6 @@ ExprStack expr_tokenize(const std::string& expr_string)
     }
 
     return tok_stack;
-}
-
-// TODO: for debug only
-void display_stack_debug(
-        unsigned int idx, 
-        const ExprToken& cur_token, 
-        const ExprStack& out_stack,
-        const ExprStack& op_stack,
-        const std::string& end_str
-        )
-{
-    std::cout << "[" << std::dec << std::setw(4) << idx << "]" 
-        << std::setw(6) << op_stack.toString() << "    " 
-        << std::setw(20) << out_stack.toString() << "   "
-        << cur_token.toString() 
-        << end_str << std::endl;
 }
 
 
@@ -460,7 +441,9 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
                 if(cur_token.type == TOK_RPAREN)
                 {
                     operator_stack.pop();       
+#ifdef __EXPRESSION_DEBUG_PRINT
                     display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " pop operator ");
+#endif /*__EXPRESSION_DEBUG_PRINT*/
                 }
             }
 
@@ -487,4 +470,52 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
     }
 
     return output_stack;
+}
+
+/*
+ * eval_postfix_expr_stack()
+ */
+float eval_postfix_expr_stack(const ExprStack& expr_stack)
+{
+    float l, r, y;
+    std::stack<float> output_stack;
+    //ExprStack output_stack;
+
+    for(unsigned int idx = 0; idx < expr_stack.size(); ++idx)
+    {
+        ExprToken cur_token = expr_stack[idx];
+
+        if(cur_token.type == TOK_LITERAL)
+            output_stack.push(cur_token.literal());
+        if(cur_token.isOperator())
+        {
+            if(output_stack.size() < 2)
+                return 0.0;     // TODO : how to signal invalid op? throw here?
+            r = output_stack.top();
+            output_stack.pop();
+            l = output_stack.top();
+            output_stack.pop();
+            std::cout << "[" << std::dec << idx << "] l: " << l << ", r: " << r << std::endl;
+            switch(cur_token.type)
+            {
+                case TOK_PLUS:
+                    y = l + r;
+                    break;
+                case TOK_MINUS:
+                    y = l - r;
+                    break;
+                case TOK_STAR:
+                    y = l * r;
+                    break;
+                case TOK_SLASH:
+                    y = l / r;
+                    break;
+            }
+            std::cout << "[" << std::dec << idx << "] y = " << y << std::endl;
+            output_stack.push(y);
+        }
+    }
+    y = output_stack.top();
+
+    return y;
 }

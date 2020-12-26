@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "Expression.hpp"
+#include "Util.hpp"     // for equal()
 
 
 TEST_CASE("test_expr_next_token_simple", "[expression]")
@@ -125,4 +126,17 @@ TEST_CASE("test_expr_infix_to_postfix", "[expression]")
         std::cout << "[" << idx << "] : " << postfix_stack[idx].toString() << std::endl;
 
     REQUIRE(exp_postfix_stack == postfix_stack);
+}
+
+TEST_CASE("test_expr_eval", "[expression]")
+{
+    const std::string expr_input = "3 + 4 * 2 / (1 - 5)";
+    ExprStack infix_stack = expr_tokenize(expr_input);
+    ExprStack postfix_stack = expr_infix_to_postfix(infix_stack);
+
+    float eval_out = eval_postfix_expr_stack(postfix_stack);
+    //std::cout << "Expression [" << expr_input << "] evaluates to : " << eval_out << std::endl;
+    //std::cout << "Expression [" << expr_input << "] C++          : " << (3 + 4 * 2 / (1 - 5)) << std::endl;
+
+    REQUIRE(equal(eval_out, 1.0));
 }

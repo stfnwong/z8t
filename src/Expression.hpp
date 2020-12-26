@@ -18,6 +18,10 @@
 
 //#define __EXPRESSION_DEBUG_PRINT
 
+
+/*
+ * Token types 
+ */
 typedef enum 
 {
     TOK_NULL,
@@ -129,6 +133,7 @@ struct ExprToken
         bool operator!=(const ExprToken& that) const;
         bool isOperator(void) const;
         bool isParen(void) const;
+        float literal(void) const;
 
         std::string toString(void) const;
 };
@@ -174,8 +179,7 @@ struct ExprStack
         bool operator!=(const ExprStack& that) const;
 
         void             push(const ExprToken& t);
-        //const ExprToken& top(void);
-        ExprToken&       top(void);
+        const ExprToken& top(void);
         ExprToken        pop(void);
         bool             empty(void) const;
         unsigned int     size(void) const;
@@ -184,10 +188,13 @@ struct ExprStack
 
 };
 
-// TODO: consider this implementation instead...
-//using ParseResult = std::pair<ExprToken, unsigned int>;
-
-// Tokenize a string into an (infix) expression stack
+/*
+ * Scan string from offset and return a token
+ */
+ParseResult expr_next_token(const std::string& src, unsigned int offset);
+/*
+ * Tokenize a string into an ExprStack
+ */
 ExprStack expr_tokenize(const std::string& expr_string);
 
 /*
@@ -198,9 +205,29 @@ ExprStack expr_tokenize(const std::string& expr_string);
 ExprStack expr_infix_to_postfix(const ExprStack& infix_stack);
 
 /*
- * Scan string from offset and return a token
+ * eval_postfix_expr_stack
+ * Take an ExprStack containing a postfix expression and evaluate it
  */
-ParseResult expr_next_token(const std::string& src, unsigned int offset);
+float eval_postfix_expr_stack(const ExprStack& expr_stack);
+
+
+/*
+ * display_stack_debug()
+ */
+inline void display_stack_debug(
+        unsigned int idx, 
+        const ExprToken& cur_token, 
+        const ExprStack& out_stack,
+        const ExprStack& op_stack,
+        const std::string& end_str
+        )
+{
+    std::cout << "[" << std::dec << std::setw(4) << idx << "]" 
+        << std::setw(6) << op_stack.toString() << "    " 
+        << std::setw(20) << out_stack.toString() << "   "
+        << cur_token.toString() 
+        << end_str << std::endl;
+}
 
 
 #endif /*__EXPRESSION_HPP*/
