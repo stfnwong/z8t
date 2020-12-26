@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include "Source.hpp"           // for Token object
 
+//#define __EXPRESSION_DEBUG_PRINT
 
 typedef enum 
 {
@@ -114,12 +115,11 @@ inline Assoc Associativity(const ExprTokenType& tok_type)
 struct ExprToken
 {
     ExprTokenType type;
-    int           val;
     std::string   repr;
 
     public:
         ExprToken();
-        ExprToken(const ExprTokenType t, int val, const std::string& r);
+        ExprToken(const ExprTokenType t, const std::string& r);
         ExprToken(const ExprToken& that); 
         ExprToken(ExprToken&& that);
 
@@ -132,35 +132,6 @@ struct ExprToken
 
         std::string toString(void) const;
 };
-
-
-/*
- * Expression.
- * Holds an expression string and some result which the expresion evaluates
- * to. In this case we only care about expressions which can be reduces to 
- * some plain old datatype (usually ints) rather than more general expressions
- */
-// TODO: inherit from Token? (eg: ExprToken)?
-struct Expression
-{
-    std::string expr_string;
-    float eval;
-    // TODO : maybe a vector of ExprTokens?
-
-    public:
-        Expression();
-        Expression(const std::string& expr, float val);
-
-        bool operator==(const Expression& that) const;
-        bool operator!=(const Expression& that) const;
-        int  evalInt(void) const;
-
-        std::string toString(void) const;
-};
-
-// TODO: there are probably too many lines of code in this file already. Try 
-// to clean some of them up.
-//using ExprStack = std::vector<ExprToken>;
 
 
 /*

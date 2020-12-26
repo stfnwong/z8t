@@ -14,20 +14,49 @@
 #include <sstream>
 #include "Expression.hpp"
 
+/*
+ * OP_INFO
+ */
+bool OpInfo::operator==(const OpInfo& that) const
+{
+    if(this->prec != that.prec)
+        return false;
+    if(this->assoc != that.assoc)
+        return false;
+    return true;
+}
+
+bool OpInfo::operator!=(const OpInfo& that) const
+{
+    return !(*this == that);
+}
+
+std::string OpInfo::toString(void) const
+{
+    switch(this->assoc)
+    {
+        case Assoc::left_to_right:
+            return "Left-to-Right (" + std::to_string(this->prec) + ")";
+        case Assoc::right_to_left:
+            return "Right-to-Left (" + std::to_string(this->prec) + ")";
+        default:
+            return "None (" + std::to_string(this->prec) + ")";
+    }
+
+    return "None (" + std::to_string(this->prec) + ")";
+}
 
 
 // ======== EXPRTOKEN ======== //
-ExprToken::ExprToken() : type(TOK_NULL), val(0), repr("") {} 
+ExprToken::ExprToken() : type(TOK_NULL), repr("") {} 
 
-ExprToken::ExprToken(const ExprTokenType t, int v, const std::string& r) : type(t), val(v), repr(r) {}
+ExprToken::ExprToken(const ExprTokenType t, const std::string& r) : type(t), repr(r) {}
 
-ExprToken::ExprToken(const ExprToken& that) : type(that.type), val(that.val), repr(that.repr) {} 
+ExprToken::ExprToken(const ExprToken& that) : type(that.type), repr(that.repr) {} 
 
-//ExprToken::ExprToken(ExprToken&& that) : type(std::move(that.type)), val(std::move(that.val)), repr(std::move(that.repr)) {} 
-ExprToken::ExprToken(ExprToken&& that) : type(TOK_NULL), val(0), repr("")
+ExprToken::ExprToken(ExprToken&& that) : type(TOK_NULL), repr("")
 {
     std::swap(this->type, that.type);
-    std::swap(this->val,  that.val);
     std::swap(this->repr, that.repr);
 }
 
@@ -36,7 +65,6 @@ ExprToken& ExprToken::operator=(const ExprToken& that)
     // TODO: can we reduce this to
     // std::swap(*this, that);  ? 
     this->type = that.type;
-    this->val  = that.val;
     this->repr = that.repr;
 
     return *this;
@@ -47,7 +75,6 @@ ExprToken& ExprToken::operator=(ExprToken&& that)
     if(this != &that)
     {
         this->type = std::move(that.type);
-        this->val  = std::move(that.val);
         this->repr = std::move(that.repr);
     }
 
@@ -60,8 +87,6 @@ ExprToken& ExprToken::operator=(ExprToken&& that)
 bool ExprToken::operator==(const ExprToken& that) const
 {
     if(this->type != that.type)
-        return false;
-    if(this->val != that.val)
         return false;
     if(this->repr != that.repr)
         return false;
@@ -161,82 +186,12 @@ std::string ExprToken::toString(void) const
             oss << std::setw(12) << "TOK_NULL";
             break;
     }
-    oss << " <" << this->repr << ">  " << std::dec << this->val;
+    oss << " <" << this->repr << ">  ";
 
     return oss.str();
 }
 
 
-// ======== EXPRESSION ======== //
-Expression::Expression() : expr_string(""), eval(0) {} 
-
-Expression::Expression(const std::string& expr, float val) : expr_string(expr), eval(val) {} 
-
-/*
- * Expression::==
- */
-bool Expression::operator==(const Expression& that) const
-{
-    if(this->expr_string != that.expr_string)
-        return false;
-    if(this->eval != that.eval)
-        return false;
-
-    return true;
-}
-
-/*
- * Expression::!=
- */
-bool Expression::operator!=(const Expression& that) const
-{
-    return !(*this == that);
-}
-
-int Expression::evalInt(void) const
-{
-    return static_cast<int>(this->eval);     
-}
-
-/*
- * toString()
- */
-std::string Expression::toString(void) const
-{
-    return this->expr_string + " " + std::to_string(this->eval);
-}
-
-/*
- * OP_INFO
- */
-bool OpInfo::operator==(const OpInfo& that) const
-{
-    if(this->prec != that.prec)
-        return false;
-    if(this->assoc != that.assoc)
-        return false;
-    return true;
-}
-
-bool OpInfo::operator!=(const OpInfo& that) const
-{
-    return !(*this == that);
-}
-
-std::string OpInfo::toString(void) const
-{
-    switch(this->assoc)
-    {
-        case Assoc::left_to_right:
-            return "Left-to-Right (" + std::to_string(this->prec) + ")";
-        case Assoc::right_to_left:
-            return "Right-to-Left (" + std::to_string(this->prec) + ")";
-        default:
-            return "None (" + std::to_string(this->prec) + ")";
-    }
-
-    return "None (" + std::to_string(this->prec) + ")";
-}
 
 
 /*
@@ -281,6 +236,7 @@ std::string ParseResult::toString(void) const
 
 /*
  * ExprStack
+ * An Expression stack
  */
 
 // constructors
@@ -461,7 +417,7 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
     ExprStack output_stack;
     ExprStack operator_stack;
 
-    ExprToken cur_token;        // TODO : change scope to be inside loop?
+    ExprToken cur_token;        
     ExprToken op_tok;
     for(unsigned int tok_idx = 0; tok_idx < infix_stack.size(); ++tok_idx)
     {
@@ -491,8 +447,9 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
                     {
                         output_stack.push(op_tok);
                         operator_stack.pop();
-                        // TODO: debug, remove 
+#ifdef __EXPRESSION_DEBUG_PRINT
                         display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " op -> output ");
+#endif /*__EXPRESSION_DEBUG_PRINT*/
                     }
                     else
                         break;
@@ -502,7 +459,7 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
                 // if this is part of a paren pair, discard this parent
                 if(cur_token.type == TOK_RPAREN)
                 {
-                    operator_stack.pop();       // TODO : we are trying to pop while empty
+                    operator_stack.pop();       
                     display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " pop operator ");
                 }
             }
@@ -510,33 +467,15 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
             if(cur_token.type != TOK_RPAREN)
             {
                 operator_stack.push(cur_token);
+#ifdef __EXPRESSION_DEBUG_PRINT
                 display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " push operator ");
+#endif /*__EXPRESSION_DEBUG_PRINT*/
+
             }
         }
-        //else if(cur_token.type == TOK_LPAREN)
-        //    operator_stack.push(cur_token);
-        //else if(cur_token.type == TOK_RPAREN)
-        //{
-        //    while(!operator_stack.empty())
-        //    {
-        //        op_tok = operator_stack.top();
-        //        if(op_tok.type != TOK_LPAREN)
-        //        {
-        //            output_stack.push(op_tok);
-        //            operator_stack.pop();
-        //            // TODO: debug, remove 
-        //            display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " op -> output ");
-        //        }
-        //        else
-        //            break;
-        //    }
-
-        //    if(operator_stack.top().type == TOK_RPAREN)
-        //        operator_stack.pop();       // discard
-        //    // also would discard functions here, but for now functions aren't supported.
-        //}
-        //// TODO: debug, remove 
-        //display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, "");
+#ifdef __EXPRESSION_DEBUG_PRINT
+        display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, "");
+#endif /*__EXPRESSION_DEBUG_PRINT*/
     }
 
     // pop any remaining tokens on the operator stack to the output stack
