@@ -95,6 +95,49 @@ TEST_CASE("test_expr_tokenize", "[expression]")
     REQUIRE(exp_infix_stack == infix_stack);
 }
 
+TEST_CASE("test_expr_tokenize_with_string", "[expression]")
+{
+    const std::string expr_input = "3 + foo * 2 / (1 - bar )";
+    ExprStack infix_stack = expr_tokenize(expr_input);
+
+    const std::vector<ExprToken> exp_infix_stack_vector = {
+        ExprToken(TOK_LITERAL, "3"),
+        ExprToken(TOK_PLUS,    "+"),
+        ExprToken(TOK_STRING,  "foo"),
+        ExprToken(TOK_STAR,    "*"),
+        ExprToken(TOK_LITERAL, "2"),
+        ExprToken(TOK_SLASH,   "/"),
+        ExprToken(TOK_LPAREN,  "("),
+        ExprToken(TOK_LITERAL, "1"),
+        ExprToken(TOK_MINUS,   "-"),
+        ExprToken(TOK_STRING,  "bar"),
+        ExprToken(TOK_RPAREN, ")")
+    };
+    ExprStack exp_infix_stack(exp_infix_stack_vector);
+
+    REQUIRE(exp_infix_stack == infix_stack);
+    
+    std::cout << "Before symbol replacement : " << std::endl;
+    for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
+        std::cout << "[" << idx << "] : " << infix_stack[idx].toString() << std::endl;
+
+    // quick test of re-writing the stack contents 
+    for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
+    {
+        if(infix_stack[idx].type == TOK_STRING)
+        {
+            if(infix_stack[idx].repr == "foo")
+                infix_stack[idx] = ExprToken(TOK_LITERAL, std::string("10"));
+            else if(infix_stack[idx].repr == "bar")
+                infix_stack[idx] = ExprToken(TOK_LITERAL, std::string("20"));
+        }
+    }
+
+    std::cout << "After symbol replacement : " << std::endl;
+    for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
+        std::cout << "[" << idx << "] : " << infix_stack[idx].toString() << std::endl;
+}
+
 TEST_CASE("test_expr_infix_to_postfix", "[expression]")
 {
     const std::string expr_input = "3 + 4 * 2 / (1 - 5)";

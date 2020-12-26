@@ -6,6 +6,14 @@
  * x_end .defw  5 * scale / 10
  *
  * And be able to evaluate (5 * scale / 10) at assembly time
+ *
+ * Everything is split apart which makes things slower. For instance, it would be faster if
+ * we had access to the symbol table directly so that we could update string tokens as we
+ * tokenize. I've decided to do this seperately for now mainly for testing purposes, but 
+ * this sort of thing might be better off being in the Assembler component. Otherwise we need
+ * to tokenize, then take the ExprStack, check if there are any strings, and for each of those 
+ * strings call out to the symbol table and lookup, and potentially throw something/print an 
+ * error message if the symbol isn't found.
  */
 
 #ifndef __EXPRESSION_HPP
@@ -109,8 +117,6 @@ inline Assoc Associativity(const ExprTokenType& tok_type)
     return OP_INFO_MAP[tok_type].assoc;
 }
 
-
-
 /*
  * ExprToken
  * Token for an expression. Note that this conceptually duplicates the functionality 
@@ -185,7 +191,6 @@ struct ExprStack
         unsigned int     size(void) const;
 
         std::string      toString(void) const;
-
 };
 
 /*
@@ -209,7 +214,6 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack);
  * Take an ExprStack containing a postfix expression and evaluate it
  */
 float eval_postfix_expr_stack(const ExprStack& expr_stack);
-
 
 /*
  * display_stack_debug()

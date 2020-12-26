@@ -361,6 +361,7 @@ ParseResult expr_next_token(const std::string& src, unsigned int offset)
             }
             break;
         }
+        // check for numerics (for now we only support base 10 numbers
         tok.repr.push_back(src[idx]);
         idx++;
     }
@@ -479,7 +480,6 @@ float eval_postfix_expr_stack(const ExprStack& expr_stack)
 {
     float l, r, y;
     std::stack<float> output_stack;
-    //ExprStack output_stack;
 
     for(unsigned int idx = 0; idx < expr_stack.size(); ++idx)
     {
@@ -491,11 +491,11 @@ float eval_postfix_expr_stack(const ExprStack& expr_stack)
         {
             if(output_stack.size() < 2)
                 return 0.0;     // TODO : how to signal invalid op? throw here?
+
             r = output_stack.top();
             output_stack.pop();
             l = output_stack.top();
             output_stack.pop();
-            std::cout << "[" << std::dec << idx << "] l: " << l << ", r: " << r << std::endl;
             switch(cur_token.type)
             {
                 case TOK_PLUS:
@@ -511,7 +511,6 @@ float eval_postfix_expr_stack(const ExprStack& expr_stack)
                     y = l / r;
                     break;
             }
-            std::cout << "[" << std::dec << idx << "] y = " << y << std::endl;
             output_stack.push(y);
         }
     }
