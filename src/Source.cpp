@@ -545,39 +545,70 @@ DirectiveLine::DirectiveLine() : expr("") {}
 
 DirectiveLine::DirectiveLine(const std::string& e, const std::vector<int>& v) : expr(e), data(v) {} 
 
+/*
+ * DirectiveLine::init()
+ */
 void DirectiveLine::init(void)
 {
     this->expr.clear();
     this->data.clear();
 }
 
+/*
+ * DirectiveLine::eval()
+ */
 void DirectiveLine::eval(void)
 {
     std::string cur_string;
     unsigned int str_start = 0;
     unsigned int str_idx;
 
-    std::cout << "[" << __func__  << "] expr contains " << this->expr.size() << " characters" << std::endl;
     for(str_idx = 0; str_idx < this->expr.size(); ++str_idx)
     {
-        std::cout << "[" << __func__ << "] str_idx : " << str_idx << "[" << this->expr[str_idx] << "]" << std::endl;
         if(this->expr[str_idx] == ',')
         {
-            std::cout << "str_start : " << str_start << ", str_idx : " << str_idx << std::endl;
             cur_string = this->expr.substr(str_start, str_idx - str_start);
-            std::cout << "[" << __func__ << "] substring is : " << cur_string << std::endl;
             str_start = str_idx+1;        // for the next substring
             float eval = eval_expr_string(cur_string);
             this->data.push_back(int(eval));
         }
     }
-    // There was a string but no sub-strings
+    // Either there was a string but no substring, or this 
+    // is the last substring with no trailing comma
     if(str_idx > 0)
     {
         cur_string = this->expr.substr(str_start, str_idx - str_start);
         float eval = eval_expr_string(cur_string);
         this->data.push_back(int(eval));
     }
+}
+
+/*
+ * DirectiveLine::size()
+ */
+unsigned int DirectiveLine::size(void) const
+{
+    return this->data.size();
+}
+
+bool DirectiveLine::operator==(const DirectiveLine& that) const
+{
+    if(this->expr != that.expr)
+        return false;
+    if(this->size() != that.size())
+        return false;
+    for(unsigned int i = 0; i < this->size(); ++i)
+    {
+        if(this->data[i] != that.data[i])
+            return false;
+    }
+    
+    return true;
+}
+
+bool DirectiveLine::operator!=(const DirectiveLine& that) const
+{
+    return !(*this == that);
 }
 
 /*

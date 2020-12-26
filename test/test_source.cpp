@@ -81,9 +81,9 @@ TEST_CASE("test_directive_line_single", "[source]")
 
     // setup the expression
     line.expr = test_expr;
-    REQUIRE(line.data.size() == 0);
+    REQUIRE(line.size() == 0);
     line.eval();
-    REQUIRE(line.data.size() == 1);
+    REQUIRE(line.size() == 1);
     REQUIRE(line.data[0] == int(1 * 50 / 2));
 }
 
@@ -94,8 +94,18 @@ TEST_CASE("test_directive_line_multi", "[source]")
 
     // setup the expression
     line.expr = test_expr;
-    REQUIRE(line.data.size() == 0);
+    REQUIRE(line.size() == 0);
     line.eval();
-    REQUIRE(line.data.size() == 4);
+
+    const std::vector<int> exp_evals = {
+        int(1 * 50 / 2),
+        int(2 * 20 / 4),
+        int(3 + 3),
+        int(1 + 2)
+    };
+
+    REQUIRE(line.size() == exp_evals.size());
+    for(size_t idx = 0; idx < line.size(); ++idx)
+        REQUIRE(line.data[idx] == exp_evals[idx]);
 }
 

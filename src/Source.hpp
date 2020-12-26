@@ -327,10 +327,14 @@ struct DirectiveLine
     public:
         DirectiveLine();
         DirectiveLine(const std::string& e, const std::vector<int>& v);
-        //DirectiveLine(const DirectiveLine& that) = default;
+        DirectiveLine(const DirectiveLine& that) = default;
 
         void init(void);
         void eval(void);
+        unsigned int size(void) const;
+
+        bool operator==(const DirectiveLine& that) const;
+        bool operator!=(const DirectiveLine& that) const;
 
         //std::string toString(void) const;
 };
