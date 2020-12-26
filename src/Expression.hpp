@@ -120,9 +120,11 @@ struct ExprToken
     public:
         ExprToken();
         ExprToken(const ExprTokenType t, int val, const std::string& r);
-        ExprToken(const ExprToken& that) = default;
+        ExprToken(const ExprToken& that); 
+        ExprToken(ExprToken&& that);
 
         ExprToken& operator=(const ExprToken& that);        // TODO: default?
+        ExprToken& operator=(ExprToken&& that);
         bool operator==(const ExprToken& that) const;
         bool operator!=(const ExprToken& that) const;
         bool isOperator(void) const;
@@ -201,7 +203,8 @@ struct ExprStack
         bool operator!=(const ExprStack& that) const;
 
         void             push(const ExprToken& t);
-        const ExprToken& top(void);
+        //const ExprToken& top(void);
+        ExprToken&       top(void);
         ExprToken        pop(void);
         bool             empty(void) const;
         unsigned int     size(void) const;

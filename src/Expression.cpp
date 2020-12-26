@@ -21,11 +21,35 @@ ExprToken::ExprToken() : type(TOK_NULL), val(0), repr("") {}
 
 ExprToken::ExprToken(const ExprTokenType t, int v, const std::string& r) : type(t), val(v), repr(r) {}
 
+ExprToken::ExprToken(const ExprToken& that) : type(that.type), val(that.val), repr(that.repr) {} 
+
+//ExprToken::ExprToken(ExprToken&& that) : type(std::move(that.type)), val(std::move(that.val)), repr(std::move(that.repr)) {} 
+ExprToken::ExprToken(ExprToken&& that) : type(TOK_NULL), val(0), repr("")
+{
+    std::swap(this->type, that.type);
+    std::swap(this->val,  that.val);
+    std::swap(this->repr, that.repr);
+}
+
 ExprToken& ExprToken::operator=(const ExprToken& that)
 {
+    // TODO: can we reduce this to
+    // std::swap(*this, that);  ? 
     this->type = that.type;
     this->val  = that.val;
     this->repr = that.repr;
+
+    return *this;
+}
+
+ExprToken& ExprToken::operator=(ExprToken&& that)
+{
+    if(this != &that)
+    {
+        this->type = std::move(that.type);
+        this->val  = std::move(that.val);
+        this->repr = std::move(that.repr);
+    }
 
     return *this;
 }
@@ -110,31 +134,31 @@ std::string ExprToken::toString(void) const
     switch(this->type)
     {
         case TOK_LITERAL:
-            oss << "TOK_LITERAL";
+            oss << std::setw(12) << "TOK_LITERAL";
             break;
         case TOK_STRING:
-            oss << "TOK_STRING";
+            oss << std::setw(12) << "TOK_STRING";
             break;
         case TOK_LPAREN:
-            oss << "TOK_LPAREN";
+            oss << std::setw(12) << "TOK_LPAREN";
             break;
         case TOK_RPAREN:
-            oss << "TOK_RPAREN";
+            oss << std::setw(12) << "TOK_RPAREN";
             break;
         case TOK_PLUS:
-            oss << "TOK_PLUS";
+            oss << std::setw(12) << "TOK_PLUS";
             break;
         case TOK_MINUS:
-            oss << "TOK_MINUS";
+            oss << std::setw(12) << "TOK_MINUS";
             break;
         case TOK_STAR:
-            oss << "TOK_STAR";
+            oss << std::setw(12) << "TOK_STAR";
             break;
         case TOK_SLASH:
-            oss << "TOK_SLASH";
+            oss << std::setw(12) << "TOK_SLASH";
             break;
         default:
-            oss << "TOK_NULL";
+            oss << std::setw(12) << "TOK_NULL";
             break;
     }
     oss << " <" << this->repr << ">  " << std::dec << this->val;
@@ -299,7 +323,12 @@ void ExprStack::push(const ExprToken& t)
     this->stack.push_back(t);
 }
 
-const ExprToken& ExprStack::top(void)
+//const ExprToken& ExprStack::top(void)
+//{
+//    return this->stack.back();
+//}
+
+ExprToken& ExprStack::top(void)
 {
     return this->stack.back();
 }
@@ -307,6 +336,7 @@ const ExprToken& ExprStack::top(void)
 ExprToken ExprStack::pop(void)
 {
     ExprToken t = std::move(this->top());
+    //ExprToken t = this->top();  // TODO: fix move semantics
     this->stack.pop_back();
     return t;
 }
@@ -440,51 +470,73 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
         {
             output_stack.push(cur_token);
         }
-        else if(cur_token.isOperator())
+        else if(cur_token.isOperator() || cur_token.isParen())
         {
-            while(!operator_stack.empty())
+            if(cur_token.type != TOK_LPAREN)
             {
-                op_tok = operator_stack.top();
-                // Enforce precendece rules
-                if((op_tok.type == TOK_RPAREN && op_tok.type != TOK_LPAREN) || 
-                   (Precedence(op_tok.type) > Precedence(cur_token.type)) ||
-                   ((Precedence(op_tok.type) == Precedence(cur_token.type)) && 
-                    (Associativity(cur_token.type) == Assoc::left_to_right)))
+                // pop operators to the output stack 
+                // - if the current token is a right paren, pop until we see a left paren
+                // - if the precedences of the current token is greater than the precedence
+                // of the token at the top of the operator stack
+                // - if the precendence of the current token is equal to the precedence
+                // of the token at the top of the operator stack
+                while(!operator_stack.empty())
                 {
-                    output_stack.push(op_tok);
-                    operator_stack.pop();
-                    // TODO: debug, remove 
-                    display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " op -> output ");
+                    op_tok = operator_stack.top();
+                    // Enforce precendece rules
+                    if((op_tok.type == TOK_RPAREN && op_tok.type != TOK_LPAREN) || 
+                       (Precedence(op_tok.type) > Precedence(cur_token.type)) ||
+                       ((Precedence(op_tok.type) == Precedence(cur_token.type)) && 
+                        (Associativity(cur_token.type) == Assoc::left_to_right)))
+                    {
+                        output_stack.push(op_tok);
+                        operator_stack.pop();
+                        // TODO: debug, remove 
+                        display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " op -> output ");
+                    }
+                    else
+                        break;
                 }
-                else
-                    break;
-            }
-            operator_stack.push(cur_token);
-        }
-        else if(cur_token.type == TOK_LPAREN)
-            operator_stack.push(cur_token);
-        else if(cur_token.type == TOK_RPAREN)
-        {
-            while(!operator_stack.empty())
-            {
-                op_tok = operator_stack.top();
-                if(op_tok.type != TOK_LPAREN)
+
+                //operator_stack.push(cur_token);
+                // if this is part of a paren pair, discard this parent
+                if(cur_token.type == TOK_RPAREN)
                 {
-                    output_stack.push(op_tok);
-                    operator_stack.pop();
-                    // TODO: debug, remove 
-                    display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " op -> output ");
+                    operator_stack.pop();       // TODO : we are trying to pop while empty
+                    display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " pop operator ");
                 }
-                else
-                    break;
             }
 
-            if(operator_stack.top().type == TOK_RPAREN)
-                operator_stack.pop();       // discard
-            // also would discard functions here, but for now functions aren't supported.
+            if(cur_token.type != TOK_RPAREN)
+            {
+                operator_stack.push(cur_token);
+                display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " push operator ");
+            }
         }
-        // TODO: debug, remove 
-        display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, "");
+        //else if(cur_token.type == TOK_LPAREN)
+        //    operator_stack.push(cur_token);
+        //else if(cur_token.type == TOK_RPAREN)
+        //{
+        //    while(!operator_stack.empty())
+        //    {
+        //        op_tok = operator_stack.top();
+        //        if(op_tok.type != TOK_LPAREN)
+        //        {
+        //            output_stack.push(op_tok);
+        //            operator_stack.pop();
+        //            // TODO: debug, remove 
+        //            display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, " op -> output ");
+        //        }
+        //        else
+        //            break;
+        //    }
+
+        //    if(operator_stack.top().type == TOK_RPAREN)
+        //        operator_stack.pop();       // discard
+        //    // also would discard functions here, but for now functions aren't supported.
+        //}
+        //// TODO: debug, remove 
+        //display_stack_debug(tok_idx, cur_token, output_stack, operator_stack, "");
     }
 
     // pop any remaining tokens on the operator stack to the output stack
