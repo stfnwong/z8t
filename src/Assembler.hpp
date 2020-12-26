@@ -302,9 +302,10 @@ class Assembler
         void parse_arg(int arg_idx);
         void parse_one_or_two_arg(void);
         void parse_instruction(const Token& token);
-        void parse_directive(const Token& token);
+        void parse_directive(const Token& token); // TODO: maybe here we have an entry point for parsing things like defw directives using the methods in Expression.hpp
         void parse_line(void);
         void resolve_labels(void);
+
 
     // assemble from intermediate repr
     private:

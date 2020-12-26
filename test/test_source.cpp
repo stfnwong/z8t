@@ -14,7 +14,7 @@
 
 #include "Source.hpp"
 
-TEST_CASE("test_symbol_table", "[classic]")
+TEST_CASE("test_symbol_table", "[source]")
 {
     SymbolTable sym_table;
     Symbol out_symbol;
@@ -41,7 +41,7 @@ TEST_CASE("test_symbol_table", "[classic]")
 }
 
 
-TEST_CASE("test_textline_init", "[classic]")
+TEST_CASE("test_textline_init", "[source]")
 {
     TextLine line;
 
@@ -54,7 +54,7 @@ TEST_CASE("test_textline_init", "[classic]")
         REQUIRE(line.args[i] == Token());
 }
 
-TEST_CASE("test_textline_hash", "[classic]")
+TEST_CASE("test_textline_hash", "[source]")
 {
     TextLine line;
 
@@ -69,7 +69,33 @@ TEST_CASE("test_textline_hash", "[classic]")
             line.args[0] = Token(SYM_INSTR, REG_A, "a");
             line.args[1] = Token(SYM_INSTR, second_reg_types[reg_type], "test");
 
-            std::cout << line.argHash() << std::endl;
+            //std::cout << line.argHash() << std::endl;
         }
     }
 }
+
+TEST_CASE("test_directive_line_single", "[source]")
+{
+    std::string test_expr = "1 * 50 / 2";
+    DirectiveLine line;
+
+    // setup the expression
+    line.expr = test_expr;
+    REQUIRE(line.data.size() == 0);
+    line.eval();
+    REQUIRE(line.data.size() == 1);
+    REQUIRE(line.data[0] == int(1 * 50 / 2));
+}
+
+TEST_CASE("test_directive_line_multi", "[source]")
+{
+    std::string test_expr = "1 * 50 / 2 , 2 * 20 / 4, 3 + 3, 1 + 2";
+    DirectiveLine line;
+
+    // setup the expression
+    line.expr = test_expr;
+    REQUIRE(line.data.size() == 0);
+    line.eval();
+    REQUIRE(line.data.size() == 4);
+}
+

@@ -7,6 +7,11 @@
 #include <iomanip>
 #include <iostream>
 #include "Source.hpp"
+#include "Expression.hpp"
+
+/*
+ * ======== TOKEN ======== //
+ */
 
 /*
  * Token
@@ -149,6 +154,10 @@ Token OpcodeLookup::get(const std::string& name) const
     return Token();     // can't find anything, return an empty token
 }
 
+/*
+ * ======== SYMBOL ======== //
+ */
+
 /* 
  * Symbol
  */
@@ -192,6 +201,10 @@ std::string Symbol::toString(void) const
 
     return oss.str();
 }
+
+/*
+ * ======== SYMBOL TABLE ======== //
+ */
 
 /*
  * SymbolTable
@@ -282,6 +295,10 @@ std::string SymbolTable::toString(void) const
 
     return oss.str();
 }
+
+/*
+ * ======== TEXT LINE ======== //
+ */
 
 /*
  * TextLine
@@ -520,6 +537,52 @@ std::string TextLine::toInstrString(void) const
 
     return oss.str();
 }
+
+/*
+ * ======== DIRECTIVE LINE ======== //
+ */
+DirectiveLine::DirectiveLine() : expr("") {}
+
+DirectiveLine::DirectiveLine(const std::string& e, const std::vector<int>& v) : expr(e), data(v) {} 
+
+void DirectiveLine::init(void)
+{
+    this->expr.clear();
+    this->data.clear();
+}
+
+void DirectiveLine::eval(void)
+{
+    std::string cur_string;
+    unsigned int str_start = 0;
+    unsigned int str_idx;
+
+    std::cout << "[" << __func__  << "] expr contains " << this->expr.size() << " characters" << std::endl;
+    for(str_idx = 0; str_idx < this->expr.size(); ++str_idx)
+    {
+        std::cout << "[" << __func__ << "] str_idx : " << str_idx << "[" << this->expr[str_idx] << "]" << std::endl;
+        if(this->expr[str_idx] == ',')
+        {
+            std::cout << "str_start : " << str_start << ", str_idx : " << str_idx << std::endl;
+            cur_string = this->expr.substr(str_start, str_idx - str_start);
+            std::cout << "[" << __func__ << "] substring is : " << cur_string << std::endl;
+            str_start = str_idx+1;        // for the next substring
+            float eval = eval_expr_string(cur_string);
+            this->data.push_back(int(eval));
+        }
+    }
+    // There was a string but no sub-strings
+    if(str_idx > 0)
+    {
+        cur_string = this->expr.substr(str_start, str_idx - str_start);
+        float eval = eval_expr_string(cur_string);
+        this->data.push_back(int(eval));
+    }
+}
+
+/*
+ * ======== SOURCE INFO ======== //
+ */
 
 /*
  * SourceInfo

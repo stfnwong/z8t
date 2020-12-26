@@ -314,6 +314,28 @@ struct TextLine
         std::string toInstrString(void) const;
 };
 
+/*
+ * DirectiveLine
+ * A line that contains the result of a directive. For instance,
+ * the evaluation of a defb/defw directive.
+ */
+struct DirectiveLine
+{
+    std::string      expr;
+    std::vector<int> data;           // generic data (eg, from a list of defb/defw)
+
+    public:
+        DirectiveLine();
+        DirectiveLine(const std::string& e, const std::vector<int>& v);
+        //DirectiveLine(const DirectiveLine& that) = default;
+
+        void init(void);
+        void eval(void);
+
+        //std::string toString(void) const;
+};
+
+
 
 // TODO ; in keeping with the text/data segment distinction, this should be at some point
 // renamed into something that indicates that its a collection of TextLine objects

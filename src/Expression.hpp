@@ -216,6 +216,11 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack);
 float eval_postfix_expr_stack(const ExprStack& expr_stack);
 
 /*
+ * eval_expr_string()
+ */
+float eval_expr_string(const std::string& expr_string);
+
+/*
  * display_stack_debug()
  */
 inline void display_stack_debug(

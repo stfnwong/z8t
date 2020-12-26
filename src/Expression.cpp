@@ -518,3 +518,14 @@ float eval_postfix_expr_stack(const ExprStack& expr_stack)
 
     return y;
 }
+
+/*
+ * eval_expr_string()
+ */
+float eval_expr_string(const std::string& expr_string)
+{
+    ExprStack infix_stack = expr_tokenize(expr_string);
+    ExprStack postfix_stack = expr_infix_to_postfix(infix_stack);
+
+    return eval_postfix_expr_stack(postfix_stack);
+}
