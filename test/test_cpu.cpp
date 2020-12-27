@@ -59,7 +59,6 @@ TEST_CASE("test_memory_load", "[memory]")
         REQUIRE(mem[i] == test_data[i]);
 
     mem.load(test_data, test_data_size, 2 * test_data_size);
-
     for(unsigned int i = (2* test_data_size); i < (2 * test_data_size) + test_data_size; ++i)
         REQUIRE(mem[i] == test_data[i - (2 * test_data_size)]);
 
