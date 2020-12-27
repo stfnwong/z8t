@@ -17,6 +17,8 @@ struct CPUState
     uint16_t ix;
     uint16_t iy;
 
+    // TODO: note that acc, flags, and the 16-bit pairs also have a set
+    // of shadow registers. Implement these later (eg: bc_prime)
     // accumulator register
     uint8_t acc;
     // flags register
@@ -45,21 +47,28 @@ struct CPUState
         uint8_t  read_l(void) const;        // l is lower
         uint8_t  read_w(void) const;        // w is upper
         uint8_t  read_z(void) const;        // z is lower
-        // helper functions to read 8-bit pairs as a single 16-bit register
+
+        // read 16-bit words
         uint16_t read_bc(void) const;
         uint16_t read_de(void) const;
         uint16_t read_hl(void) const;
+        uint16_t read_wz(void) const;
 
         // write only upper or lower 8-bits of BC, DE, or HL
-        void write_b(uint8_t v);
-        void write_c(uint8_t v);
-        void write_d(uint8_t v);
-        void write_e(uint8_t v);
-        void write_h(uint8_t v);
-        void write_l(uint8_t v);
+        void write_b(uint8_t v);   // b is upper
+        void write_c(uint8_t v);   // c is lower
+        void write_d(uint8_t v);   // d is upper
+        void write_e(uint8_t v);   // e is lower 
+        void write_h(uint8_t v);   // h is upper
+        void write_l(uint8_t v);   // l is lower
+        void write_w(uint8_t v);   // w is upper
+        void write_z(uint8_t v);   // z is lower
 
         // write 16-bit words 
         void write_bc(uint16_t v);
+        void write_de(uint16_t v);
+        void write_hl(uint16_t v);
+        void write_wz(uint16_t v);
 };
 
 
