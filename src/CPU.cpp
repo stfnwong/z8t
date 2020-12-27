@@ -3,17 +3,157 @@
  * Components in the Z80 CPU
  */
 
-
+#include <cstring>
 #include "CPU.hpp"
 
+
+/*
+ * MEMORY
+ */
+
+Memory::Memory(unsigned int s) : mem_size(s) 
+{
+    this->data = new uint8_t[this->mem_size];
+}
+
+Memory::Memory(const Memory& that) 
+{
+    this->mem_size = that.mem_size;
+    this->data = new uint8_t[this->mem_size];
+    std::memcpy(this->data, that.data, this->mem_size);
+}
+
+Memory::~Memory()
+{
+    delete[] this->data;
+}
+
+
+uint8_t& Memory::operator[](unsigned int i)
+{
+    return this->data[i];
+}
+
+const uint8_t Memory::operator[](unsigned int i) const
+{
+    return this->data[i];
+}
+
+// NOTE: slow!
+bool Memory::operator==(const Memory& that) const
+{
+    if(this->mem_size != that.mem_size)
+        return false;
+    
+    for(unsigned int i = 0; i < this->mem_size; ++i)
+    {
+        if(this->data[i] != that.data[i])
+            return false;
+    }
+
+    return true;
+}
+
+bool Memory::operator!=(const Memory& that) const
+{
+    return !(*this == that);
+}
+
+void Memory::clear(void)
+{
+    std::memset(this->data, 0, this->mem_size);
+}
+
+unsigned int Memory::size(void) const
+{
+    return this->mem_size;
+}
+
+void Memory::load(const uint8_t* data, unsigned int n, unsigned int offset)
+{
+    if((n + offset) > this->size())
+        return;
+
+    for(unsigned int i = 0; i < n; ++i)
+        this->data[i + offset] = data[i];
+}
+
+
+
+
 // Constructors 
-CPUState::CPUState() : pc(0), sp(0), ix(0), iy(0), 
-    acc(0), flags(0),
-    bc(0), de(0), hl(0), wz(0) {}
+CPUState::CPUState() : mem(0x10000)
+{
+    this->init();
+}
 
+CPUState::CPUState(unsigned int mem_size) : mem(mem_size)
+{
+    this->init();
+}
 
+void CPUState::init(void)
+{
+    this->pc = 0;
+    this->sp = 0;
+    this->ix = 0;
+    this->iy = 0;
+
+    this->acc = 0;
+    this->flags = 0;
+
+    this->bc = 0;
+    this->de = 0;
+    this->hl = 0;
+    this->wz = 0;
+
+    this->data_bus = 0;
+    this->adr_bus = 0;
+}
 
 // operators 
+bool CPUState::operator==(const CPUState& that) const
+{
+    if(this->pc != that.pc)
+        return false;
+    if(this->sp != that.sp)
+        return false;
+    if(this->ix != that.ix)
+        return false;
+    if(this->acc != that.acc)
+        return false;
+    if(this->flags != that.flags)
+        return false;
+    if(this->bc != that.bc)
+        return false;
+    if(this->de != that.de)
+        return false;
+    if(this->hl != that.hl)
+        return false;
+    if(this->wz != that.wz)
+        return false;
+
+    return true;
+}
+
+bool CPUState::operator!=(const CPUState& that) const
+{
+    return !(*this == that);
+}
+
+
+
+// ======== MACHINE CYCLES ======== //
+void CPUState::opcode_fetch(void)
+{
+    this->adr_bus = this->pc;
+}
+
+void CPUState::exec(void)
+{
+
+}
+
 
 
 // read helpers

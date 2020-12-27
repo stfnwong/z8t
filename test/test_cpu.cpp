@@ -15,8 +15,60 @@
 #include "CPU.hpp"
 
 constexpr const bool GLOBAL_VERBOSE = true;
+constexpr unsigned int test_mem_size = 0x10000;
+
+// ======== MEMORY ======== //
+TEST_CASE("test_memory_init", "[memory]")
+{
+    Memory mem(test_mem_size);
+    
+    REQUIRE(mem.size() == test_mem_size); 
+    mem.clear();
+    for(unsigned int i = 0; i < mem.size(); ++i)
+        REQUIRE(mem[i] == 0);
+}
+
+TEST_CASE("test_memory_read_write", "[memory]")
+{
+    Memory mem(test_mem_size);
+
+    for(unsigned int i = 0; i < 32; ++i)
+        mem[i] = 2 * i;
+
+    for(unsigned int i = 0; i < 32; ++i)
+        REQUIRE(mem[i] == 2 * i);
+
+    mem.clear();
+    for(unsigned int i = 0; i < 32; ++i)
+        REQUIRE(mem[i] == 0);
+}
+
+TEST_CASE("test_memory_load", "[memory]")
+{
+    Memory mem(test_mem_size);
+
+    // create some dummy data
+    unsigned int test_data_size = 64;
+    uint8_t* test_data = new uint8_t[test_data_size];
+
+    for(unsigned int i = 0; i < test_data_size; ++i)
+        test_data[i] = 2 * i;
+
+    mem.load(test_data, test_data_size, 0);
+    for(unsigned int i = 0; i < test_data_size; ++i)
+        REQUIRE(mem[i] == test_data[i]);
+
+    mem.load(test_data, test_data_size, 2 * test_data_size);
+
+    for(unsigned int i = (2* test_data_size); i < (2 * test_data_size) + test_data_size; ++i)
+        REQUIRE(mem[i] == test_data[i - (2 * test_data_size)]);
 
 
+    delete[] test_data;
+}
+
+
+// ======== CPU ======== //
 TEST_CASE("test_cpu_state_init", "[cpu]")
 {
     CPUState state;
@@ -33,7 +85,19 @@ TEST_CASE("test_cpu_state_init", "[cpu]")
     REQUIRE(state.de == 0);
     REQUIRE(state.hl == 0);
     REQUIRE(state.wz == 0);
+
+    REQUIRE(state.mem.size() == 0x10000);
 }
+
+
+// Test the opcode fetch machine cycle
+TEST_CASE("test_opcode_fetch_cycle", "[cpu]")
+{
+    CPUState state;
+
+
+}
+
 
 TEST_CASE("test_8bit_read_write", "[cpu]")
 {

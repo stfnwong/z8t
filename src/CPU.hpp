@@ -8,9 +8,35 @@
 
 #include <cstdint>
 
+class Memory
+{
+    unsigned int mem_size;
+    uint8_t*     data;
 
+    public:
+        Memory(unsigned int s);
+        Memory(const Memory& that);
+        ~Memory();
+
+        uint8_t&      operator[](unsigned int i);
+        const uint8_t operator[](unsigned int i) const;
+        bool          operator==(const Memory& that) const;
+        bool          operator!=(const Memory& that) const;
+
+        void         clear(void);
+        unsigned int size(void) const;
+
+        void         load(const uint8_t* data, unsigned int n, unsigned int offset);
+        //void         load(const std::vector<uint8_t>& data, unsigned int size, unsigned int offset);
+};
+
+/*
+ * CPUState
+ * Holds registers, program counter, stack pointer
+ */
 struct CPUState
 {
+    Memory   mem;
     // 16-bit registers
     uint16_t pc;
     uint16_t sp;
@@ -30,13 +56,23 @@ struct CPUState
     uint16_t hl;
     uint16_t wz;        // internal transfer registers
 
-    // 8-bit registers
+    // Other internal registers (not tested for equality)
+    uint16_t adr_bus;
+    uint16_t data_bus;
 
     public:
         CPUState();
+        CPUState(unsigned int mem_size);
+        //CPUState(const CPUState& that) = default;
+        void init(void);
 
         bool operator==(const CPUState& that) const;
         bool operator!=(const CPUState& that) const;
+
+        // Machine cycles 
+        void opcode_fetch(void);
+
+        void exec(void);
 
         // helper functions to read only upper or lower 8-bits of BC, DE, or HL
         uint8_t  read_b(void) const;        // b is upper
