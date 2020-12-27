@@ -4,3 +4,9 @@
 
 # Ignore object files
 *.o
+# Ignore everything under bin/
+bin/*
+# Ignore tags file
+tags
+# Ignore my notes 
+notes
