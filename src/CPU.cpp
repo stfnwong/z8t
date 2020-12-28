@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include "CPU.hpp"
+#include "Instr.hpp"
 
 
 /*
@@ -144,9 +145,18 @@ bool CPUState::operator!=(const CPUState& that) const
 
 
 // ======== MACHINE CYCLES ======== //
-void CPUState::opcode_fetch(void)
+void CPUState::fetch(void)
 {
     this->adr_bus = this->pc;
+    this->pc++;             
+    this->data_bus = this->mem[this->adr_bus];
+}
+
+void CPUState::decode(void)
+{
+    switch(this->data_bus)
+    {
+    }
 }
 
 void CPUState::exec(void)

@@ -94,7 +94,20 @@ TEST_CASE("test_opcode_fetch_cycle", "[cpu]")
 {
     CPUState state;
 
+    // test instruction 
+    unsigned int test_addr = 0x2002;
+    uint16_t     test_machine_code = 0x47;      // LD B, A
+    state.mem[test_addr] = test_machine_code;
 
+    // dummy data
+    state.acc = 0xDE;
+    REQUIRE(state.read_b() == 0);
+    // set the pc to start at the test address
+    state.pc = test_addr;
+
+    state.fetch();
+    REQUIRE(state.data_bus == test_machine_code);
+    REQUIRE(state.pc == test_addr + 1);
 }
 
 

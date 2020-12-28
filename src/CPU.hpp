@@ -8,6 +8,9 @@
 
 #include <cstdint>
 
+/*
+ * A block of memory attached to a CPU
+ */
 class Memory
 {
     unsigned int mem_size;
@@ -70,7 +73,8 @@ struct CPUState
         bool operator!=(const CPUState& that) const;
 
         // Machine cycles 
-        void opcode_fetch(void);
+        void fetch(void);
+        void decode(void);
 
         void exec(void);
 
