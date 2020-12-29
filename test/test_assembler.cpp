@@ -372,9 +372,7 @@ SourceInfo get_gcd_expected_source(void)
     line.opcode = Token(SYM_INSTR, INSTR_JR, "jr");
     line.addr = TEXT_START_ADDR + 2;
     line.args[0] = Token(SYM_COND, COND_C, "c");
-    line.args[1] = Token(SYM_LITERAL, 0x1, "1");        
-    // TODO: this should be 3 since we jump over "sub b" and "jr gcd"
-    //line.args[1] = Token(SYM_LITERAL, 0x3, "3");        
+    line.args[1] = Token(SYM_LITERAL, 0x5, "5"); 
     line.symbol = "else";
     line.sym_arg = 1;
     info.add(line);
@@ -391,13 +389,17 @@ SourceInfo get_gcd_expected_source(void)
     line.opcode = Token(SYM_INSTR, INSTR_JR, "jr");
     line.addr = TEXT_START_ADDR + 5;
     line.args[0] = Token(SYM_LITERAL, -5, std::to_string(-5));
+    line.symbol = "gcd";
+    line.sym_arg = 0;
     info.add(line);
     // else : ld c, a
     line.init();
     line.line_num = 16;  
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
     line.addr = TEXT_START_ADDR + 7;
-    line.args[0] = Token(SYM_LITERAL, TEXT_START_ADDR, std::to_string(TEXT_START_ADDR));
+    line.args[0] = Token(SYM_REG, REG_C, "c");
+    line.args[1] = Token(SYM_REG, REG_A, "a");
+    //line.args[0] = Token(SYM_LITERAL, TEXT_START_ADDR, std::to_string(TEXT_START_ADDR));
     line.label = "else";
     line.is_label = true;
     info.add(line);
@@ -422,7 +424,7 @@ SourceInfo get_gcd_expected_source(void)
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
     line.addr = TEXT_START_ADDR + 10;
     line.args[0] = Token(SYM_REG, REG_B, "b");
-    line.args[1] = Token(SYM_REG, REG_C, "c");
+    line.args[1] = Token(SYM_REG, REG_A, "a");
     info.add(line);
     // ld a, c 
     line.init();
@@ -437,8 +439,9 @@ SourceInfo get_gcd_expected_source(void)
     line.line_num = 22;  
     line.opcode = Token(SYM_INSTR, INSTR_JR, "jr");
     line.addr = TEXT_START_ADDR + 12;
-    line.args[0] = Token(SYM_LITERAL, TEXT_START_ADDR, std::to_string(TEXT_START_ADDR));
+    line.args[0] = Token(SYM_LITERAL, -12, "-12");
     line.sym_arg = 0;
+    line.symbol = "gcd";
     info.add(line);
 
     return info;
@@ -469,8 +472,8 @@ TEST_CASE("test_lex_gcd", "[classic]")
 
         if(exp_line != lex_line)
         {
-            std::cout << "Error in line " << i+1 << "/" 
-                << exp_source.getNumLines() << std::endl;
+            std::cout << "Error in line " << std::dec << i+1 << "/" 
+                << std::dec << exp_source.getNumLines() << std::endl;
 
             std::cout << exp_line.diff(lex_line) << std::endl;
 
@@ -536,7 +539,7 @@ Program get_add_sub_expected_program(void)
     prog.add(cur_instr);
     // ld b,a 
     cur_instr.init();
-    cur_instr.ins = 0x06;
+    cur_instr.ins = 0x47;
     cur_instr.size = 1;
     cur_instr.adr = TEXT_START_ADDR + 15;
     prog.add(cur_instr);
@@ -651,7 +654,7 @@ Program get_gcd_expected_program(void)
     prog.add(cur_instr);
     // jr c, else
     cur_instr.init();
-    cur_instr.ins = 0x3803;     // offset AFTER PC is incremented
+    cur_instr.ins = 0x3805;     // offset AFTER PC is incremented
     cur_instr.size = 2;
     cur_instr.adr = TEXT_START_ADDR + 2;
     prog.add(cur_instr);
@@ -663,15 +666,15 @@ Program get_gcd_expected_program(void)
     prog.add(cur_instr);
     // jr gcd
     cur_instr.init();
-    cur_instr.ins = 0x1800;
+    cur_instr.ins = 0x1800 | uint8_t(-5);
     cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 6;
+    cur_instr.adr = TEXT_START_ADDR + 5;
     prog.add(cur_instr);
     //  else: ld c, a
     cur_instr.init();
-    cur_instr.ins = 0x1800;
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 6;
+    cur_instr.ins = 0x4F;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 7;
     prog.add(cur_instr);
     // ld a, b
 
@@ -697,11 +700,27 @@ TEST_CASE("test_asm_gcd", "[classic]")
 
     std::cout << "Assembler produced " << std::dec << out_program.length() << " instructions" << std::endl;
     //REQUIRE(exp_program.length() == out_program.length());
+    
+    std::cout << "Expected program: " << std::endl << exp_program.toString() << std::endl;
+    std::cout << "Output program  : " << std::endl << out_program.toString() << std::endl;
 
-    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
+    for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
     {
         Instr out_instr = out_program.get(idx);
         Instr exp_instr = exp_program.get(idx);
+
+        std::cout << "instr " << std::dec << idx << " exp: " << exp_instr.toString() 
+            << ", out: " << out_instr.toString() << std::endl;
+    }
+
+    // Check instructions 
+    for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
+    {
+        Instr out_instr = out_program.get(idx);
+        Instr exp_instr = exp_program.get(idx);
+
+        //std::cout << "instr " << std::dec << idx << " exp: " << exp_instr.toString() 
+        //    << ", out: " << out_instr.toString() << std::endl;
 
         if(out_instr != exp_instr)
         {

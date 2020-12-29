@@ -375,10 +375,13 @@ uint32_t TextLine::argHash(void) const
     // first arg 
     for(int argn = 0; argn < 2; ++argn)
     {
-        if(this->args[argn].val >= 0)
+        //if(this->args[argn].val >= 0)
+        if(this->args[argn].type != SYM_NULL)
         {
             if(this->args[argn].type == SYM_LITERAL_IND || this->args[argn].type == SYM_LITERAL)
                 hash = hash | (this->args[argn].type << ((1 - argn) * 8));
+            else if(this->args[argn].type == SYM_LABEL)
+                hash = hash | (SYM_LITERAL << ((1 - argn) * 8));
             else 
                 hash = hash | (this->args[argn].val << ((1 - argn) * 8));
         }

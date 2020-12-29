@@ -39,10 +39,6 @@ std::string dis_instr_to_repr(const std::vector<uint8_t>& code_buffer)
             instr_repr = instr->second.first;
             instr_size = instr->second.second;
 
-            std::cout << "[" << __func__ << "] pc [" << std::hex << std::setw(4) 
-                << std::setfill('0') << pc << "] found instruction: " << instr_repr 
-                << " with size " << std::dec << unsigned(instr_size) << std::endl;
-
             // TODO : for [ld (**) hl] there will need to be a special case here since
             // the literal arg comes first
             oss << instr_repr;
@@ -78,9 +74,6 @@ Program dis_instr_to_program(const std::vector<uint8_t>& code_buffer, uint32_t s
     uint8_t code;
     unsigned int pc = 0;
 
-    // TODO: debug, remove 
-    std::cout << "[" << __func__ << "] " << std::dec << code_buffer.size() << " bytes in code buffer" << std::endl;
-
     while(pc < code_buffer.size())
     {
         code = code_buffer[pc];
@@ -99,7 +92,6 @@ Program dis_instr_to_program(const std::vector<uint8_t>& code_buffer, uint32_t s
             cur_instr.adr = start_addr + pc;;
 
             pc += cur_instr.size;
-            std::cout << "[" << __func__ << "] adding instruction " << cur_instr.toString() << std::endl;
             prog_out.add(cur_instr);
         }
         else

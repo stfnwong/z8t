@@ -481,6 +481,10 @@ void Assembler::parse_line(void)
     }   
     this->line_info.addr = this->cur_addr;
     this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
+    // TODO: debug, remove 
+    std::cout << "[" << __func__ << "] incremented address for line " << std::dec << this->line_info.line_num 
+        << " by " << std::dec << unsigned(instr_get_size(this->line_info.argHash())) << " to " << std::hex 
+        << std::setw(4) << std::setfill('0') << this->cur_addr << std::endl;
 }
 
 /*
@@ -492,7 +496,7 @@ int Assembler::read(const std::string& filename)
     std::string line;
 
     try {
-        infile.open(filename, std::ios::binary);
+        infile.open(filename);
     }
     catch(std::ios_base::failure& e){
         std::cerr << "[" << __func__ << "] caught exception " 
@@ -546,11 +550,18 @@ void Assembler::assem_instr(void)
         line = this->source_info.get(idx);
         line_hash = line.argHash();
 
+        std::cout << "[" << __func__ << "] " << line.toInstrString() << std::endl;
+        std::cout << "[" << __func__ << "] assembling " << line.toString() << std::endl;
+       
+        for(unsigned int a = 0; a < 2; ++a)
+            std::cout << "[" << __func__ << "] arg " << a << " " << line.args[a].toString() << std::endl;
+
         auto lookup_val = instr_hash_to_code.find(line_hash);
         if(lookup_val != instr_hash_to_code.end())
         {
             auto instr_size = lookup_val->second;
             cur_instr.size = instr_size.second;
+
             if(cur_instr.size == 1)
                 cur_instr.ins  = instr_size.first;
             else if(cur_instr.size == 2 && line.args[0].type == SYM_LITERAL)

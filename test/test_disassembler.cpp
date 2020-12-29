@@ -38,9 +38,6 @@ TEST_CASE("test_dis_instr_to_string", "[classic]")
     assem.assemble();
 
     out_prog = assem.getProgram();
-    std::cout << "Program output :" << std::endl;
-    std::cout << out_prog.toString() << std::endl;
-
     std::vector<uint8_t> prog_vector = out_prog.toArray();
     REQUIRE(expected_vector.size() == prog_vector.size());
 
@@ -70,17 +67,8 @@ TEST_CASE("test_dis_instr_to_program", "[classic]")
     assem.setVerbose(GLOBAL_VERBOSE);
     assem.loadSource(src_fragment);
     assem.assemble();
-
     asm_prog = assem.getProgram();
-    std::cout << "Program output :" << std::endl;
-    std::cout << asm_prog.toString() << std::endl;
     std::vector<uint8_t> asm_prog_vector = asm_prog.toArray();
-    // TODO: debug, remove 
-    for(unsigned int idx = 0; idx < asm_prog_vector.size(); ++idx)
-    {
-        std::cout << std::hex << unsigned(asm_prog_vector[idx]) << " ";
-    }
-    std::cout << std::endl;
 
     dis_prog = dis_instr_to_program(asm_prog_vector, 0x1000);
 
