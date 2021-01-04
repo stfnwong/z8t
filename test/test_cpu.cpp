@@ -68,7 +68,7 @@ TEST_CASE("test_memory_load", "[memory]")
 
 
 // ======== CPU ======== //
-TEST_CASE("test_cpu_state_init", "[cpu]")
+TEST_CASE("test_cpu_state_init", "cpu")
 {
     CPUState state;
 
@@ -90,7 +90,7 @@ TEST_CASE("test_cpu_state_init", "[cpu]")
 
 
 // Test the opcode fetch machine cycle
-TEST_CASE("test_opcode_fetch_cycle", "[cpu]")
+TEST_CASE("test_opcode_fetch_cycle", "cpu")
 {
     CPUState state;
 
@@ -111,7 +111,7 @@ TEST_CASE("test_opcode_fetch_cycle", "[cpu]")
 }
 
 
-TEST_CASE("test_8bit_read_write", "[cpu]")
+TEST_CASE("test_8bit_read_write", "cpu")
 {
     CPUState state;
 
@@ -125,7 +125,7 @@ TEST_CASE("test_8bit_read_write", "[cpu]")
 }
 
 // Test all register reads and writes
-TEST_CASE("test_16bit_read_write", "[cpu]")
+TEST_CASE("test_16bit_read_write", "cpu")
 {
     CPUState state;
 

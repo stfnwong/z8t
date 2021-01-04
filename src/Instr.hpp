@@ -9,7 +9,38 @@
 #include <cstdint>
 #include <unordered_map>
 
+//typedef enum {
+//    INSTR_ADD, 
+//    INSTR_ADC,
+//    INSTR_AND, 
+//    INSTR_CALL,
+//    INSTR_CCF,
+//    INSTR_CP,
+//    INSTR_CPL,
+//    INSTR_DAA,
+//    INSTR_DEC, 
+//    INSTR_DI,
+//    INSTR_DJNZ,
+//    INSTR_EX,
+//    INSTR_JP,
+//    INSTR_JR,
+//    INSTR_LD, 
+//    INSTR_INC, 
+//    INSTR_OR,
+//    INSTR_OUT,
+//    INSTR_POP, 
+//    INSTR_PUSH,
+//    INSTR_RRA,
+//    INSTR_RRCA,
+//    INSTR_RET,
+//    INSTR_RST,
+//    INSTR_SBC,
+//    INSTR_SUB,
+//    INSTR_XOR
+//} Z80_INSTR;
 
+
+// This map just returns the size of each instruction 
 static const std::unordered_map<uint8_t, uint8_t> instr_size_map {
     // add 
     {0x87, 1},   // add a, a 

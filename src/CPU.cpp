@@ -4,6 +4,8 @@
  */
 
 #include <cstring>
+#include <iostream>
+
 #include "CPU.hpp"
 #include "Instr.hpp"
 
@@ -148,15 +150,52 @@ bool CPUState::operator!=(const CPUState& that) const
 void CPUState::fetch(void)
 {
     this->adr_bus = this->pc;
-    this->pc++;             
+    this->pc++;                 
     this->data_bus = this->mem[this->adr_bus];
 }
 
-void CPUState::decode(void)
+void CPUState::decode_no_prefix(void)
 {
-    switch(this->data_bus)
+    uint8_t x, y, z; 
+    uint8_t p, q;
+
+    x = (this->data_bus & 0xC0) >> 6;
+    y = (this->data_bus & 0x38) >> 3;
+    z = (this->data_bus & 0x7);
+
+    p = (y >> 1);
+    q = (y % 2);
+
+    // decode instruction
+    switch(z)
     {
-    }
+        case 0:     // relative jumps and some misc ops 
+            break;
+        case 2:     // indirect loading
+            std::cout << "[" << __func__ << "] TODO: indirect loading " << std::endl;
+            break;
+        case 3:     // 16 bit increment/decrement
+            break;
+        case 4:     // 8-bit increment
+            break;
+        case 5:     // 8-bit decrement
+            break;
+        case 6:     // LD r[y], r[z]
+            break;
+
+
+        default:
+            std::cout << "[" << __func__ << "] invalid code sequence " << std::endl;
+            std::cout << "x: " << unsigned(x) 
+                << ", y: " << unsigned(y) 
+                << ", z: " << unsigned(z) 
+                << ", p: " << unsigned(p)
+                << ", q: " << unsigned(q) 
+                << std::endl;
+            break;
+
+
+    } 
 }
 
 void CPUState::exec(void)

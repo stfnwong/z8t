@@ -74,7 +74,7 @@ struct CPUState
 
         // Machine cycles 
         void fetch(void);
-        void decode(void);
+        void decode_no_prefix(void);
 
         void exec(void);
 
