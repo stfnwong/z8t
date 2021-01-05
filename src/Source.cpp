@@ -96,10 +96,7 @@ std::string Token::toString(void) const
 TokenLookup::TokenLookup()
 {
     for(const Token& token : Z80_TOKENS)
-    {
-        std::cout << "[" << __func__ << "] adding token " << token.toString() << std::endl;
         this->name_to_token[token.repr] = token;
-    }
 }
 
 
@@ -389,10 +386,10 @@ uint32_t TextLine::argHash(void) const
 {
     uint32_t hash = 0;
 
-    if(this->args[0].type == SYM_LITERAL)
+    if(this->args[0].type == SYM_LITERAL || this->args[0].type == SYM_LABEL)
     {
         hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((this->args[0].type & 0xFF) << 8);
+               ((SYM_LITERAL & 0xFF) << 8);
 
         if(this->args[1].val >= 0)
             hash = hash | ((this->args[1].val & 0xFF));
@@ -402,6 +399,13 @@ uint32_t TextLine::argHash(void) const
         hash = ((this->opcode.val  & 0xFF) << 16) | 
                ((this->args[0].val & 0xFF) << 8) | 
                ((this->args[1].type & 0xFF));
+    }
+    // this handles the case where the labels have not yet been resolved
+    else if(this->args[1].type == SYM_LABEL)
+    {
+        hash = ((this->opcode.val  & 0xFF) << 16) | 
+               ((this->args[0].val & 0xFF) << 8) | 
+               ((SYM_LITERAL & 0xFF));
     }
     else
     {

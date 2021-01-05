@@ -107,7 +107,7 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t>> instr_lookup = {
     {(INSTR_LD << 16)  | (REG_A       << 8) | SYM_LITERAL,     std::pair(0x3E, 2)},   // ld a, *
     {(INSTR_LD << 16)  | (REG_A       << 8) | SYM_LITERAL_IND, std::pair(0x3A, 2)},   // ld a, (**)
     // ld (b)
-    {(INSTR_LD << 16)  | (REG_B       << 8) | REG_A,           std::pair(0x06, 1)},   // ld b, a
+    {(INSTR_LD << 16)  | (REG_B       << 8) | REG_A,           std::pair(0x47, 1)},   // ld b, a
     {(INSTR_LD << 16)  | (REG_B       << 8) | REG_B,           std::pair(0x40, 1)},   // ld b, b
     {(INSTR_LD << 16)  | (REG_B       << 8) | REG_C,           std::pair(0x41, 1)},   // ld b, c
     {(INSTR_LD << 16)  | (REG_B       << 8) | REG_D,           std::pair(0x42, 1)},   // ld b, d

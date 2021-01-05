@@ -651,7 +651,7 @@ Program get_gcd_expected_program(void)
     prog.add(cur_instr);
     // jr c, else
     cur_instr.init();
-    cur_instr.ins = 0x3803;     // offset AFTER PC is incremented
+    cur_instr.ins = 0x3805;     // offset AFTER PC is incremented
     cur_instr.size = 2;
     cur_instr.adr = TEXT_START_ADDR + 2;
     prog.add(cur_instr);
@@ -663,17 +663,46 @@ Program get_gcd_expected_program(void)
     prog.add(cur_instr);
     // jr gcd
     cur_instr.init();
-    cur_instr.ins = 0x1800;
+    cur_instr.ins = 0x1800 | uint8_t(-5);
     cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 6;
+    cur_instr.adr = TEXT_START_ADDR + 5;
     prog.add(cur_instr);
     //  else: ld c, a
     cur_instr.init();
-    cur_instr.ins = 0x1800;
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 6;
+    cur_instr.ins = 0x4F;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 7;
     prog.add(cur_instr);
     // ld a, b
+    cur_instr.init();
+    cur_instr.ins = 0x78;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 8;
+    prog.add(cur_instr);
+    // sub c
+    cur_instr.init();
+    cur_instr.ins = 0x91;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 9;
+    prog.add(cur_instr);
+    // ld b, a
+    cur_instr.init();
+    cur_instr.ins = 0x47;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 10;
+    prog.add(cur_instr);
+    // ld a, c
+    cur_instr.init();
+    cur_instr.ins = 0x79;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR + 11;
+    prog.add(cur_instr);
+    // jr gcd
+    cur_instr.init();
+    cur_instr.ins = 0x1800 | uint8_t(-12);
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 12;
+    prog.add(cur_instr);
 
 
     return prog;
@@ -698,6 +727,15 @@ TEST_CASE("test_asm_gcd", "[classic]")
     std::cout << "Assembler produced " << std::dec << out_program.length() << " instructions" << std::endl;
     //REQUIRE(exp_program.length() == out_program.length());
 
+    // TODO: debug, remove - show both programs
+    std::cout << "Expected program :" << std::endl;
+    for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
+        std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
+
+    std::cout << "Output program :" << std::endl;
+    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
+        std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
+
     for(unsigned int idx = 0; idx < out_program.length(); ++idx)
     {
         Instr out_instr = out_program.get(idx);
@@ -705,7 +743,7 @@ TEST_CASE("test_asm_gcd", "[classic]")
 
         if(out_instr != exp_instr)
         {
-            std::cout << "Difference in instruction " << idx + 1 << std::endl;
+            std::cout << "Difference in instruction " << idx << std::endl;
             std::cout << "Expected : " << exp_instr.toString() << std::endl;
             std::cout << "Got      : " << out_instr.toString() << std::endl;
         }

@@ -8,6 +8,7 @@
 #include <cctype>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include "Assembler.hpp"
 
 /*
@@ -18,6 +19,10 @@ uint8_t instr_get_size(uint32_t arg_hash)
     auto lookup_val = instr_lookup.find(arg_hash);
     if(lookup_val != instr_lookup.end())
         return lookup_val->second.second;
+
+    // TODO: debug, remove
+    std::cout << "[" << __func__ << "] no instruction with hash 0x" 
+        << std::hex << std::setw(8) << arg_hash << std::endl;
 
     return 0;
 }
@@ -300,6 +305,8 @@ void Assembler::parse_one_or_two_arg(void)
     if(this->line_info.args[0].type == SYM_REG)
     {
         this->line_info.args[0] = Token(SYM_COND, COND_C,  "c"); 
+        std::cout << "[" << __func__ << "] set this->line_info.args[0] to " 
+            << this->line_info.args[0].toString() << std::endl;
     }
 
     this->skip_to_next_token();
@@ -308,6 +315,8 @@ void Assembler::parse_one_or_two_arg(void)
     if(this->cur_line == start_line)
     {
         this->parse_arg(1);
+        std::cout << "[" << __func__ << "] set this->line_info.args[1] to " 
+            << this->line_info.args[1].toString() << std::endl;
     }
 }
 
@@ -463,11 +472,17 @@ void Assembler::resolve_labels(void)
                     << "] with address [0x" << std::hex << label_addr << "], on line " << std::dec << cur_line.line_num 
                     << " [0x" << std::hex << cur_line.addr << "]" << std::endl;
             }
+
+
             if(label_addr > 0)
             {
                 target_addr = label_addr - cur_line.addr;
                 cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, target_addr, std::to_string(target_addr));
                 this->source_info.update(idx, cur_line);
+
+                std::cout << "[" << __func__ << "] line " << cur_line.line_num << ", replaced symbol ["
+                    << cur_line.args[cur_line.sym_arg].repr << "] with target address 0x" 
+                    << std::hex << target_addr << std::endl;
             }
         }
     }
@@ -484,7 +499,7 @@ void Assembler::parse_line(void)
     if(this->verbose)
     {
         std::cout << "[" << __func__ << "] parsing line " 
-            << this->cur_line << " with address " 
+            << std::dec << this->cur_line << " with address 0x" 
             << std::hex << this->cur_addr << std::endl;
     }
 
@@ -536,6 +551,12 @@ void Assembler::parse_line(void)
     }   
     this->line_info.addr = this->cur_addr;
     this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
+
+    if(this->verbose)
+    {
+        std::cout << "[" << __func__ << "] current address is " << std::hex 
+            << std::setw(4) << std::setfill('0') << this->cur_addr << std::endl;
+    }
 }
 
 /*
