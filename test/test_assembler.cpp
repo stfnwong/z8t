@@ -198,7 +198,7 @@ SourceInfo get_add_sub_expected_source(void)
 }
 
 
-TEST_CASE("test_lex_add_sub", "[classic]")
+TEST_CASE("test_lex_add_sub", "lexer")
 {
     SourceInfo lex_source;
     SourceInfo exp_source;
@@ -309,7 +309,7 @@ SourceInfo get_indirect_expected_source(void)
 }
 
 
-TEST_CASE("test_lex_indirect", "[classic]")
+TEST_CASE("test_lex_indirect", "lexer")
 {
     SourceInfo lex_source;
     SourceInfo exp_source;
@@ -372,9 +372,7 @@ SourceInfo get_gcd_expected_source(void)
     line.opcode = Token(SYM_INSTR, INSTR_JR, "jr");
     line.addr = TEXT_START_ADDR + 2;
     line.args[0] = Token(SYM_COND, COND_C, "c");
-    line.args[1] = Token(SYM_LITERAL, 0x1, "1");        
-    // TODO: this should be 3 since we jump over "sub b" and "jr gcd"
-    //line.args[1] = Token(SYM_LITERAL, 0x3, "3");        
+    line.args[1] = Token(SYM_LITERAL, 0x5, "5");  // jump over PC 
     line.symbol = "else";
     line.sym_arg = 1;
     info.add(line);
@@ -391,13 +389,15 @@ SourceInfo get_gcd_expected_source(void)
     line.opcode = Token(SYM_INSTR, INSTR_JR, "jr");
     line.addr = TEXT_START_ADDR + 5;
     line.args[0] = Token(SYM_LITERAL, -5, std::to_string(-5));
+    line.symbol = "gcd";
     info.add(line);
     // else : ld c, a
     line.init();
     line.line_num = 16;  
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
     line.addr = TEXT_START_ADDR + 7;
-    line.args[0] = Token(SYM_LITERAL, TEXT_START_ADDR, std::to_string(TEXT_START_ADDR));
+    line.args[0] = Token(SYM_REG, REG_C, "c");
+    line.args[1] = Token(SYM_REG, REG_A, "a");
     line.label = "else";
     line.is_label = true;
     info.add(line);
@@ -422,7 +422,7 @@ SourceInfo get_gcd_expected_source(void)
     line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
     line.addr = TEXT_START_ADDR + 10;
     line.args[0] = Token(SYM_REG, REG_B, "b");
-    line.args[1] = Token(SYM_REG, REG_C, "c");
+    line.args[1] = Token(SYM_REG, REG_A, "a");
     info.add(line);
     // ld a, c 
     line.init();
@@ -437,15 +437,16 @@ SourceInfo get_gcd_expected_source(void)
     line.line_num = 22;  
     line.opcode = Token(SYM_INSTR, INSTR_JR, "jr");
     line.addr = TEXT_START_ADDR + 12;
-    line.args[0] = Token(SYM_LITERAL, TEXT_START_ADDR, std::to_string(TEXT_START_ADDR));
+    line.args[0] = Token(SYM_LITERAL, -12, std::to_string(-12));
     line.sym_arg = 0;
+    line.symbol = "gcd";
     info.add(line);
 
     return info;
 }
 
 
-TEST_CASE("test_lex_gcd", "[classic]")
+TEST_CASE("test_lex_gcd", "lexer")
 {
     SourceInfo lex_source;
     SourceInfo exp_source;
@@ -469,7 +470,7 @@ TEST_CASE("test_lex_gcd", "[classic]")
 
         if(exp_line != lex_line)
         {
-            std::cout << "Error in line " << i+1 << "/" 
+            std::cout << std::dec << "Error in line " << i+1 << "/" 
                 << exp_source.getNumLines() << std::endl;
 
             std::cout << exp_line.diff(lex_line) << std::endl;
@@ -587,7 +588,7 @@ Program get_add_sub_expected_program(void)
 }
 
 
-TEST_CASE("test_asm_add_sub", "[classic]")
+TEST_CASE("test_asm_add_sub", "assembler")
 {
     int status;
     Assembler assem;
@@ -716,7 +717,7 @@ Program get_gcd_expected_program(void)
     return prog;
 }
 
-TEST_CASE("test_asm_gcd", "[classic]")
+TEST_CASE("test_asm_gcd", "assembler")
 {
     int status;
     Assembler assem;
