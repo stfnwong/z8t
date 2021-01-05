@@ -188,7 +188,7 @@ const Token Z80_TOKENS[] =
     Token(SYM_REG,  REG_DE_IND, "(de)"),
     Token(SYM_REG,  REG_HL_IND, "(hl)"),
     // conditions
-    Token(SYM_COND, COND_C,  "c"), 
+    //Token(SYM_COND, COND_C,  "c"),        // TODO: need to find a better way to do this..
     Token(SYM_COND, COND_NC, "nc"),
     Token(SYM_COND, COND_Z,  "z"), 
     Token(SYM_COND, COND_NZ, "nz"),

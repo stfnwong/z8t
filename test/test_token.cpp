@@ -56,17 +56,17 @@ const Token expected_tokens[] =
     Token(SYM_REG,  REG_HL, "hl"),
     Token(SYM_REG,  REG_BC, "bc"),
 
-    Token(SYM_COND, COND_C,  "C"), 
-    Token(SYM_COND, COND_NC, "NC"),
-    Token(SYM_COND, COND_Z,  "Z"), 
-    Token(SYM_COND, COND_NZ, "NZ"),
-    Token(SYM_COND, COND_M,  "M"), 
-    Token(SYM_COND, COND_P,  "P"), 
-    Token(SYM_COND, COND_PE, "PE"),
+    //Token(SYM_COND, COND_C,  "C"),        // TODO: this is a pain, since we have the same char for two (context dependent) symbols
+    Token(SYM_COND, COND_NC, "nc"),
+    Token(SYM_COND, COND_Z,  "z"), 
+    Token(SYM_COND, COND_NZ, "nz"),
+    Token(SYM_COND, COND_M,  "m"), 
+    Token(SYM_COND, COND_P,  "p"), 
+    Token(SYM_COND, COND_PE, "pe"),
 };
 
 
-TEST_CASE("test_token_lookup", "[classic]")
+TEST_CASE("test_token_lookup", "token")
 {
     TokenLookup lut;
     Token out_token;

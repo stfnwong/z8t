@@ -97,6 +97,7 @@ TokenLookup::TokenLookup()
 {
     for(const Token& token : Z80_TOKENS)
     {
+        std::cout << "[" << __func__ << "] adding token " << token.toString() << std::endl;
         this->name_to_token[token.repr] = token;
     }
 }
