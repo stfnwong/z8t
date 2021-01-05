@@ -58,7 +58,7 @@ struct CPUState
     uint16_t iy;
 
     // flags register
-    uint8_t flags;
+    bool flags[8];
 
     // general registers 
     // TODO: shadow registers
@@ -114,15 +114,9 @@ struct CPUState
         uint16_t read_bc(void);
         uint16_t read_de(void);
         uint16_t read_hl(void);
-
-        void write_bc(const uint16_t val);
-        void write_de(const uint16_t val);
-        void write_hl(const uint16_t val);
-
-        // flags (these should become private later..
-        void set_flag(const uint8_t flag);
-        void clear_flag(const uint8_t flag);
-        bool get_flag(const uint8_t flag);
+        void     write_bc(const uint16_t val);
+        void     write_de(const uint16_t val);
+        void     write_hl(const uint16_t val);
 };
 
 

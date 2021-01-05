@@ -77,7 +77,8 @@ TEST_CASE("test_cpu_state_init", "cpu")
     REQUIRE(state.ix == 0);
     REQUIRE(state.iy == 0);
 
-    REQUIRE(state.flags == 0);
+    for(int f = 0; f < 8; ++f)
+        REQUIRE(state.flags[f] == false);
 
     // general registers 
     REQUIRE(state.a == 0);
@@ -146,22 +147,4 @@ TEST_CASE("test_opcode_fetch_cycle", "cpu")
     //state.decode();
     state.exec_opcode();
     REQUIRE(state.b == state.a);
-}
-
-TEST_CASE("test_cpu_flags", "cpu")
-{
-    CPUState state;
-
-    REQUIRE(state.flags == 0);
-
-    state.set_flag(FLAG_ZERO);
-    REQUIRE(state.get_flag(FLAG_ZERO) == 1);
-    state.clear_flag(FLAG_ZERO);
-    REQUIRE(state.get_flag(FLAG_ZERO) == 0);
-    
-    // try carry flag 
-    state.set_flag(FLAG_CARRY);
-    REQUIRE(state.get_flag(FLAG_CARRY) == 1);
-    state.clear_flag(FLAG_CARRY);
-    REQUIRE(state.get_flag(FLAG_CARRY) == 0);
 }

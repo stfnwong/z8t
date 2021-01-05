@@ -105,7 +105,8 @@ void CPUState::init(void)
     this->ix = 0;
     this->iy = 0;
 
-    this->flags = 0;
+    for(int f = 0; f < 8; ++f)
+        this->flags[f] = false;
 
     this->a = 0;
     this->b = 0;
@@ -133,8 +134,11 @@ bool CPUState::operator==(const CPUState& that) const
         return false;
     if(this->ix != that.ix)
         return false;
-    if(this->flags != that.flags)
-        return false;
+    for(int f = 0; f < 8; ++f)
+    {
+        if(this->flags[f] != that.flags[f])
+            return false;
+    }
     // general registers
     if(this->a != that.a)
         return false;
@@ -170,30 +174,14 @@ bool CPUState::operator!=(const CPUState& that) const
 void CPUState::op_and(const uint8_t val)
 {
     uint8_t result = this->a & val;
-    if(result >> 7)
-        this->set_flag(FLAG_SIGN);
-    else
-        this->clear_flag(FLAG_SIGN);
-    if(result == 0)
-        this->set_flag(FLAG_ZERO);
-    else
-        this->clear_flag(FLAG_ZERO);
-    if(parity(result))
-        this->set_flag(FLAG_PARITY);
-    else
-        this->clear_flag(FLAG_PARITY);
-    
-    // clear subtract, carry  flags 
-    this->clear_flag(FLAG_SUB);
-    this->clear_flag(FLAG_CARRY);
-    if(result & (1 << 5))
-        this->set_flag(FLAG_F5);
-    else
-        this->clear_flag(FLAG_F5);
-    if(result & (1 << 3))
-        this->set_flag(FLAG_F3);
-    else
-        this->clear_flag(FLAG_F3);
+
+    this->flags[FLAG_SIGN] = result >> 7;
+    this->flags[FLAG_ZERO] = result == 0;
+    this->flags[FLAG_PARITY] = parity(result);
+    this->flags[FLAG_SUB] = false;
+    this->flags[FLAG_CARRY] = false;
+    this->flags[FLAG_F5] = (result & (1 << 5));
+    this->flags[FLAG_F3] = (result & (1 << 3));
 
     this->a = result;
 }
@@ -201,30 +189,14 @@ void CPUState::op_and(const uint8_t val)
 void CPUState::op_or(const uint8_t val)
 {
     uint8_t result = this->a | val;
-    if(result >> 7)
-        this->set_flag(FLAG_SIGN);
-    else
-        this->clear_flag(FLAG_SIGN);
-    if(result == 0)
-        this->set_flag(FLAG_ZERO);
-    else
-        this->clear_flag(FLAG_ZERO);
-    if(parity(result))
-        this->set_flag(FLAG_PARITY);
-    else
-        this->clear_flag(FLAG_PARITY);
-    
-    // clear subtract, carry  flags 
-    this->clear_flag(FLAG_SUB);
-    this->clear_flag(FLAG_CARRY);
-    if(result & (1 << 5))
-        this->set_flag(FLAG_F5);
-    else
-        this->clear_flag(FLAG_F5);
-    if(result & (1 << 3))
-        this->set_flag(FLAG_F3);
-    else
-        this->clear_flag(FLAG_F3);
+
+    this->flags[FLAG_SIGN] = result >> 7;
+    this->flags[FLAG_ZERO] = result == 0;
+    this->flags[FLAG_PARITY] = parity(result);
+    this->flags[FLAG_SUB] = false;
+    this->flags[FLAG_CARRY] = false;
+    this->flags[FLAG_F5] = (result & (1 << 5));
+    this->flags[FLAG_F3] = (result & (1 << 3));
 
     this->a = result;
 }
@@ -232,30 +204,14 @@ void CPUState::op_or(const uint8_t val)
 void CPUState::op_xor(const uint8_t val)
 {
     uint8_t result = this->a ^ val;
-    if(result >> 7)
-        this->set_flag(FLAG_SIGN);
-    else
-        this->clear_flag(FLAG_SIGN);
-    if(result == 0)
-        this->set_flag(FLAG_ZERO);
-    else
-        this->clear_flag(FLAG_ZERO);
-    if(parity(result))
-        this->set_flag(FLAG_PARITY);
-    else
-        this->clear_flag(FLAG_PARITY);
-    
-    // clear subtract, carry  flags 
-    this->clear_flag(FLAG_SUB);
-    this->clear_flag(FLAG_CARRY);
-    if(result & (1 << 5))
-        this->set_flag(FLAG_F5);
-    else
-        this->clear_flag(FLAG_F5);
-    if(result & (1 << 3))
-        this->set_flag(FLAG_F3);
-    else
-        this->clear_flag(FLAG_F3);
+
+    this->flags[FLAG_SIGN] = result >> 7;
+    this->flags[FLAG_ZERO] = result == 0;
+    this->flags[FLAG_PARITY] = parity(result);
+    this->flags[FLAG_SUB] = false;
+    this->flags[FLAG_CARRY] = false;
+    this->flags[FLAG_F5] = (result & (1 << 5));
+    this->flags[FLAG_F3] = (result & (1 << 3));
 
     this->a = result;
 }
@@ -364,6 +320,16 @@ void CPUState::exec_opcode(void)
         case 0xB6: this->op_or(this->mem[this->read_hl()]); break;  // AND (HL)
         case 0xF6: this->op_or(this->mem[this->pc]); break;         // AND *
 
+        case 0xAF: this->op_xor(this->a); break;    // XOR A
+        case 0xA8: this->op_xor(this->b); break;    // XOR B
+        case 0xA9: this->op_xor(this->c); break;    // XOR C
+        case 0xAA: this->op_xor(this->d); break;    // XOR D
+        case 0xAB: this->op_xor(this->e); break;    // XOR E
+        case 0xAC: this->op_xor(this->h); break;    // XOR H
+        case 0xAD: this->op_xor(this->l); break;    // XOR L
+        case 0xAE: this->op_xor(this->mem[this->read_hl()]); break;    // XOR (HL)
+        case 0xEE: this->op_xor(this->mem[this->pc]); break;        // XOR *
+
         // CB prefixed instructions
         case 0xCB:
             this->exec_cb_opcode();
@@ -447,21 +413,4 @@ void CPUState::write_hl(const uint16_t val)
 {
     this->h = val >> 8;
     this->l = val & 0xFF;
-}
-
-
-// flags 
-void CPUState::set_flag(const uint8_t flag)
-{
-    this->flags = (this->flags | (1 << flag));
-}
-
-void CPUState::clear_flag(const uint8_t flag)
-{
-    this->flags = (this->flags & ~(1 << flag));
-}
-
-bool CPUState::get_flag(const uint8_t flag)
-{
-    return (this->flags & (1 << flag)) ? true : false;
 }
