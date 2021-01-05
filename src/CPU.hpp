@@ -8,6 +8,15 @@
 
 #include <cstdint>
 
+static inline bool parity(const uint8_t val)
+{
+    uint8_t num_set_bits = 0;       // set value is 1 
+    for(int b = 0; b < 8; ++b)
+        num_set_bits += ((val >> b) & 0x1);
+
+    return (num_set_bits & 1) == 0;
+}
+
 /*
  * A block of memory attached to a CPU
  */
@@ -33,6 +42,8 @@ class Memory
         //void         load(const std::vector<uint8_t>& data, unsigned int size, unsigned int offset);
 };
 
+enum {FLAG_CARRY = 0, FLAG_SUB, FLAG_PARITY, FLAG_F3, FLAG_HALF, FLAG_F5, FLAG_ZERO, FLAG_SIGN };
+
 /*
  * CPUState
  * Holds registers, program counter, stack pointer
@@ -46,22 +57,32 @@ struct CPUState
     uint16_t ix;
     uint16_t iy;
 
-    // TODO: note that acc, flags, and the 16-bit pairs also have a set
-    // of shadow registers. Implement these later (eg: bc_prime)
-    // accumulator register
-    uint8_t acc;
     // flags register
     uint8_t flags;
 
-    // 8-bit register pairs
-    uint16_t bc;
-    uint16_t de;
-    uint16_t hl;
-    uint16_t wz;        // internal transfer registers
+    // general registers 
+    // TODO: shadow registers
+    uint8_t a;
+    uint8_t b;
+    uint8_t c;
+    uint8_t d;
+    uint8_t e;
+    uint8_t h;
+    uint8_t l;
+    uint8_t w;
+    uint8_t z;
 
     // Other internal registers (not tested for equality)
     uint16_t adr_bus;
     uint16_t data_bus;
+    // TODO: instruction register?
+
+    // decode internals
+    uint8_t dec_x, dec_y, dec_z; 
+    uint8_t dec_p, dec_q;
+
+    // other timing internals 
+    unsigned int cyc_count;
 
     public:
         CPUState();
@@ -72,43 +93,36 @@ struct CPUState
         bool operator==(const CPUState& that) const;
         bool operator!=(const CPUState& that) const;
 
+        // logic operations
+        void op_and(const uint8_t val);
+        void op_or(const uint8_t val);
+        void op_xor(const uint8_t val);
+
         // Machine cycles 
         void fetch(void);
-        void decode_no_prefix(void);
+        void decode(void);
+        void exec_opcode(void);
+        void exec_cb_opcode(void);
+        //void exec_ed_opcode(void);
+        //void exec_dd_opcode(void);
+        //void exec_fd_opcode(void);
+        //void exec_ddcb_opcode(void);
+        //void exec_fdcb_opcode(void);
+        void cycle(void);
 
-        void exec(void);
+        // 16-bit reads and writes
+        uint16_t read_bc(void);
+        uint16_t read_de(void);
+        uint16_t read_hl(void);
 
-        // helper functions to read only upper or lower 8-bits of BC, DE, or HL
-        uint8_t  read_b(void) const;        // b is upper
-        uint8_t  read_c(void) const;        // c is lower
-        uint8_t  read_d(void) const;        // d is upper
-        uint8_t  read_e(void) const;        // e is lower 
-        uint8_t  read_h(void) const;        // h is upper
-        uint8_t  read_l(void) const;        // l is lower
-        uint8_t  read_w(void) const;        // w is upper
-        uint8_t  read_z(void) const;        // z is lower
+        void write_bc(const uint16_t val);
+        void write_de(const uint16_t val);
+        void write_hl(const uint16_t val);
 
-        // read 16-bit words
-        uint16_t read_bc(void) const;
-        uint16_t read_de(void) const;
-        uint16_t read_hl(void) const;
-        uint16_t read_wz(void) const;
-
-        // write only upper or lower 8-bits of BC, DE, or HL
-        void write_b(uint8_t v);   // b is upper
-        void write_c(uint8_t v);   // c is lower
-        void write_d(uint8_t v);   // d is upper
-        void write_e(uint8_t v);   // e is lower 
-        void write_h(uint8_t v);   // h is upper
-        void write_l(uint8_t v);   // l is lower
-        void write_w(uint8_t v);   // w is upper
-        void write_z(uint8_t v);   // z is lower
-
-        // write 16-bit words 
-        void write_bc(uint16_t v);
-        void write_de(uint16_t v);
-        void write_hl(uint16_t v);
-        void write_wz(uint16_t v);
+        // flags (these should become private later..
+        void set_flag(const uint8_t flag);
+        void clear_flag(const uint8_t flag);
+        bool get_flag(const uint8_t flag);
 };
 
 
