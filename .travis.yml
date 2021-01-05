@@ -21,3 +21,4 @@ script:
     - ./bin/test/test_lexer
     - ./bin/test/test_token
     - ./bin/test/test_cpu
+    - ./bin/test/test_util
