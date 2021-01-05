@@ -20,10 +20,6 @@ uint8_t instr_get_size(uint32_t arg_hash)
     if(lookup_val != instr_lookup.end())
         return lookup_val->second.second;
 
-    // TODO: debug, remove
-    std::cout << "[" << __func__ << "] no instruction with hash 0x" 
-        << std::hex << std::setw(8) << arg_hash << std::endl;
-
     return 0;
 }
 
@@ -303,21 +299,12 @@ void Assembler::parse_one_or_two_arg(void)
     // you pass like an 'expected type' and it gets that instead. Note that so far the 
     // only case for this is because we have a register c and a condition c
     if(this->line_info.args[0].type == SYM_REG)
-    {
         this->line_info.args[0] = Token(SYM_COND, COND_C,  "c"); 
-        std::cout << "[" << __func__ << "] set this->line_info.args[0] to " 
-            << this->line_info.args[0].toString() << std::endl;
-    }
 
     this->skip_to_next_token();
-    //std::cout << "[" << __func__ << "] line is currently " << start_line << " after first argument " << std::endl;
 
     if(this->cur_line == start_line)
-    {
         this->parse_arg(1);
-        std::cout << "[" << __func__ << "] set this->line_info.args[1] to " 
-            << this->line_info.args[1].toString() << std::endl;
-    }
 }
 
 /*
@@ -473,16 +460,11 @@ void Assembler::resolve_labels(void)
                     << " [0x" << std::hex << cur_line.addr << "]" << std::endl;
             }
 
-
             if(label_addr > 0)
             {
                 target_addr = label_addr - cur_line.addr;
                 cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, target_addr, std::to_string(target_addr));
                 this->source_info.update(idx, cur_line);
-
-                std::cout << "[" << __func__ << "] line " << cur_line.line_num << ", replaced symbol ["
-                    << cur_line.args[cur_line.sym_arg].repr << "] with target address 0x" 
-                    << std::hex << target_addr << std::endl;
             }
         }
     }

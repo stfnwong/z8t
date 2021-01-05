@@ -536,7 +536,7 @@ Program get_add_sub_expected_program(void)
     prog.add(cur_instr);
     // ld b,a 
     cur_instr.init();
-    cur_instr.ins = 0x06;
+    cur_instr.ins = 0x47;
     cur_instr.size = 1;
     cur_instr.adr = TEXT_START_ADDR + 15;
     prog.add(cur_instr);
@@ -612,6 +612,14 @@ TEST_CASE("test_asm_add_sub", "[classic]")
 
     std::cout << "Assembler produced " << out_program.length() << " instructions" << std::endl;
     REQUIRE(exp_program.length() == out_program.length());
+
+    std::cout << "Expected program :" << std::endl;
+    for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
+        std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
+
+    std::cout << "Output program :" << std::endl;
+    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
+        std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
 
     for(unsigned int idx = 0; idx < out_program.length(); ++idx)
     {
@@ -725,16 +733,15 @@ TEST_CASE("test_asm_gcd", "[classic]")
     out_program = assem.getProgram();
 
     std::cout << "Assembler produced " << std::dec << out_program.length() << " instructions" << std::endl;
-    //REQUIRE(exp_program.length() == out_program.length());
+    REQUIRE(exp_program.length() == out_program.length());
 
-    // TODO: debug, remove - show both programs
-    std::cout << "Expected program :" << std::endl;
-    for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
-        std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
+    //std::cout << "Expected program :" << std::endl;
+    //for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
+    //    std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
 
-    std::cout << "Output program :" << std::endl;
-    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-        std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
+    //std::cout << "Output program :" << std::endl;
+    //for(unsigned int idx = 0; idx < out_program.length(); ++idx)
+    //    std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
 
     for(unsigned int idx = 0; idx < out_program.length(); ++idx)
     {
