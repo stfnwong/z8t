@@ -14,7 +14,7 @@
 
 #include "Source.hpp"
 
-TEST_CASE("test_symbol_table", "[source]")
+TEST_CASE("test_symbol_table", "source")
 {
     SymbolTable sym_table;
     Symbol out_symbol;
@@ -41,7 +41,7 @@ TEST_CASE("test_symbol_table", "[source]")
 }
 
 
-TEST_CASE("test_textline_init", "[source]")
+TEST_CASE("test_textline_init", "source")
 {
     TextLine line;
 
@@ -54,7 +54,7 @@ TEST_CASE("test_textline_init", "[source]")
         REQUIRE(line.args[i] == Token());
 }
 
-TEST_CASE("test_textline_hash", "[source]")
+TEST_CASE("test_textline_hash", "source")
 {
     TextLine line;
 
@@ -74,7 +74,7 @@ TEST_CASE("test_textline_hash", "[source]")
     }
 }
 
-TEST_CASE("test_directive_line_single", "[source]")
+TEST_CASE("test_directive_line_single", "source")
 {
     std::string test_expr = "1 * 50 / 2";
     DirectiveLine line;
@@ -87,7 +87,7 @@ TEST_CASE("test_directive_line_single", "[source]")
     REQUIRE(line.data[0] == int(1 * 50 / 2));
 }
 
-TEST_CASE("test_directive_line_multi", "[source]")
+TEST_CASE("test_directive_line_multi", "source")
 {
     std::string test_expr = "1 * 50 / 2 , 2 * 20 / 4, 3 + 3, 1 + 2";
     DirectiveLine line;

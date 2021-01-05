@@ -22,3 +22,4 @@ script:
     - ./bin/test/test_token
     - ./bin/test/test_cpu
     - ./bin/test/test_util
+    - ./bin/test/test_expression

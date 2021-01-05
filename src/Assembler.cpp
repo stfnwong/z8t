@@ -388,6 +388,7 @@ void Assembler::parse_directive(const Token& token)
     switch(token.val)
     {
         // TODO : this is actually and arbitrary comma seperated list of args....
+        // TODO: read the whole line in and see if we need to parse as an expression
         case DIR_DEFB:
             arg_token = this->next_token();
             if(arg_token.type != SYM_LITERAL)

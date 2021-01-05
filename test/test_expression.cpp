@@ -18,7 +18,7 @@
 #include "Util.hpp"     // for equal()
 
 
-TEST_CASE("test_expr_next_token_simple", "[expression]")
+TEST_CASE("test_expr_next_token_simple", "expression")
 {
     // the sequence of tokens emitted by repeat calls should look like
     std::vector<ParseResult> exp_pairs = {
@@ -44,7 +44,7 @@ TEST_CASE("test_expr_next_token_simple", "[expression]")
     }
 }
 
-TEST_CASE("test_expr_next_token_negative", "[expression]")
+TEST_CASE("test_expr_next_token_negative", "expression")
 {
     std::vector<ParseResult> exp_pairs = {
         ParseResult(ExprToken(TOK_MINUS,   "-"), 1),
@@ -72,7 +72,7 @@ TEST_CASE("test_expr_next_token_negative", "[expression]")
     }
 }
 
-TEST_CASE("test_expr_tokenize", "[expression]")
+TEST_CASE("test_expr_tokenize", "expression")
 {
     const std::string expr_input = "3 + 4 * 2 / (1 - 5)";
     ExprStack infix_stack = expr_tokenize(expr_input);
@@ -95,7 +95,7 @@ TEST_CASE("test_expr_tokenize", "[expression]")
     REQUIRE(exp_infix_stack == infix_stack);
 }
 
-TEST_CASE("test_expr_tokenize_with_string", "[expression]")
+TEST_CASE("test_expr_tokenize_with_string", "expression")
 {
     const std::string expr_input = "3 + foo * 2 / (1 - bar )";
     ExprStack infix_stack = expr_tokenize(expr_input);
@@ -138,7 +138,7 @@ TEST_CASE("test_expr_tokenize_with_string", "[expression]")
         std::cout << "[" << idx << "] : " << infix_stack[idx].toString() << std::endl;
 }
 
-TEST_CASE("test_expr_infix_to_postfix", "[expression]")
+TEST_CASE("test_expr_infix_to_postfix", "expression")
 {
     const std::string expr_input = "3 + 4 * 2 / (1 - 5)";
     ExprStack infix_stack = expr_tokenize(expr_input);
@@ -171,7 +171,7 @@ TEST_CASE("test_expr_infix_to_postfix", "[expression]")
     REQUIRE(exp_postfix_stack == postfix_stack);
 }
 
-TEST_CASE("test_expr_eval", "[expression]")
+TEST_CASE("test_expr_eval", "expression")
 {
     const std::string expr_input = "3 + 4 * 2 / (1 - 5)";
     ExprStack infix_stack = expr_tokenize(expr_input);

@@ -3,3 +3,8 @@
 *.swo
 # Ignore anything under $ROOT_DIR/bin
 bin/*
+
+# Ignore my notes 
+notes
+# Ignore tags file
+tags
