@@ -63,7 +63,6 @@ TEST_CASE("test_memory_load", "memory")
     for(unsigned int i = (2* test_data_size); i < (2 * test_data_size) + test_data_size; ++i)
         REQUIRE(mem[i] == test_data[i - (2 * test_data_size)]);
 
-
     delete[] test_data;
 }
 
@@ -82,20 +81,11 @@ TEST_CASE("test_memory_load_save", "memory")
 
     // Write memory contents to file 
     const std::string filename = "memory_load_test.dat";
-
     mem.save(filename);
 
     // read the file into a new memory object and check
     Memory out_mem(test_mem_size);
     out_mem.load(filename, 0);
-
-    // TODO: what do the first few bytes look like?
-    std::cout << "Source memory :" << std::endl;
-    for(unsigned int b = 0; b < 64; ++b)
-        std::cout << unsigned(mem[b]) << " ";
-    std::cout << std::endl << "Dest memory :" << std::endl;
-    for(unsigned int b = 0; b < 64; ++b)
-        std::cout << unsigned(out_mem[b]) << " ";
 
     for(unsigned int b = 0; b < test_mem_data.size(); ++b)
         REQUIRE(mem[b] == out_mem[b]);
