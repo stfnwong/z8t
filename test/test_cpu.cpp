@@ -13,12 +13,13 @@
 #include <string>
 
 #include "CPU.hpp"
+#include "Util.hpp"
 
 constexpr const bool GLOBAL_VERBOSE = true;
 constexpr unsigned int test_mem_size = 0x10000;
 
 // ======== MEMORY ======== //
-TEST_CASE("test_memory_init", "[memory]")
+TEST_CASE("test_memory_init", "memory")
 {
     Memory mem(test_mem_size);
     
@@ -28,7 +29,7 @@ TEST_CASE("test_memory_init", "[memory]")
         REQUIRE(mem[i] == 0);
 }
 
-TEST_CASE("test_memory_read_write", "[memory]")
+TEST_CASE("test_memory_read_write", "memory")
 {
     Memory mem(test_mem_size);
 
@@ -43,7 +44,7 @@ TEST_CASE("test_memory_read_write", "[memory]")
         REQUIRE(mem[i] == 0);
 }
 
-TEST_CASE("test_memory_load", "[memory]")
+TEST_CASE("test_memory_load", "memory")
 {
     Memory mem(test_mem_size);
 
@@ -64,6 +65,40 @@ TEST_CASE("test_memory_load", "[memory]")
 
 
     delete[] test_data;
+}
+
+TEST_CASE("test_memory_load_save", "memory")
+{
+    Memory mem(test_mem_size);
+
+    // create some random data to place into memory 
+    std::vector<uint8_t> test_mem_data = gen_random_byte_array(test_mem_size >> 1);
+    REQUIRE(test_mem_data.size() == test_mem_size >> 1);
+
+    mem.load(test_mem_data, test_mem_data.size(), 0);
+    // Check the data loaded correctly
+    for(unsigned int b = 0; b < test_mem_data.size(); ++b)
+        REQUIRE(mem[b] == test_mem_data[b]);
+
+    // Write memory contents to file 
+    const std::string filename = "memory_load_test.dat";
+
+    mem.save(filename);
+
+    // read the file into a new memory object and check
+    Memory out_mem(test_mem_size);
+    out_mem.load(filename, 0);
+
+    // TODO: what do the first few bytes look like?
+    std::cout << "Source memory :" << std::endl;
+    for(unsigned int b = 0; b < 64; ++b)
+        std::cout << unsigned(mem[b]) << " ";
+    std::cout << std::endl << "Dest memory :" << std::endl;
+    for(unsigned int b = 0; b < 64; ++b)
+        std::cout << unsigned(out_mem[b]) << " ";
+
+    for(unsigned int b = 0; b < test_mem_data.size(); ++b)
+        REQUIRE(mem[b] == out_mem[b]);
 }
 
 

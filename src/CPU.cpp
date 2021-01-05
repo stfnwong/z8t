@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 #include "CPU.hpp"
 #include "Instr.hpp"
@@ -73,6 +74,10 @@ unsigned int Memory::size(void) const
     return this->mem_size;
 }
 
+/*
+ * load()
+ * Load from an array
+ */
 void Memory::load(const uint8_t* data, unsigned int n, unsigned int offset)
 {
     if((n + offset) > this->size())
@@ -82,6 +87,75 @@ void Memory::load(const uint8_t* data, unsigned int n, unsigned int offset)
         this->data[i + offset] = data[i];
 }
 
+/*
+ * load()
+ * Load from a vector
+ */
+void Memory::load(const std::vector<uint8_t>& data, unsigned int n, unsigned int offset)
+{
+    if((n + offset) > this->size())
+        return;
+
+    for(unsigned int i = 0; i < n; ++i)
+        this->data[i + offset] = data[i];
+}
+
+/*
+ * load()
+ * Load from a file
+ */
+void Memory::load(const std::string& filename, unsigned int offset=0)
+{
+    int len;
+    std::ifstream infile(filename, std::ios::binary);
+
+    // do size check 
+    infile.seekg(0, std::ios::end);
+    len = infile.tellg();
+    infile.seekg(0, std::ios::beg);
+    if((len + offset) > this->size())
+    {
+        infile.close();
+        std::cerr << "[" << __func__ << "] attempted to read " << len << " bytes into memory at offset "
+            << offset << " but memory only has " << this->size() << " bytes available ("
+            << (len + offset) - this->size() << " bytes too few)" 
+            << std::endl;
+    }
+    //infile.read(this->data, len);
+    for(int b = 0; b < len; ++b)
+        infile.read(reinterpret_cast<char*>(&this->data[b + offset]), sizeof(uint8_t));
+
+
+    // TODO: I presume there is a better way to do this...
+    //if(offset == 0) 
+    //    infile.read(reinterpret_cast<char*>(&this->data), sizeof(uint8_t) * len);
+    //else
+    //{
+    //    uint8_t byte;
+    //    for(int b = 0; b < len; ++b)
+    //    {
+    //        infile.read(reinterpret_cast<char*>(&byte), sizeof(uint8_t));
+    //        this->data[b + offset] = byte;
+    //    }
+    //}
+
+    infile.close();
+}
+
+/*
+ * save()
+ * Save to a file
+ */
+void Memory::save(const std::string& filename)
+{
+    std::ofstream outfile(filename, std::ios::binary);
+
+    //outfile.write(reinterpret_cast<char*>(&this->data), this->size() * sizeof(uint8_t));
+    for(unsigned int b = 0; b < this->size(); ++b)
+        outfile.write(reinterpret_cast<char*>(&this->data[b]), sizeof(uint8_t));
+
+    outfile.close();
+}
 
 /*
  * CPU
@@ -123,6 +197,7 @@ void CPUState::init(void)
 
     // internals 
     this->cyc_count = 0;
+    this->verbose = false;
 }
 
 // operators 
@@ -171,6 +246,22 @@ bool CPUState::operator!=(const CPUState& that) const
 
 
 // ======== LOGIC OPERANDS ======== //
+void CPUState::op_add(const uint8_t x, const uint8_t y, const uint8_t cy)
+{
+    uint8_t result = a + b + cy;
+
+    this->flags[FLAG_SIGN] = result >> 7;
+    this->flags[FLAG_ZERO] = result == 0;
+    this->flags[FLAG_HALF] = carry(4, x, y, cy);
+    this->flags[FLAG_PARITY] = carry(7, x, y, cy) != carry(8, x, y, cy);
+    this->flags[FLAG_CARRY] = carry(8, x, y, cy);
+    this->flags[FLAG_F5] = (result & (1 << 5));
+    this->flags[FLAG_F3] = (result & (1 << 3));
+    this->flags[FLAG_SUB] = false;
+
+    this->a = result;
+}
+
 void CPUState::op_and(const uint8_t val)
 {
     uint8_t result = this->a & val;
@@ -186,6 +277,13 @@ void CPUState::op_and(const uint8_t val)
     this->a = result;
 }
 
+void CPUState::op_cp(const uint8_t val)
+{
+    this->op_sub(this->a, val, 0);
+    this->flags[FLAG_F5] = (val & (1 << 5));
+    this->flags[FLAG_F3] = (val & (1 << 3));
+}
+
 void CPUState::op_or(const uint8_t val)
 {
     uint8_t result = this->a | val;
@@ -199,6 +297,15 @@ void CPUState::op_or(const uint8_t val)
     this->flags[FLAG_F3] = (result & (1 << 3));
 
     this->a = result;
+}
+
+void CPUState::op_sub(const uint8_t x, const uint8_t y, const uint8_t cy)
+{
+    this->op_add(x, ~y, !cy);
+
+    this->flags[FLAG_CARRY] = !this->flags[FLAG_CARRY];
+    this->flags[FLAG_HALF] = !this->flags[FLAG_HALF];
+    this->flags[FLAG_SUB] = true;
 }
 
 void CPUState::op_xor(const uint8_t val)
@@ -335,9 +442,13 @@ void CPUState::exec_opcode(void)
             this->exec_cb_opcode();
             break;
 
-        default:
-            std::cerr << "[" << __func__ << "] unknown opcode 0x" << std::hex << unsigned(this->data_bus)
-                << std::endl;
+        default:    // NOOP
+            if(this->verbose)
+            {
+                std::cerr << "[" << __func__ << "] unknown opcode 0x" << std::hex << unsigned(this->data_bus)
+                    << std::endl;
+            }
+            break;
     }
 
 }
@@ -345,6 +456,7 @@ void CPUState::exec_opcode(void)
 void CPUState::exec_cb_opcode(void)
 {
     // decode instruction
+    this->decode();
     switch(this->dec_z)
     {
         case 0:     // relative jumps and some misc ops 
@@ -380,21 +492,21 @@ void CPUState::exec_cb_opcode(void)
 void CPUState::cycle(void)
 {
     this->fetch();
-    this->decode();     // NOTE: we don't need to do this each time, but we will for now
+    //this->decode();     // NOTE: we don't need to do this each time, but we will for now
     this->exec_opcode();
 }
 
 // 16-bit reads and writes 
 
-uint16_t CPUState::read_bc(void)
+uint16_t CPUState::read_bc(void) const
 {
     return (this->b << 8) | this->c;
 }
-uint16_t CPUState::read_de(void)
+uint16_t CPUState::read_de(void) const
 {
     return (this->d << 8) | this->e;
 }
-uint16_t CPUState::read_hl(void)
+uint16_t CPUState::read_hl(void) const
 {
     return (this->h << 8) | this->l;
 }

@@ -7,7 +7,12 @@
 #define __CPU_HPP
 
 #include <cstdint>
+//#include <string>
+#include <vector>
 
+/*
+ * returns true if an even number of bits are set in val
+ */
 static inline bool parity(const uint8_t val)
 {
     uint8_t num_set_bits = 0;       // set value is 1 
@@ -15,6 +20,18 @@ static inline bool parity(const uint8_t val)
         num_set_bits += ((val >> b) & 0x1);
 
     return (num_set_bits & 1) == 0;
+}
+
+/*
+ * returns true if there was a carry between the bit at "bit" and "bit-1" in 
+ * the expression a + b + carry
+ */
+static inline bool carry(const uint8_t bit, const uint8_t x, const uint8_t y, const uint8_t cy)
+{
+    int32_t result = x + y + cy;
+    int32_t cr = result ^ x ^ y;
+
+    return cr & (1 << bit);
 }
 
 /*
@@ -35,13 +52,17 @@ class Memory
         bool          operator==(const Memory& that) const;
         bool          operator!=(const Memory& that) const;
 
-        void         clear(void);
-        unsigned int size(void) const;
+        void          clear(void);
+        unsigned int  size(void) const;
 
-        void         load(const uint8_t* data, unsigned int n, unsigned int offset);
-        //void         load(const std::vector<uint8_t>& data, unsigned int size, unsigned int offset);
+        void          load(const uint8_t* data, unsigned int n, unsigned int offset);
+        void          load(const std::vector<uint8_t>& data, unsigned int n, unsigned int offset);
+        void          load(const std::string& filename, unsigned int offset);
+        void          save(const std::string& filename);
 };
 
+
+// Flag types 
 enum {FLAG_CARRY = 0, FLAG_SUB, FLAG_PARITY, FLAG_F3, FLAG_HALF, FLAG_F5, FLAG_ZERO, FLAG_SIGN };
 
 /*
@@ -84,6 +105,8 @@ struct CPUState
     // other timing internals 
     unsigned int cyc_count;
 
+    bool verbose;
+
     public:
         CPUState();
         CPUState(unsigned int mem_size);
@@ -93,9 +116,12 @@ struct CPUState
         bool operator==(const CPUState& that) const;
         bool operator!=(const CPUState& that) const;
 
-        // logic operations
+        // arithmetic/logic operations
+        void op_add(const uint8_t x, const uint8_t y, const uint8_t cy);
         void op_and(const uint8_t val);
+        void op_cp(const uint8_t val);
         void op_or(const uint8_t val);
+        void op_sub(const uint8_t x, const uint8_t y, const uint8_t cy);
         void op_xor(const uint8_t val);
 
         // Machine cycles 
@@ -111,9 +137,9 @@ struct CPUState
         void cycle(void);
 
         // 16-bit reads and writes
-        uint16_t read_bc(void);
-        uint16_t read_de(void);
-        uint16_t read_hl(void);
+        uint16_t read_bc(void) const;
+        uint16_t read_de(void) const;
+        uint16_t read_hl(void) const;
         void     write_bc(const uint16_t val);
         void     write_de(const uint16_t val);
         void     write_hl(const uint16_t val);

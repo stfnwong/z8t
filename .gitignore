@@ -8,5 +8,8 @@
 bin/*
 # Ignore tags file
 tags
+# Ignore memory files 
+*.dat
+*.bin
 # Ignore my notes 
 notes
