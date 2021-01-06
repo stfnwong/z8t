@@ -9,7 +9,9 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+
 #include "Assembler.hpp"
+#include "Expression.hpp"
 
 /*
  * instr_get_size()
@@ -376,6 +378,28 @@ void Assembler::parse_instruction(const Token& token)
                     << ") : " << this->line_info.errstr << std::endl;
             }
     }
+}
+
+// TODO: might not need these... better to refactor Source.cpp?
+
+/*
+ * parse_word_expressions()
+ */
+void Assembler::parse_word_expression(void)
+{
+    // try to read and entire line from the source
+    unsigned int line_num = this->cur_line;
+    int expr_start_pos = this->cur_pos;
+    int expr_end_pos = this->cur_pos;
+    std::string expr_string;
+
+    while(this->cur_char != ';' || this->cur_char != '\n')
+    {
+        this->advance();
+        expr_end_pos++;
+    }
+    expr_string = this->source.substr(expr_start_pos, expr_end_pos - expr_start_pos);
+    float expr_eval = eval_expr_string(expr_string);
 }
 
 /*

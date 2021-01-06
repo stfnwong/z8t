@@ -17,6 +17,8 @@
 #include "Expression.hpp"
 #include "Util.hpp"     // for equal()
 
+constexpr const bool GLOBAL_VERBOSE = false;
+
 
 TEST_CASE("test_expr_next_token_simple", "expression")
 {
@@ -117,9 +119,12 @@ TEST_CASE("test_expr_tokenize_with_string", "expression")
 
     REQUIRE(exp_infix_stack == infix_stack);
     
-    std::cout << "Before symbol replacement : " << std::endl;
-    for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
-        std::cout << "[" << idx << "] : " << infix_stack[idx].toString() << std::endl;
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "Before symbol replacement : " << std::endl;
+        for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
+            std::cout << "[" << idx << "] : " << infix_stack[idx].toString() << std::endl;
+    }
 
     // quick test of re-writing the stack contents 
     for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
@@ -133,9 +138,12 @@ TEST_CASE("test_expr_tokenize_with_string", "expression")
         }
     }
 
-    std::cout << "After symbol replacement : " << std::endl;
-    for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
-        std::cout << "[" << idx << "] : " << infix_stack[idx].toString() << std::endl;
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "After symbol replacement : " << std::endl;
+        for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
+            std::cout << "[" << idx << "] : " << infix_stack[idx].toString() << std::endl;
+    }
 }
 
 TEST_CASE("test_expr_infix_to_postfix", "expression")
@@ -143,11 +151,14 @@ TEST_CASE("test_expr_infix_to_postfix", "expression")
     const std::string expr_input = "3 + 4 * 2 / (1 - 5)";
     ExprStack infix_stack = expr_tokenize(expr_input);
 
-    // Show tokenized infix expression
-    std::cout << "Input expression was [" << expr_input << "]" << std::endl;
-    std::cout << infix_stack.size() << " elements in infix expression stack" << std::endl;
-    for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
-        std::cout << "[" << idx << "] : " << infix_stack[idx].toString() << std::endl;
+    if(GLOBAL_VERBOSE)
+    {
+        // Show tokenized infix expression
+        std::cout << "Input expression was [" << expr_input << "]" << std::endl;
+        std::cout << infix_stack.size() << " elements in infix expression stack" << std::endl;
+        for(unsigned int idx = 0; idx < infix_stack.size(); ++idx)
+            std::cout << "[" << idx << "] : " << infix_stack[idx].toString() << std::endl;
+    }
 
     const std::vector<ExprToken> exp_postfix_stack_vector = {
         ExprToken(TOK_LITERAL, "3"),
@@ -164,11 +175,27 @@ TEST_CASE("test_expr_infix_to_postfix", "expression")
 
     // Now try getting the equivalent postfix stack
     ExprStack postfix_stack = expr_infix_to_postfix(infix_stack);
-    std::cout << postfix_stack.size() << " elements in postfix expression stack" << std::endl;
-    for(unsigned int idx = 0; idx < postfix_stack.size(); ++idx)
-        std::cout << "[" << idx << "] : " << postfix_stack[idx].toString() << std::endl;
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << postfix_stack.size() << " elements in postfix expression stack" << std::endl;
+        for(unsigned int idx = 0; idx < postfix_stack.size(); ++idx)
+            std::cout << "[" << idx << "] : " << postfix_stack[idx].toString() << std::endl;
+    }
 
     REQUIRE(exp_postfix_stack == postfix_stack);
+}
+
+TEST_CASE("test_expr_literal", "expression")
+{
+    const std::string expr_input = "5";
+    ExprStack infix_stack = expr_tokenize(expr_input);
+    ExprStack postfix_stack = expr_infix_to_postfix(infix_stack);
+
+    float eval_out = eval_postfix_expr_stack(postfix_stack);
+    // ensure it also works with the eval wrapper 
+    float wrapper_out = eval_expr_string(expr_input);
+    REQUIRE(equal(eval_out, 5.0));
+    REQUIRE(equal(wrapper_out, 5.0));
 }
 
 TEST_CASE("test_expr_eval", "expression")
@@ -178,8 +205,11 @@ TEST_CASE("test_expr_eval", "expression")
     ExprStack postfix_stack = expr_infix_to_postfix(infix_stack);
 
     float eval_out = eval_postfix_expr_stack(postfix_stack);
-    //std::cout << "Expression [" << expr_input << "] evaluates to : " << eval_out << std::endl;
-    //std::cout << "Expression [" << expr_input << "] C++          : " << (3 + 4 * 2 / (1 - 5)) << std::endl;
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "Expression [" << expr_input << "] evaluates to : " << eval_out << std::endl;
+        std::cout << "Expression [" << expr_input << "] expected     : " << (3 + 4 * 2 / (1 - 5)) << std::endl;
+    }
 
     REQUIRE(equal(eval_out, 1.0));
 }

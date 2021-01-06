@@ -321,12 +321,13 @@ struct TextLine
  */
 struct DirectiveLine
 {
+    int16_t          addr;
     std::string      expr;
     std::vector<int> data;           // generic data (eg, from a list of defb/defw)
 
     public:
         DirectiveLine();
-        DirectiveLine(const std::string& e, const std::vector<int>& v);
+        DirectiveLine(const int16_t a, const std::string& e, const std::vector<int>& v);
         DirectiveLine(const DirectiveLine& that) = default;
 
         void init(void);

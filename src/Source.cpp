@@ -546,15 +546,16 @@ std::string TextLine::toInstrString(void) const
 /*
  * ======== DIRECTIVE LINE ======== //
  */
-DirectiveLine::DirectiveLine() : expr("") {}
+DirectiveLine::DirectiveLine() : addr(0), expr("") {}
 
-DirectiveLine::DirectiveLine(const std::string& e, const std::vector<int>& v) : expr(e), data(v) {} 
+DirectiveLine::DirectiveLine(const int16_t a, const std::string& e, const std::vector<int>& v) : addr(a), expr(e), data(v) {} 
 
 /*
  * DirectiveLine::init()
  */
 void DirectiveLine::init(void)
 {
+    this->addr = 0;
     this->expr.clear();
     this->data.clear();
 }
