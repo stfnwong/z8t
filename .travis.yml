@@ -18,8 +18,7 @@ before_install:
 
 script:
     - make clean && make all
-    - ./bin/test/test_lexer
+    - ./bin/test/test_assembler
+    - ./bin/test/test_source
     - ./bin/test/test_token
-    - ./bin/test/test_cpu
-    - ./bin/test/test_util
     - ./bin/test/test_expression
