@@ -264,7 +264,7 @@ class Assembler
     // source intermediate representation
     private:
         SourceInfo   source_info;
-        TextLine     line_info;
+        LineInfo     line_info;
         Token        cur_token;
         unsigned int cur_addr;
 

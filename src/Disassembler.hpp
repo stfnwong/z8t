@@ -240,7 +240,7 @@ const std::unordered_map<uint8_t, std::pair<std::string, uint8_t>> dis_instr_loo
  * Give a codebuffer stream, consume bytes and emit a TextLine 
  * that represents the given instruction
  */
-TextLine dis_program(const uint8_t *code_buffer, int pc);
+LineInfo dis_program(const uint8_t *code_buffer, int pc);
 
 
 #endif /*__DISASSEMBLER_HPP*/

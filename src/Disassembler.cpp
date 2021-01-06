@@ -10,13 +10,13 @@
 // TODO: possibly write a version that accepts a vector of
 // uint8_t (may need a conversion step)
 
-// TODO : this is instr to repr, not instr to TextLine
+// TODO : this is instr to repr, not instr to LineInfo
 /*
  * dis_program()
  */
-TextLine dis_program(const uint8_t *code_buffer, int buf_size)
+LineInfo dis_program(const uint8_t *code_buffer, int buf_size)
 {
-    TextLine line;
+    LineInfo line;
     uint8_t code;
     int pc = 0;
 

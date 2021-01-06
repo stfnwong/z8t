@@ -279,18 +279,28 @@ class SymbolTable
         std::string  toString(void) const;
 };
 
+enum struct LineType {TextLine, DirectiveLine};
 /*
  * LineInfo
  * Base class for line structures (either text or data)
  */
 struct LineInfo
 {
+    // common fields 
+    LineType    type;
     std::string label;
     std::string errstr;
     uint16_t    line_num;
     int16_t     addr;
     bool        is_label;
     bool        error;
+    // text only fields 
+    Token       opcode;     
+    Token       args[2];
+    int         sym_arg;
+    // directive fields
+    std::string      expr;
+    std::vector<int> data;           // generic data (eg, from a list of defb/defw)
 
     public:
         LineInfo();
@@ -299,63 +309,21 @@ struct LineInfo
         bool operator!=(const LineInfo& that) const;
         void init(void);
 
-        //std::string toString(void) const;
-};
-
-
-/*
- * TextLine
- * Class representing a line from the source file that will go in the text segment.
- */
-struct TextLine : public LineInfo
-{
-    // these are public to avoid having a large number of setters and getters 
-    Token       opcode;     
-    Token       args[2];
-    int         sym_arg;
-
-    public:
-        TextLine();
-        //TextLine(const TextLine& that);
-
-        bool operator==(const TextLine& that) const;
-        bool operator!=(const TextLine& that) const;
-        void init(void);
+        // text methods 
         uint32_t argHash(void) const;
 
+        // directive methods
+        void eval(void);
+        unsigned int data_size(void) const;
+
         std::string toString(void) const;
-        std::string diff(const TextLine& that);
+        std::string diff(const LineInfo& that);
         std::string toInstrString(void) const;
 };
 
-/*
- * DirectiveLine
- * A line that contains the result of a directive. For instance,
- * the evaluation of a defb/defw directive.
- */
-struct DirectiveLine : public LineInfo
-{
-    std::string      expr;
-    std::vector<int> data;           // generic data (eg, from a list of defb/defw)
-
-    public:
-        DirectiveLine();
-        //DirectiveLine(const DirectiveLine& that) = default;
-
-        void init(void);
-        void eval(void);
-        unsigned int size(void) const;
-
-        bool operator==(const DirectiveLine& that) const;
-        bool operator!=(const DirectiveLine& that) const;
-
-        //std::string toString(void) const;
-};
-
-
 
 // TODO ; in keeping with the text/data segment distinction, this should be at some point
-// renamed into something that indicates that its a collection of TextLine objects
+// renamed into something that indicates that its a collection of LineInfo objects
 class SourceInfo
 {
     private: 
@@ -366,10 +334,10 @@ class SourceInfo
         SourceInfo(const SourceInfo& that) = default;
 
         void init(void);
-        void add(const TextLine& l);
+        void add(const LineInfo& l);
         bool hasError(void) const;
         LineInfo get(const unsigned int idx) const;
-        void update(const unsigned int idx, const TextLine& l);
+        void update(const unsigned int idx, const LineInfo& l);
         unsigned int getNumLines(void) const;
         void toFile(const std::string& filename) const;
 };

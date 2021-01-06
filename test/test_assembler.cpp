@@ -15,7 +15,7 @@
 #include "Source.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = true;
+constexpr const bool GLOBAL_VERBOSE = false;
 const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
@@ -58,7 +58,7 @@ SourceInfo lex_helper(const std::string& filename)
 SourceInfo get_add_sub_expected_source(void)
 {
     SourceInfo info;
-    TextLine line;
+    LineInfo line;
 
     // ld a, 8
     line.init();
@@ -211,8 +211,8 @@ TEST_CASE("test_lex_add_sub", "lexer")
     REQUIRE(lex_source.getNumLines() == exp_source.getNumLines());
     for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
     {
-        TextLine exp_line = exp_source.get(i);
-        TextLine lex_line = lex_source.get(i);
+        LineInfo exp_line = exp_source.get(i);
+        LineInfo lex_line = lex_source.get(i);
 
         if(exp_line != lex_line)
         {
@@ -238,7 +238,7 @@ TEST_CASE("test_lex_add_sub", "lexer")
 SourceInfo get_indirect_expected_source(void)
 {
     SourceInfo info;
-    TextLine line;
+    LineInfo line;
 
     // ld (bc),a 
     line.init();
@@ -321,8 +321,8 @@ TEST_CASE("test_lex_indirect", "lexer")
     exp_source = get_indirect_expected_source();
     for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
     {
-        TextLine exp_line = exp_source.get(i);
-        TextLine lex_line = lex_source.get(i);
+        LineInfo exp_line = exp_source.get(i);
+        LineInfo lex_line = lex_source.get(i);
 
         if(exp_line != lex_line)
         {
@@ -348,7 +348,7 @@ TEST_CASE("test_lex_indirect", "lexer")
 SourceInfo get_gcd_expected_source(void)
 {
     SourceInfo info;
-    TextLine line;
+    LineInfo line;
 
     // gcd: cp, b 
     line.init();
@@ -452,18 +452,21 @@ TEST_CASE("test_lex_gcd", "lexer")
     std::cout << "\t Lexer generated " << lex_source.getNumLines() << " line of output" << std::endl;
 
     exp_source = get_gcd_expected_source();
-    // TODO : debug, remove 
-    for(unsigned int i = 0; i < lex_source.getNumLines(); ++i)
+
+    if(GLOBAL_VERBOSE)
     {
-        TextLine cur_line = lex_source.get(i);
-        std::cout << cur_line.toString() << std::endl;
+        for(unsigned int i = 0; i < lex_source.getNumLines(); ++i)
+        {
+            LineInfo cur_line = lex_source.get(i);
+            std::cout << cur_line.toString() << std::endl;
+        }
     }
 
     // Check intermediate results
     for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
     {
-        TextLine exp_line = exp_source.get(i);
-        TextLine lex_line = lex_source.get(i);
+        LineInfo exp_line = exp_source.get(i);
+        LineInfo lex_line = lex_source.get(i);
 
         if(exp_line != lex_line)
         {
@@ -601,23 +604,19 @@ TEST_CASE("test_asm_add_sub", "assembler")
     exp_program = get_add_sub_expected_program();
     out_program = assem.getProgram();
 
-    // TODO: debug, remove 
-    //for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-    //{
-    //    Instr instr = out_program.get(idx);
-    //    std::cout << "(" << idx + 1 << ")" << instr.toString() << std::endl;
-    //}
-
     std::cout << "Assembler produced " << out_program.length() << " instructions" << std::endl;
     REQUIRE(exp_program.length() == out_program.length());
 
-    std::cout << "Expected program :" << std::endl;
-    for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
-        std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "Expected program :" << std::endl;
+        for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
+            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
 
-    std::cout << "Output program :" << std::endl;
-    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-        std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
+        std::cout << "Output program :" << std::endl;
+        for(unsigned int idx = 0; idx < out_program.length(); ++idx)
+            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
+    }
 
     for(unsigned int idx = 0; idx < out_program.length(); ++idx)
     {
@@ -733,13 +732,16 @@ TEST_CASE("test_asm_gcd", "assembler")
     std::cout << "Assembler produced " << std::dec << out_program.length() << " instructions" << std::endl;
     REQUIRE(exp_program.length() == out_program.length());
 
-    //std::cout << "Expected program :" << std::endl;
-    //for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
-    //    std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "Expected program :" << std::endl;
+        for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
+            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
 
-    //std::cout << "Output program :" << std::endl;
-    //for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-    //    std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
+        std::cout << "Output program :" << std::endl;
+        for(unsigned int idx = 0; idx < out_program.length(); ++idx)
+            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
+    }
 
     for(unsigned int idx = 0; idx < out_program.length(); ++idx)
     {

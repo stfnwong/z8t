@@ -452,7 +452,7 @@ void Assembler::resolve_labels(void)
     // walk over the sourceinfo and check for labels
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
     {
-        TextLine cur_line = this->source_info.get(idx);
+        LineInfo cur_line = this->source_info.get(idx);
         if(cur_line.sym_arg >= 0)
         {
             label_addr = this->symbol_table.getAddr(cur_line.args[cur_line.sym_arg].repr);
@@ -599,7 +599,7 @@ void Assembler::assem_instr(void)
     // TODO ; just worry about stuff that goes in the text section, not sure what the 
     // data section layout actually is yet..
     Instr cur_instr;
-    TextLine line;
+    LineInfo line;
     uint32_t line_hash;
 
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)

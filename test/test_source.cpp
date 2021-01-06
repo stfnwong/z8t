@@ -51,42 +51,20 @@ TEST_CASE("test_lineinfo_init", "source")
     REQUIRE(line.label == "");
     REQUIRE(line.is_label == false);
     REQUIRE(line.error == false);
-}
-
-TEST_CASE("test_textline_init", "source")
-{
-    TextLine line;
-
-    REQUIRE(line.line_num == 0);
-    REQUIRE(line.addr == 0);
-    REQUIRE(line.is_label == false);
-    REQUIRE(line.error == false);
 
     for(int i = 0; i < 2; ++i)
         REQUIRE(line.args[i] == Token());
-}
-
-TEST_CASE("test_directiveline_init", "source")
-{
-    DirectiveLine line;
-
-    REQUIRE(line.addr == 0);
-    REQUIRE(line.line_num == 0);
-    REQUIRE(line.errstr == "");
-    REQUIRE(line.label == "");
-    REQUIRE(line.is_label == false);
-    REQUIRE(line.error == false);
 
     REQUIRE(line.data.size() == 0);
     REQUIRE(line.expr == "");
-
 }
+
 
 // ======== TEXTLINE METHODS ======== //
 
 TEST_CASE("test_textline_hash", "source")
 {
-    TextLine line;
+    LineInfo line;
 
     std::vector<int> second_reg_types = {REG_A, REG_B, REG_C, REG_D, REG_E};
     std::vector<int> instr_opcode = {INSTR_ADD, INSTR_LD, INSTR_DEC, INSTR_POP, INSTR_EX};
@@ -104,27 +82,27 @@ TEST_CASE("test_textline_hash", "source")
     }
 }
 
-TEST_CASE("test_directive_line_single", "source")
+TEST_CASE("test_single_part_expr", "source")
 {
     std::string test_expr = "1 * 50 / 2";
-    DirectiveLine line;
+    LineInfo line;
 
     // setup the expression
     line.expr = test_expr;
-    REQUIRE(line.size() == 0);
+    REQUIRE(line.data_size() == 0);
     line.eval();
-    REQUIRE(line.size() == 1);
+    REQUIRE(line.data_size() == 1);
     REQUIRE(line.data[0] == int(1 * 50 / 2));
 }
 
-TEST_CASE("test_directive_line_multi", "source")
+TEST_CASE("test_multi_part_expr", "source")
 {
     std::string test_expr = "1 * 50 / 2 , 2 * 20 / 4, 3 + 3, 1 + 2";
-    DirectiveLine line;
+    LineInfo line;
 
     // setup the expression
     line.expr = test_expr;
-    REQUIRE(line.size() == 0);
+    REQUIRE(line.data_size() == 0);
     line.eval();
 
     const std::vector<int> exp_evals = {
@@ -134,8 +112,8 @@ TEST_CASE("test_directive_line_multi", "source")
         int(1 + 2)
     };
 
-    REQUIRE(line.size() == exp_evals.size());
-    for(size_t idx = 0; idx < line.size(); ++idx)
+    REQUIRE(line.data_size() == exp_evals.size());
+    for(size_t idx = 0; idx < line.data_size(); ++idx)
         REQUIRE(line.data[idx] == exp_evals[idx]);
 }
 

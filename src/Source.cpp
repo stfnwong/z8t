@@ -297,6 +297,7 @@ std::string SymbolTable::toString(void) const
 /*
  * ======== LINE INFO ======== //
  */
+
 LineInfo::LineInfo() 
 {
     this->init();
@@ -304,20 +305,32 @@ LineInfo::LineInfo()
 
 void LineInfo::init(void)
 {
-    // Init others 
+    // Common fields
+    this->type = LineType::TextLine;
     this->label.clear();    
     this->errstr.clear();   
     this->line_num = 0;
     this->addr     = 0;
-
     this->is_label = false;
     this->error    = false;
+    // text fields 
+    this->opcode.init();
+    this->sym_arg  = -1; 
+    for(int i = 0; i < 2; ++i)
+        this->args[i].init();
+    // directive fields 
+    this->expr.clear();
+    this->data.clear();
 }
 
 bool LineInfo::operator==(const LineInfo& that) const
 {
+    // Common fields 
+    if(this->type != that.type)
+        return false;
     if(this->label != that.label)
         return false;
+    // don't bother to comapre the error string
     if(this->line_num != that.line_num)
         return false;
     if(this->addr != that.addr)
@@ -326,56 +339,7 @@ bool LineInfo::operator==(const LineInfo& that) const
         return false;
     if(this->error != that.error)
         return false;
-
-    return true;
-}
-
-bool LineInfo::operator!=(const LineInfo& that) const
-{
-    return !(*this == that);
-}
-
-
-//std::string LineInfo::toString(void) const
-//{
-//    std::ostringstream oss;
-//
-//    return oss.str();
-//}
-
-/*
- * ======== TEXT LINE ======== //
- */
-
-/*
- * TextLine
- */
-TextLine::TextLine()
-{
-    this->init();
-}
-
-/*
- * copy ctor
- */
-//TextLine::TextLine(const TextLine& that)
-//{
-//    this->opcode   = that.opcode;
-//    this->label    = that.label;
-//    this->errstr   = that.errstr;
-//    this->line_num = that.line_num;
-//    this->addr     = that.addr;
-//    this->sym_arg  = that.sym_arg;
-//
-//    for(int i = 0; i < 2; ++i)
-//        this->args[i] = that.args[i];
-//}
-
-/*
- * ==
- */
-bool TextLine::operator==(const TextLine& that) const
-{
+    // text fields
     if(this->opcode != that.opcode)
         return false;
     if(this->label != that.label)
@@ -389,46 +353,29 @@ bool TextLine::operator==(const TextLine& that) const
         if(this->args[i] != that.args[i])
             return false;
     }
+    // directive fields
+    if(this->expr != that.expr)
+        return false;
+    if(this->data_size() != that.data_size())
+        return false;
+    for(unsigned int i = 0; i < this->data_size(); ++i)
+    {
+        if(this->data[i] != that.data[i])
+            return false;
+    }
 
     return true;
 }
 
-/*
- * !=
- */
-bool TextLine::operator!=(const TextLine& that) const
+bool LineInfo::operator!=(const LineInfo& that) const
 {
     return !(*this == that);
 }
 
 /*
- * init()
- */
-void TextLine::init(void)
-{
-    //  
-    this->opcode.init();
-    this->sym_arg  = -1; 
-    for(int i = 0; i < 2; ++i)
-        this->args[i].init();
-
-    LineInfo::init();
-
-    // Init others 
-    //this->label.clear();    
-    //this->errstr.clear();   
-    //this->line_num = 0;
-    //this->addr     = 0;
-    //this->sym_arg  = -1; 
-
-    //this->is_label = false;
-    //this->error    = false;
-}
-
-/*
  * argHash()
  */
-uint32_t TextLine::argHash(void) const
+uint32_t LineInfo::argHash(void) const
 {
     uint32_t hash = 0;
 
@@ -465,13 +412,52 @@ uint32_t TextLine::argHash(void) const
     return hash;
 }
 
+
 /*
- * toString()
+ * LineInfo::eval()
  */
-std::string TextLine::toString(void) const
+void LineInfo::eval(void)
+{
+    std::string cur_string;
+    unsigned int str_start = 0;
+    unsigned int str_idx;
+
+    for(str_idx = 0; str_idx < this->expr.size(); ++str_idx)
+    {
+        if(this->expr[str_idx] == ',')
+        {
+            cur_string = this->expr.substr(str_start, str_idx - str_start);
+            str_start = str_idx+1;        // for the next substring
+            float eval = eval_expr_string(cur_string);
+            this->data.push_back(int(eval));
+        }
+    }
+    // Either there was a string but no substring, or this 
+    // is the last substring with no trailing comma
+    if(str_idx > 0)
+    {
+        cur_string = this->expr.substr(str_start, str_idx - str_start);
+        float eval = eval_expr_string(cur_string);
+        this->data.push_back(int(eval));
+    }
+}
+
+/*
+ * LineInfo::size()
+ */
+unsigned int LineInfo::data_size(void) const
+{
+    return this->data.size();
+}
+
+/*
+ * LineInfo::toString()
+ */
+std::string LineInfo::toString(void) const
 {
     std::ostringstream oss;
 
+    // TODO: add types...
     oss << "---------------------------------------------------------------------" << std::endl;
     oss << "Line  Type   Addr  Mnemonic    Opcode  flags  args" << std::endl;
 
@@ -515,7 +501,7 @@ std::string TextLine::toString(void) const
 /*
  * diff()
  */
-std::string TextLine::diff(const TextLine& that)
+std::string LineInfo::diff(const LineInfo& that)
 {
     std::ostringstream oss;
 
@@ -574,7 +560,7 @@ std::string TextLine::diff(const TextLine& that)
 /*
  * toInstrString()
  */
-std::string TextLine::toInstrString(void) const
+std::string LineInfo::toInstrString(void) const
 {
     std::ostringstream oss;
 
@@ -583,80 +569,6 @@ std::string TextLine::toInstrString(void) const
     return oss.str();
 }
 
-/*
- * ======== DIRECTIVE LINE ======== //
- */
-DirectiveLine::DirectiveLine() 
-{
-    this->init();
-}
-
-/*
- * DirectiveLine::init()
- */
-void DirectiveLine::init(void)
-{
-    this->expr.clear();
-    this->data.clear();
-    LineInfo::init();
-}
-
-/*
- * DirectiveLine::eval()
- */
-void DirectiveLine::eval(void)
-{
-    std::string cur_string;
-    unsigned int str_start = 0;
-    unsigned int str_idx;
-
-    for(str_idx = 0; str_idx < this->expr.size(); ++str_idx)
-    {
-        if(this->expr[str_idx] == ',')
-        {
-            cur_string = this->expr.substr(str_start, str_idx - str_start);
-            str_start = str_idx+1;        // for the next substring
-            float eval = eval_expr_string(cur_string);
-            this->data.push_back(int(eval));
-        }
-    }
-    // Either there was a string but no substring, or this 
-    // is the last substring with no trailing comma
-    if(str_idx > 0)
-    {
-        cur_string = this->expr.substr(str_start, str_idx - str_start);
-        float eval = eval_expr_string(cur_string);
-        this->data.push_back(int(eval));
-    }
-}
-
-/*
- * DirectiveLine::size()
- */
-unsigned int DirectiveLine::size(void) const
-{
-    return this->data.size();
-}
-
-bool DirectiveLine::operator==(const DirectiveLine& that) const
-{
-    if(this->expr != that.expr)
-        return false;
-    if(this->size() != that.size())
-        return false;
-    for(unsigned int i = 0; i < this->size(); ++i)
-    {
-        if(this->data[i] != that.data[i])
-            return false;
-    }
-    
-    return true;
-}
-
-bool DirectiveLine::operator!=(const DirectiveLine& that) const
-{
-    return !(*this == that);
-}
 
 /*
  * ======== SOURCE INFO ======== //
@@ -665,7 +577,6 @@ bool DirectiveLine::operator!=(const DirectiveLine& that) const
 /*
  * SourceInfo
  */
-
 SourceInfo::SourceInfo() {} 
 
 /*
@@ -679,7 +590,7 @@ void SourceInfo::init(void)
 /*
  * add()
  */
-void SourceInfo::add(const TextLine& l)
+void SourceInfo::add(const LineInfo& l)
 {
     this->info.push_back(l);
 }
@@ -715,7 +626,7 @@ LineInfo SourceInfo::get(const unsigned int idx) const
 /*
  * update()
  */
-void SourceInfo::update(const unsigned int idx, const TextLine& l)
+void SourceInfo::update(const unsigned int idx, const LineInfo& l)
 {
     this->info[idx] = l;
 }
