@@ -22,7 +22,7 @@
 #include <string>
 #include <utility>
 #include <unordered_map>
-#include "Source.hpp"           // for Token object
+#include "Source.hpp"           // for Token, SymbolTable
 
 //#define __EXPRESSION_DEBUG_PRINT
 
@@ -214,6 +214,12 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack);
  * Take an ExprStack containing a postfix expression and evaluate it
  */
 float eval_postfix_expr_stack(const ExprStack& expr_stack);
+
+/*
+ * exp_stack_resolve_strings()
+ * Lookup string tokens in SourceInfo struct. 
+ */
+ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceInfo& info);
 
 /*
  * eval_expr_string()

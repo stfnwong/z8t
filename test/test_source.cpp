@@ -16,7 +16,7 @@
 
 TEST_CASE("test_symbol_table", "source")
 {
-    SymbolTable sym_table;
+    SourceInfo info;
     Symbol out_symbol;
 
     std::vector<Symbol> inp_syms = {
@@ -26,18 +26,17 @@ TEST_CASE("test_symbol_table", "source")
     };
 
     for(unsigned int idx = 0; idx < inp_syms.size(); ++idx)
-    {
-        sym_table.add(inp_syms[idx]);
-    }
-    std::cout << sym_table.toString() << std::endl;
+        info.addSym(inp_syms[idx]);
 
-    REQUIRE(sym_table.size() == inp_syms.size());
-    REQUIRE(0xDEAD == sym_table.getAddr("beef_part_1"));
-    REQUIRE("beef_part_1" == sym_table.getName(0xDEAD));
-    REQUIRE(0xBEEF == sym_table.getAddr("beef_part_2"));
-    REQUIRE("beef_part_2" == sym_table.getName(0xBEEF));
-    REQUIRE(0xCEED == sym_table.getAddr("z0_data"));
-    REQUIRE("z0_data" == sym_table.getName(0xCEED));
+    std::cout << info.symTableString() << std::endl;
+
+    REQUIRE(info.getNumSyms() == inp_syms.size());
+    REQUIRE(0xDEAD == info.getSymAddr("beef_part_1"));
+    REQUIRE("beef_part_1" == info.getSymName(0xDEAD));
+    REQUIRE(0xBEEF == info.getSymAddr("beef_part_2"));
+    REQUIRE("beef_part_2" == info.getSymName(0xBEEF));
+    REQUIRE(0xCEED == info.getSymAddr("z0_data"));
+    REQUIRE("z0_data" == info.getSymName(0xCEED));
 }
 
 // ======== LineInfo and related structures ======== //
@@ -55,7 +54,7 @@ TEST_CASE("test_lineinfo_init", "source")
     for(int i = 0; i < 2; ++i)
         REQUIRE(line.args[i] == Token());
 
-    REQUIRE(line.data.size() == 0);
+    //REQUIRE(line.data.size() == 0);       // TODO: this will become relevant when comma-seperated fields are implemented
     REQUIRE(line.expr == "");
 }
 
@@ -89,33 +88,35 @@ TEST_CASE("test_single_part_expr", "source")
 
     // setup the expression
     line.expr = test_expr;
-    REQUIRE(line.data_size() == 0);
+    //REQUIRE(line.data_size() == 0);       // TODO: fix after comma-seperated expr support is implemented
     line.eval();
     REQUIRE(line.data_size() == 1);
-    REQUIRE(line.data[0] == int(1 * 50 / 2));
+    REQUIRE(line.data == int(1 * 50 / 2));
 }
 
-TEST_CASE("test_multi_part_expr", "source")
-{
-    std::string test_expr = "1 * 50 / 2 , 2 * 20 / 4, 3 + 3, 1 + 2";
-    LineInfo line;
-
-    // setup the expression
-    line.expr = test_expr;
-    REQUIRE(line.data_size() == 0);
-    line.eval();
-
-    const std::vector<int> exp_evals = {
-        int(1 * 50 / 2),
-        int(2 * 20 / 4),
-        int(3 + 3),
-        int(1 + 2)
-    };
-
-    REQUIRE(line.data_size() == exp_evals.size());
-    for(size_t idx = 0; idx < line.data_size(); ++idx)
-        REQUIRE(line.data[idx] == exp_evals[idx]);
-}
+// TODO: the implementation of multi-part exprs should be finalized after
+// symbol resolution is implemented
+//TEST_CASE("test_multi_part_expr", "source")
+//{
+//    std::string test_expr = "1 * 50 / 2 , 2 * 20 / 4, 3 + 3, 1 + 2";
+//    LineInfo line;
+//
+//    // setup the expression
+//    line.expr = test_expr;
+//    REQUIRE(line.data_size() == 0);
+//    line.eval();
+//
+//    const std::vector<int> exp_evals = {
+//        int(1 * 50 / 2),
+//        int(2 * 20 / 4),
+//        int(3 + 3),
+//        int(1 + 2)
+//    };
+//
+//    REQUIRE(line.data_size() == exp_evals.size());
+//    for(size_t idx = 0; idx < line.data_size(); ++idx)
+//        REQUIRE(line.data[idx] == exp_evals[idx]);
+//}
 
 
 // ======== SourceInfo tests ======== //
@@ -128,7 +129,37 @@ TEST_CASE("test_sourceinfo_init", "source")
     REQUIRE(null_line == LineInfo());
 }
 
-TEST_CASE("test_sourceinfo_add_get", "source")
+TEST_CASE("test_sourceinfo_lookup_directive_by_addr", "source")
 {
     SourceInfo source;
+
+    // create a new directive line and add to SourceInfo
+    LineInfo line;
+    line.type = LineType::DirectiveLine;
+    line.addr = 0xBEEF;
+    line.expr = "1 + 2 + 3";
+
+    source.add(line);
+    REQUIRE(source.getNumLines() == 1);
+
+    LineInfo out_line;
+    out_line = source.get(0);
+    REQUIRE(out_line == line);  // obviously we can just get by index
+    out_line = source.getAddr(0xBEEF);
+    REQUIRE(out_line == line);
+    out_line = source.getAddr(0x0);     // no such line
+    REQUIRE(out_line != line);
+    REQUIRE(out_line.addr == 0x0);
+    REQUIRE(out_line.line_num == 0x0);
+    out_line = source.getAddr(0x1);     // also no such line
+    REQUIRE(out_line != line);
+    REQUIRE(out_line.addr == 0x0);
+    REQUIRE(out_line.line_num == 0x0);
 }
+
+//TEST_CASE("test_sourceinfo_add_get", "source")
+//{
+//    SourceInfo source;
+//
+//    LineInfo line;
+//}

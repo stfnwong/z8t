@@ -200,99 +200,6 @@ std::string Symbol::toString(void) const
     return oss.str();
 }
 
-/*
- * ======== SYMBOL TABLE ======== //
- */
-
-/*
- * SymbolTable
- */
-SymbolTable::SymbolTable() {} 
-
-/*
- * add()
- */
-void SymbolTable::add(const Symbol& s)
-{
-    this->syms.push_back(s);
-}
-
-/*
- * update()
- */
-void SymbolTable::update(const unsigned int idx, const Symbol& s)
-{
-    if(idx < this->syms.size())
-        this->syms[idx] = s;
-}
-
-/*
- * get()
- */
-Symbol SymbolTable::get(const unsigned int idx) const
-{
-    return this->syms[idx];
-}
-
-/*
- * getAddr()
- */
-uint16_t SymbolTable::getAddr(const std::string& sym) const
-{
-    uint16_t addr = 0;
-
-    // if this turns out to be a bottleneck then this can be made 
-    // and unordered map of labels to addresses
-    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
-    {
-        if(sym == this->syms[idx].label)
-            return this->syms[idx].addr;
-    }
-
-    return addr;
-}
-
-std::string SymbolTable::getName(const uint16_t addr)  const
-{
-    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
-    {
-        if(addr == this->syms[idx].addr)
-            return this->syms[idx].label;
-    }
-
-    return "";
-}
-
-/*
- * init()
- */
-void SymbolTable::init(void)
-{
-    this->syms.clear();
-}
-
-unsigned int SymbolTable::size(void) const
-{
-    return this->syms.size();
-}
-
-/*
- * toString()
- */
-std::string SymbolTable::toString(void) const
-{
-    std::ostringstream oss;
-
-    oss << "Symbol Table: (" << this->syms.size() << " symbols)" << std::endl;
-    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
-    {
-        oss << "    [" << this->syms[idx].label << "] -> 0x" << std::hex 
-            << std::setw(4) << std::setfill('0') << this->syms[idx].addr 
-            << std::endl;
-    }
-
-    return oss.str();
-}
 
 /*
  * ======== LINE INFO ======== //
@@ -320,7 +227,7 @@ void LineInfo::init(void)
         this->args[i].init();
     // directive fields 
     this->expr.clear();
-    this->data.clear();
+    //this->data.clear();
 }
 
 bool LineInfo::operator==(const LineInfo& that) const
@@ -358,11 +265,11 @@ bool LineInfo::operator==(const LineInfo& that) const
         return false;
     if(this->data_size() != that.data_size())
         return false;
-    for(unsigned int i = 0; i < this->data_size(); ++i)
-    {
-        if(this->data[i] != that.data[i])
-            return false;
-    }
+    //for(unsigned int i = 0; i < this->data_size(); ++i)
+    //{
+    //    if(this->data[i] != that.data[i])
+    //        return false;
+    //}
 
     return true;
 }
@@ -429,7 +336,8 @@ void LineInfo::eval(void)
             cur_string = this->expr.substr(str_start, str_idx - str_start);
             str_start = str_idx+1;        // for the next substring
             float eval = eval_expr_string(cur_string);
-            this->data.push_back(int(eval));
+            this->data = int(eval);
+            //this->data.push_back(int(eval));
         }
     }
     // Either there was a string but no substring, or this 
@@ -438,7 +346,8 @@ void LineInfo::eval(void)
     {
         cur_string = this->expr.substr(str_start, str_idx - str_start);
         float eval = eval_expr_string(cur_string);
-        this->data.push_back(int(eval));
+        this->data = int(eval);
+        //this->data.push_back(int(eval));
     }
 }
 
@@ -447,7 +356,8 @@ void LineInfo::eval(void)
  */
 unsigned int LineInfo::data_size(void) const
 {
-    return this->data.size();
+    return 1;
+    //return this->data.size();
 }
 
 /*
@@ -580,7 +490,7 @@ std::string LineInfo::toInstrString(void) const
 SourceInfo::SourceInfo() {} 
 
 /*
- * init()
+ * SourceInfo::init()
  */
 void SourceInfo::init(void)
 {
@@ -588,15 +498,22 @@ void SourceInfo::init(void)
 }
 
 /*
- * add()
+ * SourceInfo::add()
  */
 void SourceInfo::add(const LineInfo& l)
 {
     this->info.push_back(l);
+    // add directive addresses to lookup table
+    if(l.type == LineType::DirectiveLine)
+    {
+        this->directive_addr_lut.insert(
+                {l.addr, this->info.size()-1}
+        );
+    }
 }
 
 /*
- * hasError()
+ * SourceInfo::hasError()
  */
 bool SourceInfo::hasError(void) const
 {
@@ -611,9 +528,8 @@ bool SourceInfo::hasError(void) const
     return false;
 }
 
-
 /*
- * get()
+ * SourceInfo::get()
  */
 LineInfo SourceInfo::get(const unsigned int idx) const
 {
@@ -624,7 +540,19 @@ LineInfo SourceInfo::get(const unsigned int idx) const
 }
 
 /*
- * update()
+ * SourceInfo::getAddr()
+ */
+LineInfo SourceInfo::getAddr(const int16_t addr) const
+{
+    auto line = this->directive_addr_lut.find(addr);
+    if(line != this->directive_addr_lut.end())
+        return this->info[line->second];
+
+    return LineInfo();
+}
+
+/*
+ * SourceInfo::update()
  */
 void SourceInfo::update(const unsigned int idx, const LineInfo& l)
 {
@@ -632,7 +560,7 @@ void SourceInfo::update(const unsigned int idx, const LineInfo& l)
 }
 
 /*
- * getNumLines()
+ * SourceInfo::getNumLines()
  */
 unsigned int SourceInfo::getNumLines(void) const
 {
@@ -642,4 +570,84 @@ unsigned int SourceInfo::getNumLines(void) const
 void SourceInfo::toFile(const std::string& filename) const
 {
     std::cout << "[" << __FUNCTION__ << "] : TODO:" << std::endl;
+}
+
+
+// Symbol table methods 
+
+/*
+ * SourceInfo::add()
+ */
+void SourceInfo::addSym(const Symbol& s)
+{
+    this->syms.push_back(s);
+}
+
+/*
+ * SourceInfo::update()
+ */
+void SourceInfo::updateSym(const unsigned int idx, const Symbol& s)
+{
+    if(idx < this->syms.size())
+        this->syms[idx] = s;
+}
+
+/*
+ * SourceInfo::get()
+ */
+Symbol SourceInfo::getSym(const unsigned int idx) const
+{
+    return this->syms[idx];
+}
+
+/*
+ * SourceInfo::getAddr()
+ */
+uint16_t SourceInfo::getSymAddr(const std::string& sym) const
+{
+    uint16_t addr = 0;
+
+    // if this turns out to be a bottleneck then this can be made 
+    // and unordered map of labels to addresses
+    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
+    {
+        if(sym == this->syms[idx].label)
+            return this->syms[idx].addr;
+    }
+
+    return addr;
+}
+
+std::string SourceInfo::getSymName(const uint16_t addr)  const
+{
+    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
+    {
+        if(addr == this->syms[idx].addr)
+            return this->syms[idx].label;
+    }
+
+    return "";
+}
+
+unsigned int SourceInfo::getNumSyms(void) const
+{
+    return this->syms.size();
+}
+
+/*
+ * symTableString()
+ */
+std::string SourceInfo::symTableString(void) const
+{
+    std::ostringstream oss;
+
+    oss << "Symbol Table: (" << this->syms.size() << " symbols)" << std::endl;
+    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
+    {
+        oss << "    [" << this->syms[idx].label << "] -> 0x" << std::hex 
+            << std::setw(4) << std::setfill('0') << this->syms[idx].addr 
+            << std::endl;
+    }
+
+    return oss.str();
 }

@@ -213,3 +213,25 @@ TEST_CASE("test_expr_eval", "expression")
 
     REQUIRE(equal(eval_out, 1.0));
 }
+
+TEST_CASE("test_expr_eval_symbols", "expression")
+{
+    SourceInfo info;
+    int16_t x_addr = 0x1000;
+    int16_t y_addr = 0x2000;
+
+    Symbol sym_x = Symbol(x_addr, "x");
+    Symbol sym_y = Symbol(x_addr, "y");
+    LineInfo dir_x;
+    LineInfo dir_y;
+
+    dir_x.type = LineType::DirectiveLine;
+    dir_x.addr = x_addr;
+
+    dir_y.type = LineType::DirectiveLine;
+    dir_y.addr = y_addr;
+
+
+    const std::string expr_input = "3 + x * y / (1 - 5)";
+
+}

@@ -272,7 +272,6 @@ class Assembler
     private:
         TokenLookup token_lookup;
         OpcodeLookup opcode_lookup;
-        SymbolTable symbol_table;
 
     // source movement 
     private:

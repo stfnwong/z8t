@@ -308,9 +308,7 @@ std::string ExprStack::toString(void) const
     std::ostringstream oss;
 
     for(unsigned int idx = 0; idx < this->size(); ++idx)
-    {
         oss << this->stack[idx].repr << " ";
-    }
 
     return oss.str();
 }
@@ -518,6 +516,21 @@ float eval_postfix_expr_stack(const ExprStack& expr_stack)
 
     return y;
 }
+
+/*
+ * expr_stack_resolve_strings()
+ */
+ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceInfo& info)
+{
+    for(unsigned int idx = 0; idx < expr_stack.size(); ++idx)
+    {
+        if(expr_stack[idx].type == TOK_STRING)
+        {
+
+        }
+    }
+}
+
 
 /*
  * eval_expr_string()

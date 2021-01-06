@@ -253,31 +253,6 @@ struct Symbol
         std::string toString(void) const;
 };
 
-/*
- * SymbolTable 
- */
-class SymbolTable
-{
-    private:
-        std::vector<Symbol> syms;
-        Symbol null_symbol;
-
-    private:
-        SymbolTable(const SymbolTable& that) = default;
-
-    public:
-        SymbolTable();
-
-        void         add(const Symbol& s);
-        void         update(const unsigned int idx, const Symbol& s);
-        Symbol       get(const unsigned int idx) const;
-        uint16_t     getAddr(const std::string& label) const;
-        std::string  getName(const uint16_t addr) const;
-        void         init(void);
-        unsigned int size(void) const;
-
-        std::string  toString(void) const;
-};
 
 enum struct LineType {TextLine, DirectiveLine};
 /*
@@ -287,6 +262,7 @@ enum struct LineType {TextLine, DirectiveLine};
 struct LineInfo
 {
     // common fields 
+    // TODO: add back symbol (for pretty print)?
     LineType    type;
     std::string label;
     std::string errstr;
@@ -300,7 +276,8 @@ struct LineInfo
     int         sym_arg;
     // directive fields
     std::string      expr;
-    std::vector<int> data;           // generic data (eg, from a list of defb/defw)
+    int              data;       // TODO: this will become a vector when comma seperated fields are supported
+    //std::vector<int> data;           // generic data (eg, from a list of defb/defw)
 
     public:
         LineInfo();
@@ -324,10 +301,16 @@ struct LineInfo
 
 // TODO ; in keeping with the text/data segment distinction, this should be at some point
 // renamed into something that indicates that its a collection of LineInfo objects
+// TODO: move symbol table to be here?
 class SourceInfo
 {
     private: 
         std::vector<LineInfo> info;
+        // maps address to index in info vector
+        std::unordered_map <int16_t, unsigned int> directive_addr_lut;
+        // symbol table 
+        std::vector<Symbol> syms;
+        Symbol null_symbol;
 
     public:
         SourceInfo();
@@ -337,9 +320,21 @@ class SourceInfo
         void add(const LineInfo& l);
         bool hasError(void) const;
         LineInfo get(const unsigned int idx) const;
+        LineInfo getAddr(const int16_t addr) const;
         void update(const unsigned int idx, const LineInfo& l);
         unsigned int getNumLines(void) const;
         void toFile(const std::string& filename) const;
+
+        // symbol table functions
+        void         addSym(const Symbol& s);
+        void         updateSym(const unsigned int idx, const Symbol& s);
+        Symbol       getSym(const unsigned int idx) const;
+        uint16_t     getSymAddr(const std::string& label) const;
+        std::string  getSymName(const uint16_t addr) const;
+        unsigned int getNumSyms(void) const;
+        std::string  symTableString(void) const;
+        //void         init(void);
+        //unsigned int size(void) const;
 };
 
 #endif /*__SOURCE_HPP*/

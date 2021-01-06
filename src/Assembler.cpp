@@ -455,7 +455,7 @@ void Assembler::resolve_labels(void)
         LineInfo cur_line = this->source_info.get(idx);
         if(cur_line.sym_arg >= 0)
         {
-            label_addr = this->symbol_table.getAddr(cur_line.args[cur_line.sym_arg].repr);
+            label_addr = this->source_info.getSymAddr(cur_line.args[cur_line.sym_arg].repr);
             if(this->verbose)
             {
                 std::cout << "[" << __func__ << "] resolving [" << cur_line.args[cur_line.sym_arg].repr 
@@ -507,7 +507,7 @@ void Assembler::parse_line(void)
 
         // add symbol to table
         sym.addr  = this->cur_addr;
-        this->symbol_table.add(sym);
+        this->source_info.addSym(sym);
         this->line_info.label = sym.label;
 
         if(this->verbose)
