@@ -373,7 +373,6 @@ SourceInfo get_gcd_expected_source(void)
     line.addr = TEXT_START_ADDR + 2;
     line.args[0] = Token(SYM_COND, COND_C, "c");
     line.args[1] = Token(SYM_LITERAL, 0x5, "5");  // jump over PC 
-    line.symbol = "else";
     line.sym_arg = 1;
     info.add(line);
     // sub b
@@ -389,7 +388,6 @@ SourceInfo get_gcd_expected_source(void)
     line.opcode = Token(SYM_INSTR, INSTR_JR, "jr");
     line.addr = TEXT_START_ADDR + 5;
     line.args[0] = Token(SYM_LITERAL, -5, std::to_string(-5));
-    line.symbol = "gcd";
     info.add(line);
     // else : ld c, a
     line.init();
@@ -439,7 +437,6 @@ SourceInfo get_gcd_expected_source(void)
     line.addr = TEXT_START_ADDR + 12;
     line.args[0] = Token(SYM_LITERAL, -12, std::to_string(-12));
     line.sym_arg = 0;
-    line.symbol = "gcd";
     info.add(line);
 
     return info;

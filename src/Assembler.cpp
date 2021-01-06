@@ -11,7 +11,6 @@
 #include <iomanip>
 
 #include "Assembler.hpp"
-#include "Expression.hpp"
 
 /*
  * instr_get_size()
@@ -282,7 +281,6 @@ void Assembler::parse_arg(int arg_idx)
     }
     if(token.type == SYM_LABEL)
     {
-        this->line_info.symbol = token.repr;
         this->line_info.sym_arg = arg_idx;
     }
     this->line_info.args[arg_idx] = token;
@@ -380,27 +378,6 @@ void Assembler::parse_instruction(const Token& token)
     }
 }
 
-// TODO: might not need these... better to refactor Source.cpp?
-
-/*
- * parse_word_expressions()
- */
-void Assembler::parse_word_expression(void)
-{
-    // try to read and entire line from the source
-    unsigned int line_num = this->cur_line;
-    int expr_start_pos = this->cur_pos;
-    int expr_end_pos = this->cur_pos;
-    std::string expr_string;
-
-    while(this->cur_char != ';' || this->cur_char != '\n')
-    {
-        this->advance();
-        expr_end_pos++;
-    }
-    expr_string = this->source.substr(expr_start_pos, expr_end_pos - expr_start_pos);
-    float expr_eval = eval_expr_string(expr_string);
-}
 
 /*
  * parse_directive()
@@ -422,7 +399,8 @@ void Assembler::parse_directive(const Token& token)
                 break;
             }
             // This only accepts a byte anyway, so we may as well just mask off the lower 8 bits
-            this->line_info.data.push_back(arg_token.val & 0xFF);
+            //this->line_info.data.push_back(arg_token.val & 0xFF);// TODO : just capture the string here
+
             break;
 
         case DIR_DEFW:
@@ -433,7 +411,7 @@ void Assembler::parse_directive(const Token& token)
                 this->line_info.errstr = "org directive got invalid argument " + std::string(arg_token.repr);
                 break;
             }
-            this->line_info.data.push_back(arg_token.val & 0xFFF);
+            //this->line_info.data.push_back(arg_token.val & 0xFFF);        // TODO : just capture the string here
             break;
 
         case DIR_ORG:   // updates the current address

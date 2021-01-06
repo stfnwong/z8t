@@ -40,6 +40,18 @@ TEST_CASE("test_symbol_table", "source")
     REQUIRE("z0_data" == sym_table.getName(0xCEED));
 }
 
+// ======== LineInfo and related structures ======== //
+TEST_CASE("test_lineinfo_init", "source")
+{
+    LineInfo line;
+
+    REQUIRE(line.addr == 0);
+    REQUIRE(line.line_num == 0);
+    REQUIRE(line.errstr == "");
+    REQUIRE(line.label == "");
+    REQUIRE(line.is_label == false);
+    REQUIRE(line.error == false);
+}
 
 TEST_CASE("test_textline_init", "source")
 {
@@ -53,6 +65,24 @@ TEST_CASE("test_textline_init", "source")
     for(int i = 0; i < 2; ++i)
         REQUIRE(line.args[i] == Token());
 }
+
+TEST_CASE("test_directiveline_init", "source")
+{
+    DirectiveLine line;
+
+    REQUIRE(line.addr == 0);
+    REQUIRE(line.line_num == 0);
+    REQUIRE(line.errstr == "");
+    REQUIRE(line.label == "");
+    REQUIRE(line.is_label == false);
+    REQUIRE(line.error == false);
+
+    REQUIRE(line.data.size() == 0);
+    REQUIRE(line.expr == "");
+
+}
+
+// ======== TEXTLINE METHODS ======== //
 
 TEST_CASE("test_textline_hash", "source")
 {
@@ -109,3 +139,18 @@ TEST_CASE("test_directive_line_multi", "source")
         REQUIRE(line.data[idx] == exp_evals[idx]);
 }
 
+
+// ======== SourceInfo tests ======== //
+TEST_CASE("test_sourceinfo_init", "source")
+{
+    SourceInfo source;
+
+    REQUIRE(source.getNumLines() == 0);
+    LineInfo null_line = source.get(0);
+    REQUIRE(null_line == LineInfo());
+}
+
+TEST_CASE("test_sourceinfo_add_get", "source")
+{
+    SourceInfo source;
+}

@@ -295,6 +295,55 @@ std::string SymbolTable::toString(void) const
 }
 
 /*
+ * ======== LINE INFO ======== //
+ */
+LineInfo::LineInfo() 
+{
+    this->init();
+}
+
+void LineInfo::init(void)
+{
+    // Init others 
+    this->label.clear();    
+    this->errstr.clear();   
+    this->line_num = 0;
+    this->addr     = 0;
+
+    this->is_label = false;
+    this->error    = false;
+}
+
+bool LineInfo::operator==(const LineInfo& that) const
+{
+    if(this->label != that.label)
+        return false;
+    if(this->line_num != that.line_num)
+        return false;
+    if(this->addr != that.addr)
+        return false;
+    if(this->is_label != that.is_label)
+        return false;
+    if(this->error != that.error)
+        return false;
+
+    return true;
+}
+
+bool LineInfo::operator!=(const LineInfo& that) const
+{
+    return !(*this == that);
+}
+
+
+//std::string LineInfo::toString(void) const
+//{
+//    std::ostringstream oss;
+//
+//    return oss.str();
+//}
+
+/*
  * ======== TEXT LINE ======== //
  */
 
@@ -309,19 +358,18 @@ TextLine::TextLine()
 /*
  * copy ctor
  */
-TextLine::TextLine(const TextLine& that)
-{
-    this->opcode   = that.opcode;
-    this->label    = that.label;
-    this->errstr   = that.errstr;
-    this->symbol   = that.symbol;
-    this->line_num = that.line_num;
-    this->addr     = that.addr;
-    this->sym_arg  = that.sym_arg;
-
-    for(int i = 0; i < 2; ++i)
-        this->args[i] = that.args[i];
-}
+//TextLine::TextLine(const TextLine& that)
+//{
+//    this->opcode   = that.opcode;
+//    this->label    = that.label;
+//    this->errstr   = that.errstr;
+//    this->line_num = that.line_num;
+//    this->addr     = that.addr;
+//    this->sym_arg  = that.sym_arg;
+//
+//    for(int i = 0; i < 2; ++i)
+//        this->args[i] = that.args[i];
+//}
 
 /*
  * ==
@@ -331,8 +379,6 @@ bool TextLine::operator==(const TextLine& that) const
     if(this->opcode != that.opcode)
         return false;
     if(this->label != that.label)
-        return false;
-    if(this->symbol != that.symbol)
         return false;
     if(this->line_num != that.line_num)
         return false;
@@ -360,23 +406,23 @@ bool TextLine::operator!=(const TextLine& that) const
  */
 void TextLine::init(void)
 {
-    // Init opcode 
+    //  
     this->opcode.init();
-    // Init others 
-    this->symbol.clear();   
-    this->label.clear();    
-    this->errstr.clear();   
-    this->line_num = 0;
-    this->addr     = 0;
     this->sym_arg  = -1; 
-
-    this->is_label = false;
-    this->error    = false;
-
     for(int i = 0; i < 2; ++i)
         this->args[i].init();
 
-    this->data.clear();
+    LineInfo::init();
+
+    // Init others 
+    //this->label.clear();    
+    //this->errstr.clear();   
+    //this->line_num = 0;
+    //this->addr     = 0;
+    //this->sym_arg  = -1; 
+
+    //this->is_label = false;
+    //this->error    = false;
 }
 
 /*
@@ -456,7 +502,7 @@ std::string TextLine::toString(void) const
     // (Next line) Text 
     oss << std::endl;
     oss << "Label [" << std::left << std::setw(16) << std::setfill(' ') << this->label << "] ";
-    oss << "Symbol[" << std::left << std::setw(16) << std::setfill(' ') << this->symbol << "] ";
+    //oss << "Symbol[" << std::left << std::setw(16) << std::setfill(' ') << this->symbol << "] ";
 
     oss << std::endl;
     if(this->errstr.size() > 0)
@@ -473,12 +519,6 @@ std::string TextLine::diff(const TextLine& that)
 {
     std::ostringstream oss;
 
-    if(this->symbol != that.symbol)
-    {
-        oss << "symbol [" << this->symbol
-            << "] does not match [" << that.symbol
-            << "]" << std::endl;
-    }
     if(this->label != that.label)
     {
         oss << "label [" << this->label
@@ -546,18 +586,19 @@ std::string TextLine::toInstrString(void) const
 /*
  * ======== DIRECTIVE LINE ======== //
  */
-DirectiveLine::DirectiveLine() : addr(0), expr("") {}
-
-DirectiveLine::DirectiveLine(const int16_t a, const std::string& e, const std::vector<int>& v) : addr(a), expr(e), data(v) {} 
+DirectiveLine::DirectiveLine() 
+{
+    this->init();
+}
 
 /*
  * DirectiveLine::init()
  */
 void DirectiveLine::init(void)
 {
-    this->addr = 0;
     this->expr.clear();
     this->data.clear();
+    LineInfo::init();
 }
 
 /*
@@ -663,12 +704,12 @@ bool SourceInfo::hasError(void) const
 /*
  * get()
  */
-TextLine SourceInfo::get(const unsigned int idx) const
+LineInfo SourceInfo::get(const unsigned int idx) const
 {
     if(idx >= 0 && idx < this->info.size())
         return this->info[idx];
     
-    return TextLine();
+    return LineInfo();
 }
 
 /*

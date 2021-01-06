@@ -66,7 +66,7 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t>> instr_lookup = {
     // inc 
     {(INSTR_INC << 16) | (REG_A       << 8),                   std::pair(0x3C, 1)},   // inc a
     {(INSTR_INC << 16) | (REG_B       << 8),                   std::pair(0x15, 1)},   // inc b
-    {(INSTR_INC << 16) | (REG_C       << 8),                   std::pair(0x0C, 1)},   // inc c
+    {(INSTR_INC << 16) | (REG_C       << 8),                   std::pair(0X0C, 1)},   // inc c
     {(INSTR_INC << 16) | (REG_D       << 8),                   std::pair(0x14, 1)},   // inc d
     {(INSTR_INC << 16) | (REG_E       << 8),                   std::pair(0x1C, 1)},   // inc e
     {(INSTR_INC << 16) | (REG_H       << 8),                   std::pair(0x24, 1)},   // inc h
@@ -302,11 +302,9 @@ class Assembler
         void parse_arg(int arg_idx);
         void parse_one_or_two_arg(void);
         void parse_instruction(const Token& token);
-        void parse_word_expression(void);
-        void parse_directive(const Token& token); // TODO: maybe here we have an entry point for parsing things like defw directives using the methods in Expression.hpp
+        void parse_directive(const Token& token); 
         void parse_line(void);
         void resolve_labels(void);
-
 
     // assemble from intermediate repr
     private:

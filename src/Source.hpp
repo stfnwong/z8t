@@ -279,30 +279,44 @@ class SymbolTable
         std::string  toString(void) const;
 };
 
+/*
+ * LineInfo
+ * Base class for line structures (either text or data)
+ */
+struct LineInfo
+{
+    std::string label;
+    std::string errstr;
+    uint16_t    line_num;
+    int16_t     addr;
+    bool        is_label;
+    bool        error;
+
+    public:
+        LineInfo();
+
+        bool operator==(const LineInfo& that) const;
+        bool operator!=(const LineInfo& that) const;
+        void init(void);
+
+        //std::string toString(void) const;
+};
+
 
 /*
  * TextLine
  * Class representing a line from the source file that will go in the text segment.
  */
-struct TextLine
+struct TextLine : public LineInfo
 {
-    // avoid having a large number of setters and getters 
-    std::string symbol;
-    std::string label;
-    std::string errstr;
+    // these are public to avoid having a large number of setters and getters 
     Token       opcode;     
     Token       args[2];
-    int8_t      sym_arg;        // which arg has a symbol (so we don't have to check later)
-    uint16_t    line_num;
-    int16_t     addr;
-    bool        is_label;
-    bool        error;
-    // data segment...
-    std::vector<uint8_t> data;      // any word data, etc
+    int         sym_arg;
 
     public:
         TextLine();
-        TextLine(const TextLine& that);
+        //TextLine(const TextLine& that);
 
         bool operator==(const TextLine& that) const;
         bool operator!=(const TextLine& that) const;
@@ -319,16 +333,14 @@ struct TextLine
  * A line that contains the result of a directive. For instance,
  * the evaluation of a defb/defw directive.
  */
-struct DirectiveLine
+struct DirectiveLine : public LineInfo
 {
-    int16_t          addr;
     std::string      expr;
     std::vector<int> data;           // generic data (eg, from a list of defb/defw)
 
     public:
         DirectiveLine();
-        DirectiveLine(const int16_t a, const std::string& e, const std::vector<int>& v);
-        DirectiveLine(const DirectiveLine& that) = default;
+        //DirectiveLine(const DirectiveLine& that) = default;
 
         void init(void);
         void eval(void);
@@ -347,7 +359,7 @@ struct DirectiveLine
 class SourceInfo
 {
     private: 
-        std::vector<TextLine> info;
+        std::vector<LineInfo> info;
 
     public:
         SourceInfo();
@@ -356,7 +368,7 @@ class SourceInfo
         void init(void);
         void add(const TextLine& l);
         bool hasError(void) const;
-        TextLine get(const unsigned int idx) const;
+        LineInfo get(const unsigned int idx) const;
         void update(const unsigned int idx, const TextLine& l);
         unsigned int getNumLines(void) const;
         void toFile(const std::string& filename) const;
