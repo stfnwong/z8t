@@ -508,6 +508,10 @@ float eval_postfix_expr_stack(const ExprStack& expr_stack)
                 case TOK_SLASH:
                     y = l / r;
                     break;
+                default:
+                    std::cerr << "[" << __func__ << "] somehow got token " << cur_token.toString()
+                        << " in operator path." << std::endl;
+                    break;      
             }
             output_stack.push(y);
         }

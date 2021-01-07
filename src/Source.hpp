@@ -201,6 +201,7 @@ const Token Z80_TOKENS[] =
     Token(SYM_DIRECTIVE, DIR_DEFW,    ".defw"),
     Token(SYM_DIRECTIVE, DIR_DEFS,    ".defs"),
     Token(SYM_DIRECTIVE, DIR_END,     ".end"),
+    Token(SYM_DIRECTIVE, DIR_EQU,     ".equ"),
     Token(SYM_DIRECTIVE, DIR_INCLUDE, ".include"),
 };
 
@@ -271,7 +272,7 @@ struct LineInfo
     bool        is_label;
     bool        error;
     // text only fields 
-    Token       opcode;     
+    Token       opcode;             // TODO : change to instr, the type here replaces LineType?
     Token       args[2];
     int         sym_arg;
     // directive fields
@@ -314,16 +315,16 @@ class SourceInfo
 
     public:
         SourceInfo();
-        SourceInfo(const SourceInfo& that) = default;
+        //SourceInfo(const SourceInfo& that) = default;
 
-        void init(void);
-        void add(const LineInfo& l);
-        bool hasError(void) const;
-        LineInfo get(const unsigned int idx) const;
-        LineInfo getAddr(const int16_t addr) const;
-        void update(const unsigned int idx, const LineInfo& l);
+        void         init(void);
+        void         add(const LineInfo& l);
+        bool         hasError(void) const;
+        LineInfo     get(const unsigned int idx) const;
+        LineInfo     getAddr(const int16_t addr) const;
+        void         update(const unsigned int idx, const LineInfo& l);
         unsigned int getNumLines(void) const;
-        void toFile(const std::string& filename) const;
+        void         toFile(const std::string& filename) const;
 
         // symbol table functions
         void         addSym(const Symbol& s);
@@ -335,6 +336,8 @@ class SourceInfo
         std::string  symTableString(void) const;
         //void         init(void);
         //unsigned int size(void) const;
+
+        std::string  toString(void) const;
 };
 
 #endif /*__SOURCE_HPP*/

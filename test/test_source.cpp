@@ -39,6 +39,24 @@ TEST_CASE("test_symbol_table", "source")
     REQUIRE("z0_data" == info.getSymName(0xCEED));
 }
 
+// Not really a complete test, just checking that directives fall out 
+// of the lookup correctly
+TEST_CASE("test_token_lookup", "source")
+{
+    TokenLookup token_lut;
+    Token out_token;
+
+    out_token = token_lut.lookup("xor");
+    REQUIRE(out_token.type == SYM_INSTR);
+    REQUIRE(out_token.val == INSTR_XOR);
+    out_token = token_lut.lookup(".defw");
+    REQUIRE(out_token.type == SYM_DIRECTIVE);
+    REQUIRE(out_token.val == DIR_DEFW);
+    out_token = token_lut.lookup(".equ");
+    REQUIRE(out_token.type == SYM_DIRECTIVE);
+    REQUIRE(out_token.val == DIR_EQU);
+}
+
 // ======== LineInfo and related structures ======== //
 TEST_CASE("test_lineinfo_init", "source")
 {

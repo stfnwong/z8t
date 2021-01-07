@@ -378,6 +378,24 @@ void Assembler::parse_instruction(const Token& token)
     }
 }
 
+/*
+ * read_to_line_end()
+ * Read the remaining non-comment text for a given line
+ */
+std::string Assembler::read_to_line_end(void)
+{
+    int str_start_idx = this->cur_pos;
+    int str_end_idx = this->cur_pos;
+
+    while(this->cur_char != ';' || this->cur_char != '\n')
+    {
+        this->advance();
+        str_end_idx++;
+    }
+    std::string line_to_end = this->source.substr(str_start_idx, str_end_idx - str_start_idx);
+
+    return line_to_end;
+}
 
 /*
  * parse_directive()
@@ -386,32 +404,21 @@ void Assembler::parse_directive(const Token& token)
 {
     Token arg_token;
 
+    this->line_info.opcode = token; // TODO: may refactor this member into instr and drop LineType
+    this->line_info.type = LineType::DirectiveLine;
+
     switch(token.val)
     {
         // TODO : this is actually and arbitrary comma seperated list of args....
         // TODO: read the whole line in and see if we need to parse as an expression
         case DIR_DEFB:
-            arg_token = this->next_token();
-            if(arg_token.type != SYM_LITERAL)
-            {
-                this->line_info.error = true;
-                this->line_info.errstr = "org directive got invalid argument " + std::string(arg_token.repr);
-                break;
-            }
-            // This only accepts a byte anyway, so we may as well just mask off the lower 8 bits
-            //this->line_info.data.push_back(arg_token.val & 0xFF);// TODO : just capture the string here
-
+        case DIR_DEFW:
+            this->line_info.expr = this->read_to_line_end();
             break;
 
-        case DIR_DEFW:
+        case DIR_EQU:       // this must be a literal
             arg_token = this->next_token();
-            if(arg_token.type != SYM_LITERAL)
-            {
-                this->line_info.error = true;
-                this->line_info.errstr = "org directive got invalid argument " + std::string(arg_token.repr);
-                break;
-            }
-            //this->line_info.data.push_back(arg_token.val & 0xFFF);        // TODO : just capture the string here
+            this->line_info.data = arg_token.val;
             break;
 
         case DIR_ORG:   // updates the current address
@@ -426,7 +433,7 @@ void Assembler::parse_directive(const Token& token)
             break;
 
         case DIR_END:
-            // stop assembling
+            // TODO: stop assembling
             break;
 
         default:
@@ -438,6 +445,10 @@ void Assembler::parse_directive(const Token& token)
                     << ") : " << this->line_info.errstr << std::endl;
             }
     }
+
+    // TODO: debug, remove 
+    std::cout << "[" << __func__ << "] cur line : " << std::endl;
+    std::cout << this->line_info.toString() << std::endl;
 }
 
 
@@ -527,7 +538,7 @@ void Assembler::parse_line(void)
     // handle directives  
     else if(token.type == SYM_DIRECTIVE)
     {
-        std::cout << "[" << __func__ << "] would handle directive here" << std::endl;
+        this->parse_directive(token);
     }
     // no idea - must be a symbol/label
     else
@@ -607,33 +618,48 @@ void Assembler::assem_instr(void)
         line = this->source_info.get(idx);
         line_hash = line.argHash();
 
-        auto lookup_val = instr_lookup.find(line_hash);
-        if(lookup_val != instr_lookup.end())
+
+        if(line.type == LineType::TextLine)
         {
-            auto instr_size = lookup_val->second;
-            cur_instr.size = instr_size.second;
-            if(cur_instr.size == 1)
-                cur_instr.ins  = instr_size.first;
-            else if(cur_instr.size == 2 && line.args[0].type == SYM_LITERAL)
-                cur_instr.ins = (instr_size.first << 8) | (line.args[0].val & 0xFF);
-            else if(cur_instr.size == 2 && line.args[1].type == SYM_LITERAL)
-                cur_instr.ins = (instr_size.first << 8) | (line.args[1].val & 0xFF);
-            // ld bc, ** | ld de, ** | ld hl, ** | ld sp, **
-            else if(cur_instr.size == 3 && line.args[1].type == SYM_LITERAL)
-                cur_instr.ins = (instr_size.first << 16) | (line.args[1].val & 0xFFFF);
-            else if(cur_instr.size == 3 && line.args[0].type == SYM_LITERAL_IND)
-                cur_instr.ins = (instr_size.first << 16) | (line.args[0].val & 0xFFFF);
+            auto lookup_val = instr_lookup.find(line_hash);
+            if(lookup_val != instr_lookup.end())
+            {
+                auto instr_size = lookup_val->second;
+                cur_instr.size = instr_size.second;
+                if(cur_instr.size == 1)
+                    cur_instr.ins  = instr_size.first;
+                else if(cur_instr.size == 2 && line.args[0].type == SYM_LITERAL)
+                    cur_instr.ins = (instr_size.first << 8) | (line.args[0].val & 0xFF);
+                else if(cur_instr.size == 2 && line.args[1].type == SYM_LITERAL)
+                    cur_instr.ins = (instr_size.first << 8) | (line.args[1].val & 0xFF);
+                // ld bc, ** | ld de, ** | ld hl, ** | ld sp, **
+                else if(cur_instr.size == 3 && line.args[1].type == SYM_LITERAL)
+                    cur_instr.ins = (instr_size.first << 16) | (line.args[1].val & 0xFFFF);
+                else if(cur_instr.size == 3 && line.args[0].type == SYM_LITERAL_IND)
+                    cur_instr.ins = (instr_size.first << 16) | (line.args[0].val & 0xFFFF);
+            }
+            else
+            {
+                if(this->verbose)
+                {
+                    std::cerr << "[" << __func__ << "] skipping instruction " << line.toInstrString() 
+                        << " with hash " << std::hex << line_hash << std::endl;
+                }
+                continue;
+            }
+            cur_instr.adr = line.addr;      
+        }
+        else if(line.type == LineType::DirectiveLine)
+        {
+            cur_instr.adr = line.addr;
+            cur_instr.size = 1;
+            cur_instr.ins  = uint8_t(line.data);
         }
         else
         {
-            if(this->verbose)
-            {
-                std::cerr << "[" << __func__ << "] skipping instruction " << line.toInstrString() 
-                    << " with hash " << std::hex << line_hash << std::endl;
-            }
-            continue;
+            std::cerr << "[" << __func__ << "] line " << line.line_num << " has invalid line type " << std::endl;
+            std::cerr << line.toString() << std::endl;
         }
-        cur_instr.adr = line.addr;      
         this->program.add(cur_instr);
     }
 }
@@ -682,4 +708,10 @@ void Assembler::setVerbose(const bool v)
 bool Assembler::getVerbose(void) const
 {
     return this->verbose;
+}
+
+void Assembler::printSource(void) const
+{
+    std::cout << "[" << __func__ << "] source string : " << std::endl;
+    std::cout << this->source << std::endl;
 }

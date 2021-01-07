@@ -74,6 +74,8 @@ std::string Token::toString(void) const
             return "EOF <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_INSTR:
             return "INSTR <" + std::string(this->repr) + "> " + std::to_string(this->val);
+        case SYM_DIRECTIVE:
+            return "DIRECTIVE <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_LITERAL:
             return "LITERAL <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_LITERAL_IND:
@@ -367,12 +369,16 @@ std::string LineInfo::toString(void) const
 {
     std::ostringstream oss;
 
-    // TODO: add types...
     oss << "---------------------------------------------------------------------" << std::endl;
-    oss << "Line  Type   Addr  Mnemonic    Opcode  flags  args" << std::endl;
+    oss << "Line   Type   Addr  Mnemonic    Opcode  flags  args/data" << std::endl;
 
     oss << std::left << std::setw(6) << std::setfill(' ') << this->line_num;
+
     oss << "[";
+    if(this->type == LineType::DirectiveLine)
+        oss << "D";
+    else 
+        oss << "T";
     if(this->is_label == true)  // why do I need == true here but nowhere else?
         oss << "l";
     else
@@ -390,10 +396,15 @@ std::string LineInfo::toString(void) const
     oss << "0x" << std::right << std::hex << std::setw(4) << std::setfill('0') << this->opcode.val << "   ";
     // Insert flag chars
     oss << "...";
-    // Registers
+    // Arguments
     oss << "   ";
-    for(int i = 0; i < 2; ++i)
-        oss << this->args[i].repr << " ";
+    if(this->type == LineType::TextLine)
+    {
+        for(int i = 0; i < 2; ++i)
+            oss << this->args[i].repr << " ";
+    }
+    else
+        oss << "0x" << std::hex << std::setw(2) << std::setfill('0') << this->data;
 
     // (Next line) Text 
     oss << std::endl;
@@ -648,6 +659,20 @@ std::string SourceInfo::symTableString(void) const
             << std::setw(4) << std::setfill('0') << this->syms[idx].addr 
             << std::endl;
     }
+
+    return oss.str();
+}
+
+
+/*
+ * SourceInfo::toString()
+ */
+std::string SourceInfo::toString(void) const
+{
+    std::ostringstream oss;
+
+    for(unsigned int idx = 0; idx < this->info.size(); ++idx)
+        oss << this->info[idx].toString() << std::endl;
 
     return oss.str();
 }

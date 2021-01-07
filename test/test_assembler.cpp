@@ -15,10 +15,11 @@
 #include "Source.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = false;
+constexpr const bool GLOBAL_VERBOSE = true;
 const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
+const std::string expr_filename = "asm/expr.asm";
 
 // TODO: a test which goes through the entire lookup table and checks
 // that all instructions return valid pairs
@@ -756,4 +757,28 @@ TEST_CASE("test_asm_gcd", "assembler")
         }
         REQUIRE(out_instr == exp_instr);
     }
+}
+
+
+// TEST_DIRECTIVES
+TEST_CASE("test_equ_directive", "directive")
+{
+    const std::string test_source = " label: .equ 25";
+
+    Assembler assem;
+    Program exp_program;
+    Program out_program;
+
+    assem.setVerbose(GLOBAL_VERBOSE);
+    assem.loadSource(test_source);
+
+    assem.assemble();
+    assem.printSource();    // TODO: remove
+
+    out_program = assem.getProgram();
+
+    std::cout << out_program.toString() << std::endl;
+    REQUIRE(out_program.length() == 1);
+    REQUIRE(out_program.get(0).ins == 25);
+    REQUIRE(out_program.get(0).adr == TEXT_START_ADDR);
 }

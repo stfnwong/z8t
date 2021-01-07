@@ -293,17 +293,18 @@ class Assembler
         Token tok_string_to_literal(const std::string& tok_string) const;
         Token next_token(void);
 
-        void skip_whitespace(void);
-        void skip_line(void);
-        void skip_seperators(void);
-        void skip_to_next_token(void);
-        void scan_token(void);
-        void parse_arg(int arg_idx);
-        void parse_one_or_two_arg(void);
-        void parse_instruction(const Token& token);
-        void parse_directive(const Token& token); 
-        void parse_line(void);
-        void resolve_labels(void);
+        void        skip_whitespace(void);
+        void        skip_line(void);
+        void        skip_seperators(void);
+        void        skip_to_next_token(void);
+        void        scan_token(void);
+        void        parse_arg(int arg_idx);
+        void        parse_one_or_two_arg(void);
+        void        parse_instruction(const Token& token);
+        std::string read_to_line_end(void);
+        void        parse_directive(const Token& token); 
+        void        parse_line(void);
+        void        resolve_labels(void);
 
     // assemble from intermediate repr
     private:
@@ -324,6 +325,9 @@ class Assembler
 
         // getters, setters 
         Program getProgram(void) const;
+
+        // TODO: debug, remove 
+        void printSource(void) const;
 };
 
 #endif /*__ASSEMBLER_HPP*/
