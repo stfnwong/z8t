@@ -229,6 +229,7 @@ void LineInfo::init(void)
         this->args[i].init();
     // directive fields 
     this->expr.clear();
+    this->data = 0;
     //this->data.clear();
 }
 
@@ -263,10 +264,10 @@ bool LineInfo::operator==(const LineInfo& that) const
             return false;
     }
     // directive fields
-    if(this->expr != that.expr)
+    if(this->data != that.data)
         return false;
-    if(this->data_size() != that.data_size())
-        return false;
+    //if(this->data_size() != that.data_size())
+    //    return false;
     //for(unsigned int i = 0; i < this->data_size(); ++i)
     //{
     //    if(this->data[i] != that.data[i])
@@ -474,6 +475,12 @@ std::string LineInfo::diff(const LineInfo& that)
     if(this->error != that.error)
     {
         oss << "error does not match" << std::endl;
+    }
+    if(this->data != that.data)
+    {
+        oss << "data [" << this->data
+            << "] does not match [" << that.data
+            << "]" << std::endl;
     }
 
     return oss.str();

@@ -101,7 +101,7 @@ TEST_CASE("test_textline_hash", "source")
 
 TEST_CASE("test_single_part_expr", "source")
 {
-    std::string test_expr = "1 * 50 / 2";
+    const std::string test_expr = "1 * 50 / 2";
     LineInfo line;
 
     // setup the expression
@@ -110,6 +110,19 @@ TEST_CASE("test_single_part_expr", "source")
     line.eval();
     REQUIRE(line.data_size() == 1);
     REQUIRE(line.data == int(1 * 50 / 2));
+}
+
+TEST_CASE("test_literal_expr", "source")
+{
+    const std::string test_expr = "16";
+    LineInfo line;
+
+    // setup the expression
+    line.expr = test_expr;
+    line.eval();
+    REQUIRE(line.data_size() == 1);
+    REQUIRE(line.data == 16);
+
 }
 
 // TODO: the implementation of multi-part exprs should be finalized after

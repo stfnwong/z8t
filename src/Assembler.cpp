@@ -658,11 +658,11 @@ void Assembler::assem_instr(void)
         }
         else if(line.type == LineType::DirectiveLine)
         {
-            if(line.expr.length() > 0)
+            if(line.opcode.val == DIR_DEFW || line.opcode.val == DIR_DEFB)
                 line.eval();
 
             cur_instr.adr = line.addr;
-            cur_instr.size = 1; // TODO: this depends on defw, defb, etc
+            cur_instr.size = 1;     // TODO: this depends on defw, defb, etc
             cur_instr.ins  = uint8_t(line.data);
         }
         else

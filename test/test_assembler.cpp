@@ -778,57 +778,64 @@ TEST_CASE("test_equ_directive", "directive")
     REQUIRE(out_program.get(0).adr == TEXT_START_ADDR);
 }
 
+
+Program get_defw_expected_program(void)
+{
+    Program prog;
+
+    prog.add(Instr(TEXT_START_ADDR, 16, 1));
+
+    return prog;
+}   
+
+SourceInfo get_defw_expected_source(void)
+{
+    SourceInfo info;
+    LineInfo line;
+
+    line.type = LineType::DirectiveLine;
+    line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
+    line.addr = TEXT_START_ADDR;
+    line.line_num = 1;
+    line.label = "label";
+    line.is_label = true;
+    line.data = 16;
+    info.add(line);
+
+    return info;
+}
+
+
 TEST_CASE("test_defw_single_literal", "directive")
 {
-    const std::string defw_literal = ".defw 16";
     const std::string defw_literal_label = "label: .defw 16";
 
     Assembler assem;
+    Program exp_program;
     Program out_program;
+    SourceInfo exp_source;
     SourceInfo out_source;
     LineInfo out_line;
+    LineInfo exp_line;
 
     assem.setVerbose(GLOBAL_VERBOSE);
-
-    // single literal
-    assem.loadSource(defw_literal);
-    assem.assemble();
-
-    out_source = assem.getSourceInfo();
-
-    REQUIRE(out_source.getNumLines() == 1);
-    out_line = out_source.get(0);
-    REQUIRE(out_line.type == LineType::DirectiveLine);
-    REQUIRE(out_line.opcode.type == SYM_DIRECTIVE);
-    REQUIRE(out_line.opcode.val  == DIR_DEFW);
-    REQUIRE(out_line.opcode.repr == ".defw");
-    REQUIRE(out_line.addr == TEXT_START_ADDR);
-    REQUIRE(out_line.line_num == 1);
-    
-    out_program = assem.getProgram();
-    REQUIRE(out_program.length() == 1);
-    REQUIRE(out_program.get(0).ins == 16);
-    REQUIRE(out_program.get(0).adr == TEXT_START_ADDR);
-
-    // literal with label
     assem.loadSource(defw_literal_label);
     assem.assemble();
+
     out_source = assem.getSourceInfo();
+    exp_source = get_defw_expected_source();
 
     REQUIRE(out_source.getNumLines() == 1);
+    //REQUIRE(out_source.get(0) == exp_source.get(0));
     out_line = out_source.get(0);
-    REQUIRE(out_line.type == LineType::DirectiveLine);
-    REQUIRE(out_line.opcode.type == SYM_DIRECTIVE);
-    REQUIRE(out_line.opcode.val  == DIR_DEFW);
-    REQUIRE(out_line.opcode.repr == ".defw");
-    REQUIRE(out_line.addr == TEXT_START_ADDR);
-    REQUIRE(out_line.line_num == 1);
-    REQUIRE(out_line.label == "label");
+    out_line.data = 16;         // NOTE: we set here since at this time we don't do the eval until we are assembling the instruction (so its not available from the sourceinfo itself)
+    exp_line = exp_source.get(0);
 
+    REQUIRE(out_line == exp_line);
     out_program = assem.getProgram();
-    REQUIRE(out_program.length() == 1);
-    REQUIRE(out_program.get(0).ins == 16);
-    REQUIRE(out_program.get(0).adr == TEXT_START_ADDR);
+    exp_program = get_defw_expected_program();
+
+    REQUIRE(out_program.get(0) == exp_program.get(0));
 }
 
 TEST_CASE("test_defw_literal_expr", "directive")
@@ -836,29 +843,30 @@ TEST_CASE("test_defw_literal_expr", "directive")
     const std::string defw_literal_expr = "label: .defw (8 * 4) / 2";
 
     Assembler assem;
+    Program exp_program;
     Program out_program;
+    SourceInfo exp_source;
     SourceInfo out_source;
     LineInfo out_line;
+    LineInfo exp_line;
 
     assem.setVerbose(GLOBAL_VERBOSE);
-
-    // single literal
     assem.loadSource(defw_literal_expr);
     assem.assemble();
 
     out_source = assem.getSourceInfo();
+    exp_source = get_defw_expected_source();
 
     REQUIRE(out_source.getNumLines() == 1);
+    //REQUIRE(out_source.get(0) == exp_source.get(0));
+
     out_line = out_source.get(0);
-    REQUIRE(out_line.type == LineType::DirectiveLine);
-    REQUIRE(out_line.opcode.type == SYM_DIRECTIVE);
-    REQUIRE(out_line.opcode.val  == DIR_DEFW);
-    REQUIRE(out_line.opcode.repr == ".defw");
-    REQUIRE(out_line.addr == TEXT_START_ADDR);
-    REQUIRE(out_line.line_num == 1);
-    
+    out_line.data = 16;         // NOTE: we set here since at this time we don't do the eval until we are assembling the instruction (so its not available from the sourceinfo itself)
+    exp_line = exp_source.get(0);
+
+    REQUIRE(out_line == exp_line);
     out_program = assem.getProgram();
-    REQUIRE(out_program.length() == 1);
-    REQUIRE(out_program.get(0).ins == 16);
-    REQUIRE(out_program.get(0).adr == TEXT_START_ADDR);
+    exp_program = get_defw_expected_program();
+
+    REQUIRE(out_program.get(0) == exp_program.get(0));
 }
