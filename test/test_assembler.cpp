@@ -766,19 +766,99 @@ TEST_CASE("test_equ_directive", "directive")
     const std::string test_source = " label: .equ 25";
 
     Assembler assem;
-    Program exp_program;
     Program out_program;
 
     assem.setVerbose(GLOBAL_VERBOSE);
     assem.loadSource(test_source);
-
     assem.assemble();
-    assem.printSource();    // TODO: remove
-
     out_program = assem.getProgram();
 
-    std::cout << out_program.toString() << std::endl;
     REQUIRE(out_program.length() == 1);
     REQUIRE(out_program.get(0).ins == 25);
+    REQUIRE(out_program.get(0).adr == TEXT_START_ADDR);
+}
+
+TEST_CASE("test_defw_single_literal", "directive")
+{
+    const std::string defw_literal = ".defw 16";
+    const std::string defw_literal_label = "label: .defw 16";
+
+    Assembler assem;
+    Program out_program;
+    SourceInfo out_source;
+    LineInfo out_line;
+
+    assem.setVerbose(GLOBAL_VERBOSE);
+
+    // single literal
+    assem.loadSource(defw_literal);
+    assem.assemble();
+
+    out_source = assem.getSourceInfo();
+
+    REQUIRE(out_source.getNumLines() == 1);
+    out_line = out_source.get(0);
+    REQUIRE(out_line.type == LineType::DirectiveLine);
+    REQUIRE(out_line.opcode.type == SYM_DIRECTIVE);
+    REQUIRE(out_line.opcode.val  == DIR_DEFW);
+    REQUIRE(out_line.opcode.repr == ".defw");
+    REQUIRE(out_line.addr == TEXT_START_ADDR);
+    REQUIRE(out_line.line_num == 1);
+    
+    out_program = assem.getProgram();
+    REQUIRE(out_program.length() == 1);
+    REQUIRE(out_program.get(0).ins == 16);
+    REQUIRE(out_program.get(0).adr == TEXT_START_ADDR);
+
+    // literal with label
+    assem.loadSource(defw_literal_label);
+    assem.assemble();
+    out_source = assem.getSourceInfo();
+
+    REQUIRE(out_source.getNumLines() == 1);
+    out_line = out_source.get(0);
+    REQUIRE(out_line.type == LineType::DirectiveLine);
+    REQUIRE(out_line.opcode.type == SYM_DIRECTIVE);
+    REQUIRE(out_line.opcode.val  == DIR_DEFW);
+    REQUIRE(out_line.opcode.repr == ".defw");
+    REQUIRE(out_line.addr == TEXT_START_ADDR);
+    REQUIRE(out_line.line_num == 1);
+    REQUIRE(out_line.label == "label");
+
+    out_program = assem.getProgram();
+    REQUIRE(out_program.length() == 1);
+    REQUIRE(out_program.get(0).ins == 16);
+    REQUIRE(out_program.get(0).adr == TEXT_START_ADDR);
+}
+
+TEST_CASE("test_defw_literal_expr", "directive")
+{
+    const std::string defw_literal_expr = "label: .defw (8 * 4) / 2";
+
+    Assembler assem;
+    Program out_program;
+    SourceInfo out_source;
+    LineInfo out_line;
+
+    assem.setVerbose(GLOBAL_VERBOSE);
+
+    // single literal
+    assem.loadSource(defw_literal_expr);
+    assem.assemble();
+
+    out_source = assem.getSourceInfo();
+
+    REQUIRE(out_source.getNumLines() == 1);
+    out_line = out_source.get(0);
+    REQUIRE(out_line.type == LineType::DirectiveLine);
+    REQUIRE(out_line.opcode.type == SYM_DIRECTIVE);
+    REQUIRE(out_line.opcode.val  == DIR_DEFW);
+    REQUIRE(out_line.opcode.repr == ".defw");
+    REQUIRE(out_line.addr == TEXT_START_ADDR);
+    REQUIRE(out_line.line_num == 1);
+    
+    out_program = assem.getProgram();
+    REQUIRE(out_program.length() == 1);
+    REQUIRE(out_program.get(0).ins == 16);
     REQUIRE(out_program.get(0).adr == TEXT_START_ADDR);
 }

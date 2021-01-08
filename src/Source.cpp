@@ -331,6 +331,7 @@ void LineInfo::eval(void)
     unsigned int str_start = 0;
     unsigned int str_idx;
 
+    // TODO : note that comma seperated args are not yet supported
     for(str_idx = 0; str_idx < this->expr.size(); ++str_idx)
     {
         if(this->expr[str_idx] == ',')

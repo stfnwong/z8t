@@ -43,6 +43,7 @@ void Assembler::init(void)
     this->cur_pos        = 0;
     this->cur_pos        = 0;
     this->cur_addr       = TEXT_START_ADDR;     
+    //this->cur_char       = '\0';
     this->source_info.init();
     this->program.init();
 }
@@ -387,7 +388,7 @@ std::string Assembler::read_to_line_end(void)
     int str_start_idx = this->cur_pos;
     int str_end_idx = this->cur_pos;
 
-    while(this->cur_char != ';' || this->cur_char != '\n')
+    while(!this->exhausted() && (this->cur_char != ';' || this->cur_char != '\n')) // || this->cur_char == '\0')
     {
         this->advance();
         str_end_idx++;
@@ -419,6 +420,12 @@ void Assembler::parse_directive(const Token& token)
         case DIR_EQU:       // this must be a literal
             arg_token = this->next_token();
             this->line_info.data = arg_token.val;
+            if(arg_token.type != SYM_LITERAL)
+            {
+                this->line_info.error = true;
+                this->line_info.errstr = "equ directive got invalid argument " + std::string(arg_token.repr);
+                break;
+            }
             break;
 
         case DIR_ORG:   // updates the current address
@@ -651,8 +658,11 @@ void Assembler::assem_instr(void)
         }
         else if(line.type == LineType::DirectiveLine)
         {
+            if(line.expr.length() > 0)
+                line.eval();
+
             cur_instr.adr = line.addr;
-            cur_instr.size = 1;
+            cur_instr.size = 1; // TODO: this depends on defw, defb, etc
             cur_instr.ins  = uint8_t(line.data);
         }
         else
@@ -672,6 +682,11 @@ void Assembler::assemble(void)
     this->init();
     if(this->verbose)
         std::cout << "[" << __func__ << "] verbose is true" << std::endl;
+
+    if(this->source.length() == 0)
+        return;
+
+    this->cur_char = this->source[0];
 
     while(!this->exhausted())
     {
