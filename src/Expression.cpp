@@ -550,7 +550,7 @@ ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceIn
                 //return expr_stack;
             }
             if(!dir_line.evaluated)
-                dir_line.eval();
+                dir_line.eval(info);
 
             // TODO: this will need to change when comma seperated args
             // are implemented
@@ -570,10 +570,13 @@ ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceIn
 /*
  * eval_expr_string()
  */
-float eval_expr_string(const std::string& expr_string)
+float eval_expr_string(const std::string& expr_string, const SourceInfo& info)
 {
-    ExprStack infix_stack = expr_tokenize(expr_string);
-    ExprStack postfix_stack = expr_infix_to_postfix(infix_stack);
+    ExprStack infix_stack, postfix_stack;
+
+    infix_stack = expr_tokenize(expr_string);
+    infix_stack = expr_stack_resolve_strings(infix_stack, info);    // TODO; inplace version
+    postfix_stack = expr_infix_to_postfix(infix_stack);
 
     return eval_postfix_expr_stack(postfix_stack);
 }

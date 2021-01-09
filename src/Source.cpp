@@ -327,7 +327,7 @@ uint32_t LineInfo::argHash(void) const
 /*
  * LineInfo::eval()
  */
-void LineInfo::eval(void)
+void LineInfo::eval(const SourceInfo& info)
 {
     std::string cur_string;
     unsigned int str_start = 0;
@@ -340,7 +340,7 @@ void LineInfo::eval(void)
         {
             cur_string = this->expr.substr(str_start, str_idx - str_start);
             str_start = str_idx+1;        // for the next substring
-            float eval = eval_expr_string(cur_string);
+            float eval = eval_expr_string(cur_string, info);
             this->data = int(eval);
             //this->data.push_back(int(eval));
         }
@@ -350,7 +350,7 @@ void LineInfo::eval(void)
     if(str_idx > 0)
     {
         cur_string = this->expr.substr(str_start, str_idx - str_start);
-        float eval = eval_expr_string(cur_string);
+        float eval = eval_expr_string(cur_string, info);
         this->data = int(eval);
         //this->data.push_back(int(eval));
     }

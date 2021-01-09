@@ -102,6 +102,7 @@ TEST_CASE("test_textline_hash", "source")
 
 TEST_CASE("test_single_part_expr", "source")
 {
+    SourceInfo dummy_info;
     const std::string test_expr = "1 * 50 / 2";
     LineInfo line;
 
@@ -109,7 +110,7 @@ TEST_CASE("test_single_part_expr", "source")
     line.expr = test_expr;
     REQUIRE(line.evaluated == false);
     //REQUIRE(line.data_size() == 0);       // TODO: fix after comma-seperated expr support is implemented
-    line.eval();
+    line.eval(dummy_info);
     REQUIRE(line.data_size() == 1);
     REQUIRE(line.data == int(1 * 50 / 2));
     REQUIRE(line.evaluated == true);
@@ -117,13 +118,14 @@ TEST_CASE("test_single_part_expr", "source")
 
 TEST_CASE("test_literal_expr", "source")
 {
+    SourceInfo dummy_info;
     const std::string test_expr = "16";
     LineInfo line;
 
     // setup the expression
     line.expr = test_expr;
     REQUIRE(line.evaluated == false);
-    line.eval();
+    line.eval(dummy_info);
     REQUIRE(line.data_size() == 1);
     REQUIRE(line.data == 16);
     REQUIRE(line.evaluated == true);
@@ -133,13 +135,14 @@ TEST_CASE("test_literal_expr", "source")
 // symbol resolution is implemented
 //TEST_CASE("test_multi_part_expr", "source")
 //{
+//    SourceInfo dummy_info;
 //    std::string test_expr = "1 * 50 / 2 , 2 * 20 / 4, 3 + 3, 1 + 2";
 //    LineInfo line;
 //
 //    // setup the expression
 //    line.expr = test_expr;
 //    REQUIRE(line.data_size() == 0);
-//    line.eval();
+//    line.eval(dummy_info);
 //
 //    const std::vector<int> exp_evals = {
 //        int(1 * 50 / 2),

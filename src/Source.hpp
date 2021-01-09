@@ -257,6 +257,8 @@ struct Symbol
 
 
 enum struct LineType {TextLine, DirectiveLine};
+class SourceInfo;       // fwd delcare until we resolve how to split eval lookups
+
 /*
  * LineInfo
  * Base class for line structures (either text or data)
@@ -293,7 +295,7 @@ struct LineInfo
         uint32_t argHash(void) const;
 
         // directive methods
-        void eval(void);
+        void eval(const SourceInfo& info);
         unsigned int data_size(void) const;
 
         std::string toString(void) const;

@@ -663,8 +663,8 @@ void Assembler::assem_instr(void)
         else if(line.type == LineType::DirectiveLine)
         {
             //if(line.opcode.val == DIR_DEFW || line.opcode.val == DIR_DEFB)
-            if(line.expr.size() > 0)
-                line.eval();
+            if(line.expr.size() > 0 && line.evaluated == false)
+                line.eval(this->source_info);
 
             cur_instr.adr = line.addr;
             cur_instr.size = 1;     // TODO: this depends on defw, defb, etc
