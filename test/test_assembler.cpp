@@ -870,3 +870,16 @@ TEST_CASE("test_defw_literal_expr", "directive")
 
     REQUIRE(out_program.get(0) == exp_program.get(0));
 }
+
+TEST_CASE("test_org", "directive")
+{
+    const std::string org_fragment = ".org $BEEF";
+
+    Assembler assem;
+    assem.setVerbose(GLOBAL_VERBOSE);
+    assem.loadSource(org_fragment);
+
+    REQUIRE(assem.getCurAddr() == TEXT_START_ADDR);
+    assem.assemble();
+    REQUIRE(assem.getCurAddr() == 0xBEEF);
+}

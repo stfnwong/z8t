@@ -307,6 +307,7 @@ std::string ExprStack::toString(void) const
 {
     std::ostringstream oss;
 
+    oss << "[" << std::dec << this->size() << "]  ";
     for(unsigned int idx = 0; idx < this->size(); ++idx)
         oss << this->stack[idx].repr << " ";
 
@@ -523,16 +524,46 @@ float eval_postfix_expr_stack(const ExprStack& expr_stack)
 
 /*
  * expr_stack_resolve_strings()
+ * NOTE: for now I just make a copy. Eventually it do this in-place
  */
 ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceInfo& info)
 {
+    ExprStack out_stack;
+
     for(unsigned int idx = 0; idx < expr_stack.size(); ++idx)
     {
         if(expr_stack[idx].type == TOK_STRING)
         {
+            uint16_t addr = info.getSymAddr(expr_stack[idx].repr);
+            if(addr == 0)
+            {
+                std::cerr << "[" << __func__ << "] failed to resolve address for token " << expr_stack[idx].toString() << std::endl;
+                return out_stack;
+                //return expr_stack;
+            }
 
+            LineInfo dir_line = info.getAddr(addr);
+            if(dir_line.addr != addr || dir_line.addr == 0)
+            { 
+                std::cerr << "[" << __func__ << "] failed to find directive at address 0x" << std::hex << std::setw(4) << addr << std::endl;
+                return out_stack;
+                //return expr_stack;
+            }
+            if(!dir_line.evaluated)
+                dir_line.eval();
+
+            // TODO: this will need to change when comma seperated args
+            // are implemented
+            out_stack.push(ExprToken(TOK_LITERAL, std::to_string(dir_line.data)));
         }
+        else
+            out_stack.push(expr_stack[idx]);
+
+        // TODO: deubg, remove 
+        //std::cout << "[" << __func__ << "] " << out_stack.toString() << std::endl;
     }
+
+    return out_stack;
 }
 
 

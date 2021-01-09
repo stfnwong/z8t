@@ -230,6 +230,7 @@ void LineInfo::init(void)
     // directive fields 
     this->expr.clear();
     this->data = 0;
+    this->evaluated = false;
     //this->data.clear();
 }
 
@@ -353,6 +354,8 @@ void LineInfo::eval(void)
         this->data = int(eval);
         //this->data.push_back(int(eval));
     }
+
+    this->evaluated = true;
 }
 
 /*

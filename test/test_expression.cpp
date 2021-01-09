@@ -220,18 +220,51 @@ TEST_CASE("test_expr_eval_symbols", "expression")
     int16_t x_addr = 0x1000;
     int16_t y_addr = 0x2000;
 
+    // create symbols and directive to resolve against
     Symbol sym_x = Symbol(x_addr, "x");
-    Symbol sym_y = Symbol(x_addr, "y");
+    Symbol sym_y = Symbol(y_addr, "y");
     LineInfo dir_x;
     LineInfo dir_y;
 
     dir_x.type = LineType::DirectiveLine;
+    dir_x.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
     dir_x.addr = x_addr;
+    dir_x.expr = "5";
 
     dir_y.type = LineType::DirectiveLine;
+    dir_y.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
     dir_y.addr = y_addr;
+    dir_y.expr = "10";
+
+    info.addSym(sym_x);
+    info.addSym(sym_y);
+    info.add(dir_x);
+    info.add(dir_y);
+
+    const std::string expr_input = "3 + x * y / (y - 5)";
+    int exp_eval = int(3 + 5 * 10 / (10 - 5));
+
+    ExprStack token_stack;
+
+    token_stack = expr_tokenize(expr_input);
+    std::cout << "infix : " << std::endl;
+    std::cout << token_stack.toString() << std::endl;
+    REQUIRE(token_stack[2].type == TOK_STRING);
+    REQUIRE(token_stack[4].type == TOK_STRING);
+    REQUIRE(token_stack[7].type == TOK_STRING);
+
+    // NOTE: need to resolve before postfix conversion...
+    ExprStack resolved_stack = expr_stack_resolve_strings(token_stack, info);
+
+    std::cout << "resolved : " << std::endl;
+    std::cout << resolved_stack.toString() << std::endl;
 
 
-    const std::string expr_input = "3 + x * y / (1 - 5)";
+    token_stack = expr_infix_to_postfix(resolved_stack);
+    std::cout << "postfix : " << std::endl;
+    std::cout << token_stack.toString() << std::endl;
 
+    float eval_out = eval_postfix_expr_stack(token_stack);
+    std::cout << "eval_out : " << eval_out << std::endl;
+    REQUIRE(int(eval_out) == exp_eval);
 }

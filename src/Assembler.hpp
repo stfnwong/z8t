@@ -290,8 +290,8 @@ class Assembler
 
     // parsing 
     private:
-        Token tok_string_to_literal(const std::string& tok_string) const;
-        Token next_token(void);
+        Token       tok_string_to_literal(const std::string& tok_string) const;
+        Token       next_token(void);
 
         void        skip_whitespace(void);
         void        skip_line(void);
@@ -322,6 +322,7 @@ class Assembler
         int   read(const std::string& filename);
         void  loadSource(const std::string& src);
         const SourceInfo& getSourceInfo(void) const;
+        unsigned int getCurAddr(void) const;
 
         // getters, setters 
         Program getProgram(void) const;

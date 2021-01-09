@@ -203,6 +203,7 @@ const Token Z80_TOKENS[] =
     Token(SYM_DIRECTIVE, DIR_END,     ".end"),
     Token(SYM_DIRECTIVE, DIR_EQU,     ".equ"),
     Token(SYM_DIRECTIVE, DIR_INCLUDE, ".include"),
+    Token(SYM_DIRECTIVE, DIR_ORG,     ".org"),
 };
 
 
@@ -278,6 +279,7 @@ struct LineInfo
     // directive fields
     std::string      expr;
     int              data;       // TODO: this will become a vector when comma seperated fields are supported
+    bool             evaluated;
     //std::vector<int> data;           // generic data (eg, from a list of defb/defw)
 
     public:

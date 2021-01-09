@@ -428,6 +428,9 @@ void Assembler::parse_directive(const Token& token)
             }
             break;
 
+        case DIR_INCLUDE:
+            break;
+
         case DIR_ORG:   // updates the current address
             arg_token = this->next_token();
             if(arg_token.type != SYM_LITERAL)
@@ -451,6 +454,7 @@ void Assembler::parse_directive(const Token& token)
                 std::cout << "[" << __func__ << "] (line " << this->cur_line 
                     << ") : " << this->line_info.errstr << std::endl;
             }
+            break;
     }
 
     // TODO: debug, remove 
@@ -658,7 +662,8 @@ void Assembler::assem_instr(void)
         }
         else if(line.type == LineType::DirectiveLine)
         {
-            if(line.opcode.val == DIR_DEFW || line.opcode.val == DIR_DEFB)
+            //if(line.opcode.val == DIR_DEFW || line.opcode.val == DIR_DEFB)
+            if(line.expr.size() > 0)
                 line.eval();
 
             cur_instr.adr = line.addr;
@@ -709,6 +714,11 @@ void Assembler::assemble(void)
 
     // now walk over the sourceinfo and assemble
     this->assem_instr();
+}
+
+unsigned int Assembler::getCurAddr(void) const
+{
+    return this->cur_addr;
 }
 
 Program Assembler::getProgram(void) const

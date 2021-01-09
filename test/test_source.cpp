@@ -14,6 +14,7 @@
 
 #include "Source.hpp"
 
+
 TEST_CASE("test_symbol_table", "source")
 {
     SourceInfo info;
@@ -106,10 +107,12 @@ TEST_CASE("test_single_part_expr", "source")
 
     // setup the expression
     line.expr = test_expr;
+    REQUIRE(line.evaluated == false);
     //REQUIRE(line.data_size() == 0);       // TODO: fix after comma-seperated expr support is implemented
     line.eval();
     REQUIRE(line.data_size() == 1);
     REQUIRE(line.data == int(1 * 50 / 2));
+    REQUIRE(line.evaluated == true);
 }
 
 TEST_CASE("test_literal_expr", "source")
@@ -119,10 +122,11 @@ TEST_CASE("test_literal_expr", "source")
 
     // setup the expression
     line.expr = test_expr;
+    REQUIRE(line.evaluated == false);
     line.eval();
     REQUIRE(line.data_size() == 1);
     REQUIRE(line.data == 16);
-
+    REQUIRE(line.evaluated == true);
 }
 
 // TODO: the implementation of multi-part exprs should be finalized after
@@ -186,6 +190,34 @@ TEST_CASE("test_sourceinfo_lookup_directive_by_addr", "source")
     REQUIRE(out_line != line);
     REQUIRE(out_line.addr == 0x0);
     REQUIRE(out_line.line_num == 0x0);
+}
+
+TEST_CASE("test_sourceinfo_lookup_directive_by_symbol", "directive")
+{
+    SourceInfo source;
+    const std::string sym_label = "x";
+    const uint16_t sym_addr = 0xBEEF;
+
+    // create a symbol that references the directive line
+    Symbol sym(sym_addr, sym_label); 
+    source.addSym(sym);
+
+    // create a new directive line and add to SourceInfo
+    LineInfo line;
+    line.type = LineType::DirectiveLine;
+    line.addr = sym_addr;
+    line.expr = "1 + 2 + 3";
+
+    source.add(line);
+    REQUIRE(source.getNumLines() == 1);
+
+    // To turn a symbol into a directive, we lookup the symbol address first, 
+    // then seperately lookup the directive line that has that address
+    LineInfo out_line;
+    uint16_t out_sym_addr = source.getSymAddr(sym_label);
+    REQUIRE(out_sym_addr == sym_addr);
+    out_line = source.getAddr(out_sym_addr);
+    REQUIRE(out_line == line);
 }
 
 //TEST_CASE("test_sourceinfo_add_get", "source")
