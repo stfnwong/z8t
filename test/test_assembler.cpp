@@ -15,7 +15,7 @@
 #include "Source.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = true;
+constexpr const bool GLOBAL_VERBOSE = false;
 const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
@@ -783,7 +783,7 @@ Program get_defw_expected_program(void)
 {
     Program prog;
 
-    prog.add(Instr(TEXT_START_ADDR, 16, 1));
+    prog.add(Instr(TEXT_START_ADDR, 16, 2));    // size should be 1 for defb
 
     return prog;
 }   
@@ -835,6 +835,12 @@ TEST_CASE("test_defw_single_literal", "directive")
     out_program = assem.getProgram();
     exp_program = get_defw_expected_program();
 
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "out_program line : " << std::endl << out_program.get(0).toString() << std::endl;
+        std::cout << "exp_program line : " << std::endl << exp_program.get(0).toString() << std::endl;
+    }
+
     REQUIRE(out_program.get(0) == exp_program.get(0));
 }
 
@@ -867,6 +873,12 @@ TEST_CASE("test_defw_literal_expr", "directive")
     REQUIRE(out_line == exp_line);
     out_program = assem.getProgram();
     exp_program = get_defw_expected_program();
+
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "out_program line : " << std::endl << out_program.get(0).toString() << std::endl;
+        std::cout << "exp_program line : " << std::endl << exp_program.get(0).toString() << std::endl;
+    }
 
     REQUIRE(out_program.get(0) == exp_program.get(0));
 }

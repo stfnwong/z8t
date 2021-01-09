@@ -6,6 +6,7 @@
 
 #include <iomanip>
 #include <iostream>
+
 #include "Source.hpp"
 #include "Expression.hpp"
 
@@ -228,6 +229,7 @@ void LineInfo::init(void)
     for(int i = 0; i < 2; ++i)
         this->args[i].init();
     // directive fields 
+    this->eval_result.init();
     this->expr.clear();
     this->data = 0;
     this->evaluated = false;
@@ -241,7 +243,7 @@ bool LineInfo::operator==(const LineInfo& that) const
         return false;
     if(this->label != that.label)
         return false;
-    // don't bother to comapre the error string
+    // don't bother comparing the error string
     if(this->line_num != that.line_num)
         return false;
     if(this->addr != that.addr)
@@ -340,8 +342,8 @@ void LineInfo::eval(const SourceInfo& info)
         {
             cur_string = this->expr.substr(str_start, str_idx - str_start);
             str_start = str_idx+1;        // for the next substring
-            float eval = eval_expr_string(cur_string, info);
-            this->data = int(eval);
+            EvalResult eval = eval_expr_string(cur_string, info);
+            this->data = eval.val;
             //this->data.push_back(int(eval));
         }
     }
@@ -350,8 +352,8 @@ void LineInfo::eval(const SourceInfo& info)
     if(str_idx > 0)
     {
         cur_string = this->expr.substr(str_start, str_idx - str_start);
-        float eval = eval_expr_string(cur_string, info);
-        this->data = int(eval);
+        EvalResult eval = eval_expr_string(cur_string, info);
+        this->data = eval.val;
         //this->data.push_back(int(eval));
     }
 

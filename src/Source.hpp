@@ -13,6 +13,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "Eval.hpp"
+
 // TODO : find real start address
 #define TEXT_START_ADDR 0x1000
 
@@ -256,13 +258,13 @@ struct Symbol
 };
 
 
-enum struct LineType {TextLine, DirectiveLine};
-class SourceInfo;       // fwd delcare until we resolve how to split eval lookups
-
 /*
  * LineInfo
  * Base class for line structures (either text or data)
  */
+enum struct LineType {TextLine, DirectiveLine};
+class SourceInfo;       // fwd delcare until we resolve how to split eval lookups
+
 struct LineInfo
 {
     // common fields 
@@ -279,9 +281,10 @@ struct LineInfo
     Token       args[2];
     int         sym_arg;
     // directive fields
-    std::string      expr;
-    int              data;       // TODO: this will become a vector when comma seperated fields are supported
-    bool             evaluated;
+    EvalResult  eval_result;  // TODO: does this become a vector of EvalResult when comma seperated args are supported?
+    std::string expr;
+    int         data;       // TODO: this will become a vector when comma seperated fields are supported
+    bool        evaluated;
     //std::vector<int> data;           // generic data (eg, from a list of defb/defw)
 
     public:
@@ -298,9 +301,10 @@ struct LineInfo
         void eval(const SourceInfo& info);
         unsigned int data_size(void) const;
 
+        // stringify
         std::string toString(void) const;
-        std::string diff(const LineInfo& that);
         std::string toInstrString(void) const;
+        std::string diff(const LineInfo& that);
 };
 
 

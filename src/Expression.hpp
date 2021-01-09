@@ -213,7 +213,7 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack);
  * eval_postfix_expr_stack
  * Take an ExprStack containing a postfix expression and evaluate it
  */
-float eval_postfix_expr_stack(const ExprStack& expr_stack);
+EvalResult eval_postfix_expr_stack(const ExprStack& expr_stack);
 
 /*
  * exp_stack_resolve_strings()
@@ -224,7 +224,7 @@ ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceIn
 /*
  * eval_expr_string()
  */
-float eval_expr_string(const std::string& expr_string, const SourceInfo& info);
+EvalResult eval_expr_string(const std::string& expr_string, const SourceInfo& info);
 
 /*
  * display_stack_debug()

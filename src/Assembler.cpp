@@ -667,7 +667,10 @@ void Assembler::assem_instr(void)
                 line.eval(this->source_info);
 
             cur_instr.adr = line.addr;
-            cur_instr.size = 1;     // TODO: this depends on defw, defb, etc
+            if(line.opcode.val == DIR_DEFW)
+                cur_instr.size = 2;
+            else
+                cur_instr.size = 1;     // TODO: this depends on defw, defb, etc
             cur_instr.ins  = uint8_t(line.data);
         }
         else

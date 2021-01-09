@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "Expression.hpp"
+#include "Eval.hpp"     // for EvalResult
 #include "Util.hpp"     // for equal()
 
 constexpr const bool GLOBAL_VERBOSE = false;
@@ -193,11 +194,12 @@ TEST_CASE("test_expr_literal", "expression")
     ExprStack infix_stack = expr_tokenize(expr_input);
     ExprStack postfix_stack = expr_infix_to_postfix(infix_stack);
 
-    float eval_out = eval_postfix_expr_stack(postfix_stack);
+    EvalResult eval_out = eval_postfix_expr_stack(postfix_stack);
     // ensure it also works with the eval wrapper 
-    float wrapper_out = eval_expr_string(expr_input, dummy_info);
-    REQUIRE(equal(eval_out, 5.0));
-    REQUIRE(equal(wrapper_out, 5.0));
+    EvalResult wrapper_out = eval_expr_string(expr_input, dummy_info);
+
+    REQUIRE(eval_out.val == 5);
+    REQUIRE(wrapper_out.val == 5);
 }
 
 TEST_CASE("test_expr_eval", "expression")
@@ -206,17 +208,17 @@ TEST_CASE("test_expr_eval", "expression")
     ExprStack infix_stack = expr_tokenize(expr_input);
     ExprStack postfix_stack = expr_infix_to_postfix(infix_stack);
 
-    float eval_out = eval_postfix_expr_stack(postfix_stack);
+    EvalResult eval_out = eval_postfix_expr_stack(postfix_stack);
     if(GLOBAL_VERBOSE)
     {
-        std::cout << "Expression [" << expr_input << "] evaluates to : " << eval_out << std::endl;
+        std::cout << "Expression [" << expr_input << "] evaluates to : " << eval_out.val << std::endl;
         std::cout << "Expression [" << expr_input << "] expected     : " << (3 + 4 * 2 / (1 - 5)) << std::endl;
     }
 
-    REQUIRE(equal(eval_out, 1.0));
+    REQUIRE(eval_out.val == 1);
 }
 
-TEST_CASE("test_expr_eval_symbols", "expression")
+SourceInfo get_expr_eval_source(void)
 {
     SourceInfo info;
     int16_t x_addr = 0x1000;
@@ -243,14 +245,26 @@ TEST_CASE("test_expr_eval_symbols", "expression")
     info.add(dir_x);
     info.add(dir_y);
 
+    return info;
+}
+
+
+// Test that manually calling each method works
+TEST_CASE("test_expr_eval_symbols", "expression")
+{
+    SourceInfo info;
+    ExprStack token_stack;
     const std::string expr_input = "3 + x * y / (y - 5)";
     int exp_eval = int(3 + 5 * 10 / (10 - 5));
 
-    ExprStack token_stack;
+    info = get_expr_eval_source();
 
     token_stack = expr_tokenize(expr_input);
-    std::cout << "infix : " << std::endl;
-    std::cout << token_stack.toString() << std::endl;
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "infix : " << std::endl;
+        std::cout << token_stack.toString() << std::endl;
+    }
     REQUIRE(token_stack[2].type == TOK_STRING);
     REQUIRE(token_stack[4].type == TOK_STRING);
     REQUIRE(token_stack[7].type == TOK_STRING);
@@ -258,50 +272,45 @@ TEST_CASE("test_expr_eval_symbols", "expression")
     // NOTE: need to resolve before postfix conversion...
     ExprStack resolved_stack = expr_stack_resolve_strings(token_stack, info);
 
-    std::cout << "resolved : " << std::endl;
-    std::cout << resolved_stack.toString() << std::endl;
-
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "resolved : " << std::endl;
+        std::cout << resolved_stack.toString() << std::endl;
+    }
 
     token_stack = expr_infix_to_postfix(resolved_stack);
-    std::cout << "postfix : " << std::endl;
-    std::cout << token_stack.toString() << std::endl;
 
-    float eval_out = eval_postfix_expr_stack(token_stack);
-    std::cout << "eval_out : " << eval_out << std::endl;
-    REQUIRE(int(eval_out) == exp_eval);
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "postfix : " << std::endl;
+        std::cout << token_stack.toString() << std::endl;
+    }
+
+    EvalResult eval_out = eval_postfix_expr_stack(token_stack);
+    std::cout << "eval_out : " << eval_out.toString() << std::endl;
+    REQUIRE(eval_out.val == exp_eval);
 }
 
 TEST_CASE("test_expr_eval_symbols_direct", "directive")
 {
     SourceInfo info;
-    int16_t x_addr = 0x1000;
-    int16_t y_addr = 0x2000;
-
-    // create symbols and directive to resolve against
-    Symbol sym_x = Symbol(x_addr, "x");
-    Symbol sym_y = Symbol(y_addr, "y");
-    LineInfo dir_x;
-    LineInfo dir_y;
-
-    dir_x.type = LineType::DirectiveLine;
-    dir_x.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
-    dir_x.addr = x_addr;
-    dir_x.expr = "5";
-
-    dir_y.type = LineType::DirectiveLine;
-    dir_y.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
-    dir_y.addr = y_addr;
-    dir_y.expr = "10";
-
-    info.addSym(sym_x);
-    info.addSym(sym_y);
-    info.add(dir_x);
-    info.add(dir_y);
-
-
     const std::string expr_input = "3 + x * y / (y - 5)";
     int exp_eval = int(3 + 5 * 10 / (10 - 5));
 
-    float eval_out = eval_expr_string(expr_input, info);
-    REQUIRE(int(eval_out) == exp_eval);
+    info = get_expr_eval_source();
+
+    EvalResult eval_out = eval_expr_string(expr_input, info);
+    REQUIRE(eval_out.val == exp_eval);
+}
+
+TEST_CASE("test_expr_eval_symbol_failure", "directive")
+{
+    SourceInfo info;
+    const std::string expr_input = "3 + a * b / (y - 5)";
+
+    info = get_expr_eval_source();
+
+    EvalResult eval_out = eval_expr_string(expr_input, info);
+    std::cout << "eval_out : " << eval_out.toString() << std::endl;
+
 }

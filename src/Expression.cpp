@@ -12,7 +12,9 @@
 #include <iomanip>
 #include <stack>
 #include <sstream>
+
 #include "Expression.hpp"
+
 
 /*
  * OP_INFO
@@ -475,7 +477,7 @@ ExprStack expr_infix_to_postfix(const ExprStack& infix_stack)
 /*
  * eval_postfix_expr_stack()
  */
-float eval_postfix_expr_stack(const ExprStack& expr_stack)
+EvalResult eval_postfix_expr_stack(const ExprStack& expr_stack)
 {
     float l, r, y;
     std::stack<float> output_stack;
@@ -489,7 +491,7 @@ float eval_postfix_expr_stack(const ExprStack& expr_stack)
         if(cur_token.isOperator())
         {
             if(output_stack.size() < 2)
-                return 0.0;     // TODO : how to signal invalid op? throw here?
+                return EvalResult(0.0, false);
 
             r = output_stack.top();
             output_stack.pop();
@@ -512,14 +514,14 @@ float eval_postfix_expr_stack(const ExprStack& expr_stack)
                 default:
                     std::cerr << "[" << __func__ << "] somehow got token " << cur_token.toString()
                         << " in operator path." << std::endl;
-                    break;      
+                    return EvalResult(0, false);      
             }
             output_stack.push(y);
         }
     }
     y = output_stack.top();
 
-    return y;
+    return EvalResult(int(y), true);
 }
 
 /*
@@ -554,13 +556,12 @@ ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceIn
 
             // TODO: this will need to change when comma seperated args
             // are implemented
-            out_stack.push(ExprToken(TOK_LITERAL, std::to_string(dir_line.data)));
+            out_stack.push(
+                    ExprToken(TOK_LITERAL, std::to_string(dir_line.data))
+            );
         }
         else
             out_stack.push(expr_stack[idx]);
-
-        // TODO: deubg, remove 
-        //std::cout << "[" << __func__ << "] " << out_stack.toString() << std::endl;
     }
 
     return out_stack;
@@ -570,7 +571,7 @@ ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceIn
 /*
  * eval_expr_string()
  */
-float eval_expr_string(const std::string& expr_string, const SourceInfo& info)
+EvalResult eval_expr_string(const std::string& expr_string, const SourceInfo& info)
 {
     ExprStack infix_stack, postfix_stack;
 

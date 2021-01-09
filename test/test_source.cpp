@@ -75,6 +75,8 @@ TEST_CASE("test_lineinfo_init", "source")
 
     //REQUIRE(line.data.size() == 0);       // TODO: this will become relevant when comma-seperated fields are implemented
     REQUIRE(line.expr == "");
+    REQUIRE(line.data == 0);
+    REQUIRE(line.evaluated == false);
 }
 
 
