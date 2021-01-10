@@ -6,7 +6,13 @@
 
 #include <iomanip>
 #include <iostream>
+
 #include "Source.hpp"
+#include "Expression.hpp"
+
+/*
+ * ======== TOKEN ======== //
+ */
 
 /*
  * Token
@@ -66,21 +72,23 @@ std::string Token::toString(void) const
     switch(this->type)
     {
         case SYM_EOF:
-            return "EOF <" + std::string(this->repr) + ">";
+            return "EOF <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_INSTR:
-            return "INSTR <" + std::string(this->repr) + ">";
+            return "INSTR <" + std::string(this->repr) + "> " + std::to_string(this->val);
+        case SYM_DIRECTIVE:
+            return "DIRECTIVE <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_LITERAL:
-            return "LITERAL <" + std::string(this->repr) + ">";
+            return "LITERAL <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_LITERAL_IND:
-            return "LITERAL_IND <" + std::string(this->repr) + ">";
+            return "LITERAL_IND <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_LABEL:
-            return "LABEL <" + std::string(this->repr) + ">";
+            return "LABEL <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_REG:
-            return "REGISTER <" + std::string(this->repr) + ">";
+            return "REGISTER <" + std::string(this->repr) + "> " + std::to_string(this->val);
         case SYM_COND:
-            return "CONDITION <" + std::string(this->repr) + ">";
+            return "CONDITION <" + std::string(this->repr) + "> " + std::to_string(this->val);
         default:
-            return "NULL <" + std::string(this->repr) + ">";
+            return "NULL <" + std::string(this->repr) + "> " + std::to_string(this->val);
     }
 }
 
@@ -91,9 +99,7 @@ std::string Token::toString(void) const
 TokenLookup::TokenLookup()
 {
     for(const Token& token : Z80_TOKENS)
-    {
         this->name_to_token[token.repr] = token;
-    }
 }
 
 
@@ -122,6 +128,10 @@ OpcodeLookup::OpcodeLookup()
     }
 }
 
+/*
+ * get()
+ * Get opcode by val
+ */
 Token OpcodeLookup::get(const int val) const
 {
     auto op = this->val_to_opcode.find(val);
@@ -132,6 +142,10 @@ Token OpcodeLookup::get(const int val) const
 }
 
 
+/*
+ * get()
+ * Get opcode by name
+ */
 Token OpcodeLookup::get(const std::string& name) const
 {
     auto op = this->name_to_opcode.find(name);
@@ -140,6 +154,10 @@ Token OpcodeLookup::get(const std::string& name) const
 
     return Token();     // can't find anything, return an empty token
 }
+
+/*
+ * ======== SYMBOL ======== //
+ */
 
 /* 
  * Symbol
@@ -185,140 +203,67 @@ std::string Symbol::toString(void) const
     return oss.str();
 }
 
-/*
- * SymbolTable
- */
-SymbolTable::SymbolTable() {} 
 
 /*
- * add()
+ * ======== LINE INFO ======== //
  */
-void SymbolTable::add(const Symbol& s)
-{
-    this->syms.push_back(s);
-}
 
-/*
- * update()
- */
-void SymbolTable::update(const unsigned int idx, const Symbol& s)
-{
-    if(idx < this->syms.size())
-        this->syms[idx] = s;
-}
-
-/*
- * get()
- */
-Symbol SymbolTable::get(const unsigned int idx) const
-{
-    return this->syms[idx];
-}
-
-/*
- * getAddr()
- */
-uint16_t SymbolTable::getAddr(const std::string& sym) const
-{
-    uint16_t addr = 0;
-
-    // if this turns out to be a bottleneck then this can be made 
-    // and unordered map of labels to addresses
-    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
-    {
-        if(sym == this->syms[idx].label)
-            return this->syms[idx].addr;
-    }
-
-    return addr;
-}
-
-std::string SymbolTable::getName(const uint16_t addr)  const
-{
-    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
-    {
-        if(addr == this->syms[idx].addr)
-            return this->syms[idx].label;
-    }
-
-    return "";
-}
-
-/*
- * init()
- */
-void SymbolTable::init(void)
-{
-    this->syms.clear();
-}
-
-unsigned int SymbolTable::size(void) const
-{
-    return this->syms.size();
-}
-
-/*
- * toString()
- */
-std::string SymbolTable::toString(void) const
-{
-    std::ostringstream oss;
-
-    oss << "Symbol Table: (" << this->syms.size() << " symbols)" << std::endl;
-    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
-    {
-        oss << "    [" << this->syms[idx].label << "] -> 0x" << std::hex 
-            << std::setw(4) << std::setfill('0') << this->syms[idx].addr 
-            << std::endl;
-    }
-
-    return oss.str();
-}
-
-/*
- * TextLine
- */
-TextLine::TextLine()
+LineInfo::LineInfo() 
 {
     this->init();
 }
 
-TextLine::TextLine(const Token& opcode, const Token& arg1, const Token& arg2)
+LineInfo::LineInfo(const Token& opcode, const Token& arg1, const Token& arg2)
 {
-    this->init();       // make sure rest of object has some valid defaults
+    this->init();   // ensure members have known good values 
     this->opcode = opcode;
     this->args[0] = arg1;
     this->args[1] = arg2;
 }
 
-
-/*
- * copy ctor
- */
-TextLine::TextLine(const TextLine& that)
+void LineInfo::init(void)
 {
-    this->opcode   = that.opcode;
-    this->label    = that.label;
-    this->errstr   = that.errstr;
-    this->symbol   = that.symbol;
-    this->line_num = that.line_num;
-    this->addr     = that.addr;
-    this->sym_arg  = that.sym_arg;
-
+    // Common fields
+    this->type = LineType::TextLine;
+    this->label.clear();    
+    this->errstr.clear();   
+    this->line_num = 0;
+    this->addr     = 0;
+    this->is_label = false;
+    this->error    = false;
+    // text fields 
+    this->opcode.init();
+    this->sym_arg  = -1; 
     for(int i = 0; i < 2; ++i)
-        this->args[i] = that.args[i];
+        this->args[i].init();
+    // directive fields 
+    this->eval_result.init();
+    this->expr.clear();
+    this->data = 0;
+    this->evaluated = false;
+    //this->data.clear();
 }
 
-/*
- * ==
- */
-bool TextLine::operator==(const TextLine& that) const
+bool LineInfo::operator==(const LineInfo& that) const
 {
-    if(this->opcode != that.opcode)
+    // Common fields 
+    if(this->type != that.type)
         return false;
     if(this->label != that.label)
         return false;
-    if(this->symbol != that.symbol)
+    // don't bother comparing the error string
+    if(this->line_num != that.line_num)
+        return false;
+    if(this->addr != that.addr)
+        return false;
+    if(this->is_label != that.is_label)
+        return false;
+    if(this->error != that.error)
+        return false;
+    // text fields
+    if(this->opcode != that.opcode)
+        return false;
+    if(this->label != that.label)
         return false;
     if(this->line_num != that.line_num)
         return false;
@@ -329,85 +274,139 @@ bool TextLine::operator==(const TextLine& that) const
         if(this->args[i] != that.args[i])
             return false;
     }
+    // directive fields
+    // we don't bother comparing the directive strings 
+    if(this->data != that.data)
+        return false;
+    //if(this->data_size() != that.data_size())
+    //    return false;
+    //for(unsigned int i = 0; i < this->data_size(); ++i)
+    //{
+    //    if(this->data[i] != that.data[i])
+    //        return false;
+    //}
 
     return true;
 }
 
-/*
- * !=
- */
-bool TextLine::operator!=(const TextLine& that) const
+bool LineInfo::operator!=(const LineInfo& that) const
 {
     return !(*this == that);
 }
 
 /*
- * init()
- */
-void TextLine::init(void)
-{
-    // Init opcode 
-    this->opcode.init();
-    // Init others 
-    this->symbol.clear();   
-    this->label.clear();    
-    this->errstr.clear();   
-    this->line_num = 0;
-    this->addr     = 0;
-    this->sym_arg  = -1; 
-
-    this->is_label = false;
-    this->error    = false;
-
-    for(int i = 0; i < 2; ++i)
-        this->args[i].init();
-}
-
-/*
  * argHash()
  */
-uint32_t TextLine::argHash(void) const
+uint32_t LineInfo::argHash(void) const
 {
     uint32_t hash = 0;
 
-    // opcode 
-    hash = hash | ((this->opcode.val & 0xFF) << 16);
-    // first arg 
-    for(int argn = 0; argn < 2; ++argn)
+    if(this->args[0].type == SYM_LITERAL || this->args[0].type == SYM_LABEL)
     {
-        //if(this->args[argn].val >= 0)
-        if(this->args[argn].type != SYM_NULL)
-        {
-            if(this->args[argn].type == SYM_LITERAL_IND || this->args[argn].type == SYM_LITERAL)
-                hash = hash | (this->args[argn].type << ((1 - argn) * 8));
-            else if(this->args[argn].type == SYM_LABEL)
-                hash = hash | (SYM_LITERAL << ((1 - argn) * 8));
-            else 
-                hash = hash | (this->args[argn].val << ((1 - argn) * 8));
-        }
+        hash = ((this->opcode.val  & 0xFF) << 16) | 
+               ((SYM_LITERAL & 0xFF) << 8);
+
+        if(this->args[1].val >= 0)
+            hash = hash | ((this->args[1].val & 0xFF));
+    }
+    else if(this->args[1].type == SYM_LITERAL)
+    {
+        hash = ((this->opcode.val  & 0xFF) << 16) | 
+               ((this->args[0].val & 0xFF) << 8) | 
+               ((this->args[1].type & 0xFF));
+    }
+    // this handles the case where the labels have not yet been resolved
+    else if(this->args[1].type == SYM_LABEL)
+    {
+        hash = ((this->opcode.val  & 0xFF) << 16) | 
+               ((this->args[0].val & 0xFF) << 8) | 
+               ((SYM_LITERAL & 0xFF));
+    }
+    else
+    {
+        hash = ((this->opcode.val  & 0xFF) << 16) | 
+               ((this->args[0].val & 0xFF) << 8);
+
+        if(this->args[1].val >= 0)
+            hash = hash | ((this->args[1].val & 0xFF));
     }
 
     return hash;
 }
 
+
 /*
- * toString()
+ * LineInfo::eval()
  */
-std::string TextLine::toString(void) const
+void LineInfo::eval(const SourceInfo& info)
+{
+    std::string cur_string;
+    unsigned int str_start = 0;
+    unsigned int str_idx;
+
+    // TODO : note that comma seperated args are not yet supported
+    // TODO : check EvalResult and report errors
+    for(str_idx = 0; str_idx < this->expr.size(); ++str_idx)
+    {
+        if(this->expr[str_idx] == ',')
+        {
+            cur_string = this->expr.substr(str_start, str_idx - str_start);
+            str_start = str_idx+1;        // for the next substring
+            EvalResult eval = eval_expr_string(cur_string, info);
+            this->data = eval.val;
+            //this->data.push_back(int(eval));
+        }
+    }
+    // Either there was a string but no substring, or this 
+    // is the last substring with no trailing comma
+    if(str_idx > 0)
+    {
+        cur_string = this->expr.substr(str_start, str_idx - str_start);
+        EvalResult eval = eval_expr_string(cur_string, info);
+        this->data = eval.val;
+        std::cout << this->toString() << std::endl;
+        //this->data.push_back(int(eval));
+    }
+
+    this->evaluated = true;
+}
+
+/*
+ * LineInfo::size()
+ */
+unsigned int LineInfo::data_size(void) const
+{
+    return 1;
+    //return this->data.size();
+}
+
+/*
+ * LineInfo::toString()
+ */
+std::string LineInfo::toString(void) const
 {
     std::ostringstream oss;
 
     oss << "---------------------------------------------------------------------" << std::endl;
-    oss << "Line  Type   Addr  Mnemonic    Opcode  flags  args" << std::endl;
+    oss << "Line   Type     Addr  Mnemonic    Opcode  flags  args/data" << std::endl;
 
     oss << std::left << std::setw(6) << std::setfill(' ') << this->line_num;
+
     oss << "[";
+    if(this->type == LineType::DirectiveLine)
+        oss << "D";
+    else 
+        oss << "T";
     if(this->is_label == true)  // why do I need == true here but nowhere else?
         oss << "l";
     else
         oss << ".";
     if(this->error == true)
         oss << "e";
+    else
+        oss << ".";
+    if(this->evaluated)
+        oss << "E";
     else
         oss << ".";
     oss << "]  ";
@@ -419,15 +418,21 @@ std::string TextLine::toString(void) const
     oss << "0x" << std::right << std::hex << std::setw(4) << std::setfill('0') << this->opcode.val << "   ";
     // Insert flag chars
     oss << "...";
-    // Registers
+    // Arguments
     oss << "   ";
-    for(int i = 0; i < 2; ++i)
-        oss << this->args[i].repr << " ";
+    if(this->type == LineType::TextLine)
+    {
+        for(int i = 0; i < 2; ++i)
+            oss << this->args[i].repr << " ";
+    }
+    else
+        oss << "0x" << std::hex << std::setw(2) << std::setfill('0') << this->data;
 
     // (Next line) Text 
     oss << std::endl;
     oss << "Label [" << std::left << std::setw(16) << std::setfill(' ') << this->label << "] ";
-    oss << "Symbol[" << std::left << std::setw(16) << std::setfill(' ') << this->symbol << "] ";
+    oss << "Expr [" << std::left << std::setw(16) << std::setfill(' ') << this->expr << "] ";
+    //oss << "Symbol[" << std::left << std::setw(16) << std::setfill(' ') << this->symbol << "] ";
 
     oss << std::endl;
     if(this->errstr.size() > 0)
@@ -440,16 +445,10 @@ std::string TextLine::toString(void) const
 /*
  * diff()
  */
-std::string TextLine::diff(const TextLine& that)
+std::string LineInfo::diff(const LineInfo& that)
 {
     std::ostringstream oss;
 
-    if(this->symbol != that.symbol)
-    {
-        oss << "symbol [" << this->symbol
-            << "] does not match [" << that.symbol
-            << "]" << std::endl;
-    }
     if(this->label != that.label)
     {
         oss << "label [" << this->label
@@ -498,6 +497,12 @@ std::string TextLine::diff(const TextLine& that)
     {
         oss << "error does not match" << std::endl;
     }
+    if(this->data != that.data)
+    {
+        oss << "data [" << this->data
+            << "] does not match [" << that.data
+            << "]" << std::endl;
+    }
 
     return oss.str();
 }
@@ -505,7 +510,7 @@ std::string TextLine::diff(const TextLine& that)
 /*
  * toInstrString()
  */
-std::string TextLine::toInstrString(void) const
+std::string LineInfo::toInstrString(void) const
 {
     std::ostringstream oss;
 
@@ -514,14 +519,18 @@ std::string TextLine::toInstrString(void) const
     return oss.str();
 }
 
+
+/*
+ * ======== SOURCE INFO ======== //
+ */
+
 /*
  * SourceInfo
  */
-
 SourceInfo::SourceInfo() {} 
 
 /*
- * init()
+ * SourceInfo::init()
  */
 void SourceInfo::init(void)
 {
@@ -529,15 +538,22 @@ void SourceInfo::init(void)
 }
 
 /*
- * add()
+ * SourceInfo::add()
  */
-void SourceInfo::add(const TextLine& l)
+void SourceInfo::add(const LineInfo& l)
 {
     this->info.push_back(l);
+    // add directive addresses to lookup table
+    if(l.type == LineType::DirectiveLine)
+    {
+        this->directive_addr_lut.insert(
+                {l.addr, this->info.size()-1}
+        );
+    }
 }
 
 /*
- * hasError()
+ * SourceInfo::hasError()
  */
 bool SourceInfo::hasError(void) const
 {
@@ -552,28 +568,39 @@ bool SourceInfo::hasError(void) const
     return false;
 }
 
-
 /*
- * get()
+ * SourceInfo::get()
  */
-TextLine SourceInfo::get(const unsigned int idx) const
+LineInfo SourceInfo::get(const unsigned int idx) const
 {
     if(idx >= 0 && idx < this->info.size())
         return this->info[idx];
     
-    return TextLine();
+    return LineInfo();
 }
 
 /*
- * update()
+ * SourceInfo::getAddr()
  */
-void SourceInfo::update(const unsigned int idx, const TextLine& l)
+LineInfo SourceInfo::getAddr(const int16_t addr) const
+{
+    auto line = this->directive_addr_lut.find(addr);
+    if(line != this->directive_addr_lut.end())
+        return this->info[line->second];
+
+    return LineInfo();
+}
+
+/*
+ * SourceInfo::update()
+ */
+void SourceInfo::update(const unsigned int idx, const LineInfo& l)
 {
     this->info[idx] = l;
 }
 
 /*
- * getNumLines()
+ * SourceInfo::getNumLines()
  */
 unsigned int SourceInfo::getNumLines(void) const
 {
@@ -582,5 +609,99 @@ unsigned int SourceInfo::getNumLines(void) const
 
 void SourceInfo::toFile(const std::string& filename) const
 {
-    std::cout << "[" << __FUNCTION__ << "] : TODO:" << std::endl;
+    std::cout << "[" << __func__ << "] : TODO:" << std::endl;
+}
+
+
+// Symbol table methods 
+
+/*
+ * SourceInfo::add()
+ */
+void SourceInfo::addSym(const Symbol& s)
+{
+    this->syms.push_back(s);
+}
+
+/*
+ * SourceInfo::update()
+ */
+void SourceInfo::updateSym(const unsigned int idx, const Symbol& s)
+{
+    if(idx < this->syms.size())
+        this->syms[idx] = s;
+}
+
+/*
+ * SourceInfo::get()
+ */
+Symbol SourceInfo::getSym(const unsigned int idx) const
+{
+    return this->syms[idx];
+}
+
+/*
+ * SourceInfo::getAddr()
+ */
+uint16_t SourceInfo::getSymAddr(const std::string& sym) const
+{
+    uint16_t addr = 0;
+
+    // if this turns out to be a bottleneck then this can be made 
+    // and unordered map of labels to addresses
+    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
+    {
+        if(sym == this->syms[idx].label)
+            return this->syms[idx].addr;
+    }
+
+    return addr;
+}
+
+std::string SourceInfo::getSymName(const uint16_t addr)  const
+{
+    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
+    {
+        if(addr == this->syms[idx].addr)
+            return this->syms[idx].label;
+    }
+
+    return "";
+}
+
+unsigned int SourceInfo::getNumSyms(void) const
+{
+    return this->syms.size();
+}
+
+/*
+ * symTableString()
+ */
+std::string SourceInfo::symTableString(void) const
+{
+    std::ostringstream oss;
+
+    oss << "Symbol Table: (" << this->syms.size() << " symbols)" << std::endl;
+    for(unsigned int idx = 0; idx < this->syms.size(); ++idx)
+    {
+        oss << "    [" << this->syms[idx].label << "] -> 0x" << std::hex 
+            << std::setw(4) << std::setfill('0') << this->syms[idx].addr 
+            << std::endl;
+    }
+
+    return oss.str();
+}
+
+
+/*
+ * SourceInfo::toString()
+ */
+std::string SourceInfo::toString(void) const
+{
+    std::ostringstream oss;
+
+    for(unsigned int idx = 0; idx < this->info.size(); ++idx)
+        oss << this->info[idx].toString() << std::endl;
+
+    return oss.str();
 }

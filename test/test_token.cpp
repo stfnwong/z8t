@@ -56,7 +56,7 @@ const Token expected_tokens[] =
     Token(SYM_REG,  REG_HL, "hl"),
     Token(SYM_REG,  REG_BC, "bc"),
 
-    //Token(SYM_COND, COND_C,  "C"),        // TODO: this could be solved by a different lexer that knows what 'types' to expect
+    //Token(SYM_COND, COND_C,  "C"),        // TODO: this is a pain, since we have the same char for two (context dependent) symbols
     Token(SYM_COND, COND_NC, "nc"),
     Token(SYM_COND, COND_Z,  "z"), 
     Token(SYM_COND, COND_NZ, "nz"),
@@ -66,7 +66,7 @@ const Token expected_tokens[] =
 };
 
 
-TEST_CASE("test_token_lookup", "[classic]")
+TEST_CASE("test_token_lookup", "token")
 {
     TokenLookup lut;
     Token out_token;

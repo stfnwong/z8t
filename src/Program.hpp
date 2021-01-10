@@ -105,9 +105,14 @@ class Program
 
         /*
          * length()
-         * Returns the length of the instruction vector.
+         * Returns the number of instructions in the program.
          */
         unsigned int length(void) const;
+
+        /*
+         * numBytes()
+         * TODO: Returns the length of the program in bytes
+         */
 
         /*
          * save()

@@ -2,6 +2,13 @@
 *.swp
 *.swo
 
-# Ignore binary files 
-bin/z8tasm
-bin/z8tdis
+# Ignore anything under $ROOT_DIR/bin
+bin/*
+# Ignore binaries
+*.bin
+*.dat
+
+# Ignore my notes 
+notes
+# Ignore tags file
+tags

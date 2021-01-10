@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     // Run through source and print error strings
     // TODO : need to handle data sections as well..
     SourceInfo lexed_source;
-    TextLine line;
+    LineInfo line;
 
     lexed_source = assem.getSourceInfo();
     for(unsigned int idx = 0; idx < lexed_source.getNumLines(); ++idx)

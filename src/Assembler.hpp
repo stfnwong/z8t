@@ -14,7 +14,6 @@
 
 
 
-
 /*
  * get the size of an instruction from the lookup table
  */
@@ -33,14 +32,14 @@ class Assembler
 
     // input source text
     private:
-        void init_mem(void);    // create token buffer memory
+        void        init_mem(void);    // create token buffer memory
         std::string source;
         std::string filename;
 
     // source intermediate representation
     private:
         SourceInfo   source_info;
-        TextLine     line_info;
+        LineInfo     line_info;
         Token        cur_token;
         unsigned int cur_addr;
 
@@ -48,12 +47,11 @@ class Assembler
     private:
         TokenLookup token_lookup;
         OpcodeLookup opcode_lookup;
-        SymbolTable symbol_table;
 
     // source movement 
     private:
-        bool exhausted(void);
-        void advance(void);
+        bool         exhausted(void);
+        void         advance(void);
         unsigned int cur_pos;
         unsigned int cur_line;
         char         cur_char;
@@ -67,19 +65,21 @@ class Assembler
 
     // parsing 
     private:
-        Token tok_string_to_literal(const std::string& tok_string) const;
-        Token next_token(void);
+        Token       tok_string_to_literal(const std::string& tok_string) const;
+        Token       next_token(void);
 
-        void skip_whitespace(void);
-        void skip_line(void);
-        void skip_seperators(void);
-        void skip_to_next_token(void);
-        void scan_token(void);
-        void parse_arg(int arg_idx);
-        void parse_one_or_two_arg(void);
-        void parse_instruction(const Token& token);
-        void parse_line(void);
-        void resolve_labels(void);
+        void        skip_whitespace(void);
+        void        skip_line(void);
+        void        skip_seperators(void);
+        void        skip_to_next_token(void);
+        void        scan_token(void);
+        void        parse_arg(int arg_idx);
+        void        parse_one_or_two_arg(void);
+        void        parse_instruction(const Token& token);
+        std::string read_to_line_end(void);
+        void        parse_directive(const Token& token); 
+        void        parse_line(void);
+        void        resolve_labels(void);
 
     // assemble from intermediate repr
     private:
@@ -97,9 +97,13 @@ class Assembler
         int   read(const std::string& filename);
         void  loadSource(const std::string& src);
         const SourceInfo& getSourceInfo(void) const;
+        unsigned int getCurAddr(void) const;
 
         // getters, setters 
         Program getProgram(void) const;
+
+        // TODO: debug, remove 
+        void printSource(void) const;
 };
 
 #endif /*__ASSEMBLER_HPP*/

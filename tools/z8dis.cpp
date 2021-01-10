@@ -23,12 +23,14 @@ struct DisOpts
     std::string outfile;
     std::string literal;
     bool verbose;
+    bool print_adr;
 
     public:
         DisOpts() : infile("\0"), 
                     outfile("\0"),
                     literal("\0"),
-                    verbose(false) {} 
+                    verbose(false),
+                    print_adr(false) {} 
 };
 
 
@@ -38,7 +40,7 @@ int main(int argc, char *argv[])
     const char* const short_opts = "avhi:o:l:";
     const option long_opts[] = {};
     int argn = 0;
-    int status;
+    //int status;
 
     // get args
     //while(1) 

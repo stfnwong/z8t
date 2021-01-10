@@ -13,6 +13,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "Eval.hpp"
+
 // TODO : find real start address
 #define TEXT_START_ADDR 0x1000
 
@@ -93,13 +95,16 @@ typedef enum {
     COND_PE,
     COND_PO,
     // directives
-    DIR_DEFB,   // define byte
-    DIR_DEFW,   // define word
-    DIR_DEFS,   // define space
-    DIR_DEFM,   // define message (sequence of bytes)
-    DIR_END,
-    DIR_INCLUDE,
-    DIR_INCBIN,
+    DIR_DEFB,    // define byte
+    DIR_DEFW,    // define word
+    DIR_DEFS,    // define space
+    DIR_DEFM,    // define message (sequence of bytes)
+    DIR_DEFINE,  // define a macro (ala #define in C)
+    DIR_END,     // stop assembling at this point
+    DIR_EQU,     // set a labels value to the literal after equ (rather than the current address)
+    DIR_INCLUDE, // include text content
+    DIR_INCBIN,  // include binary content
+    DIR_ORG,     // adjust current address (eg: for mapped memory)
     DIR_SEEK
 } TokenType;
 
@@ -123,6 +128,16 @@ struct Token
         void init(void);
 
         std::string toString(void) const;
+};
+
+// Argument - this is for the data section 
+struct Argument
+{
+    uint8_t size;       // how many bytes are actually used
+    uint32_t val;
+
+    public:
+        Argument();
 };
 
 // hash on a key like 
@@ -175,7 +190,7 @@ const Token Z80_TOKENS[] =
     Token(SYM_REG,  REG_DE_IND, "(de)"),
     Token(SYM_REG,  REG_HL_IND, "(hl)"),
     // conditions
-    Token(SYM_COND, COND_C,  "c"), 
+    //Token(SYM_COND, COND_C,  "c"),        // TODO: need to find a better way to do this..
     Token(SYM_COND, COND_NC, "nc"),
     Token(SYM_COND, COND_Z,  "z"), 
     Token(SYM_COND, COND_NZ, "nz"),
@@ -184,11 +199,13 @@ const Token Z80_TOKENS[] =
     Token(SYM_COND, COND_PE, "pe"),
     Token(SYM_COND, COND_PO, "po"),
     // directives
-    Token(SYM_DIRECTIVE, DIR_DEFB,    "defb"),
-    Token(SYM_DIRECTIVE, DIR_DEFW,    "defw"),
-    Token(SYM_DIRECTIVE, DIR_DEFS,    "defs"),
-    Token(SYM_DIRECTIVE, DIR_END,     "end"),
-    Token(SYM_DIRECTIVE, DIR_INCLUDE, "include"),
+    Token(SYM_DIRECTIVE, DIR_DEFB,    ".defb"),
+    Token(SYM_DIRECTIVE, DIR_DEFW,    ".defw"),
+    Token(SYM_DIRECTIVE, DIR_DEFS,    ".defs"),
+    Token(SYM_DIRECTIVE, DIR_END,     ".end"),
+    Token(SYM_DIRECTIVE, DIR_EQU,     ".equ"),
+    Token(SYM_DIRECTIVE, DIR_INCLUDE, ".include"),
+    Token(SYM_DIRECTIVE, DIR_ORG,     ".org"),
 };
 
 
@@ -240,85 +257,97 @@ struct Symbol
         std::string toString(void) const;
 };
 
-/*
- * SymbolTable 
- */
-class SymbolTable
-{
-    private:
-        std::vector<Symbol> syms;
-        Symbol null_symbol;
-
-    private:
-        SymbolTable(const SymbolTable& that) = default;
-
-    public:
-        SymbolTable();
-
-        void         add(const Symbol& s);
-        void         update(const unsigned int idx, const Symbol& s);
-        Symbol       get(const unsigned int idx) const;
-        uint16_t     getAddr(const std::string& label) const;
-        std::string  getName(const uint16_t addr) const;
-        void         init(void);
-        unsigned int size(void) const;
-
-        std::string  toString(void) const;
-};
-
 
 /*
- * TextLine
- * Class representing a line from the source file that will go in the text segment.
+ * LineInfo
+ * Base class for line structures (either text or data)
  */
-struct TextLine
+enum struct LineType {TextLine, DirectiveLine};
+class SourceInfo;       // fwd delcare until we resolve how to split eval lookups
+
+struct LineInfo
 {
-    // avoid having a large number of setters and getters 
-    std::string symbol;
+    // common fields 
+    LineType    type;
     std::string label;
     std::string errstr;
-    Token       opcode;     
-    Token       args[2];
-    int8_t      sym_arg;        // which arg has a symbol (so we don't have to check later)
     uint16_t    line_num;
     int16_t     addr;
     bool        is_label;
     bool        error;
+    // text only fields 
+    Token       opcode;             
+    Token       args[2];
+    int         sym_arg;
+    // directive fields
+    EvalResult  eval_result;  // TODO: does this become a vector of EvalResult when comma seperated args are supported?
+    std::string expr;
+    int         data;       // TODO: this will become a vector when comma seperated fields are supported
+    bool        evaluated;
+    //std::vector<int> data;           // generic data (eg, from a list of defb/defw)
 
     public:
-        TextLine();
-        TextLine(const Token& opcode, const Token& arg1, const Token& arg2); 
-        TextLine(const TextLine& that);
+        LineInfo();
+        LineInfo(const Token& opcode, const Token& arg1, const Token& arg2);
 
-        bool operator==(const TextLine& that) const;
-        bool operator!=(const TextLine& that) const;
+        bool operator==(const LineInfo& that) const;
+        bool operator!=(const LineInfo& that) const;
         void init(void);
-        uint32_t argHash(void) const;
 
+        // text methods 
+        uint32_t     argHash(void) const;
+        // directive methods
+        void         eval(const SourceInfo& info);
+        unsigned int data_size(void) const;
+
+        // stringify
         std::string toString(void) const;
-        std::string diff(const TextLine& that);
         std::string toInstrString(void) const;
+        std::string diff(const LineInfo& that);
 };
 
-
-// TODO ; in keeping with the text/data segment distinction, this should be at some point
-// renamed into something that indicates that its a collection of TextLine objects
+/*
+ * SourceInfo
+ * Wraps a collection of LineInfo objects that represents each
+ * of the lines in the source file.
+ * NOTE that when include is supported (ie: compilation of multiple
+ * files) that the implementation here may need to slightly change
+ */
 class SourceInfo
 {
     private: 
-        std::vector<TextLine> info;
+        std::vector<LineInfo> info;
+        // maps address to index in info vector
+        std::unordered_map <int16_t, unsigned int> directive_addr_lut;
+        // symbol table 
+        std::vector<Symbol> syms;
+        Symbol null_symbol;
 
     public:
         SourceInfo();
-        SourceInfo(const SourceInfo& that) = default;
+        //SourceInfo(const SourceInfo& that) = default;
 
-        void init(void);
-        void add(const TextLine& l);
-        bool hasError(void) const;
-        TextLine get(const unsigned int idx) const;
-        void update(const unsigned int idx, const TextLine& l);
+        void         init(void);
+        void         add(const LineInfo& l);
+        bool         hasError(void) const;
+        LineInfo     get(const unsigned int idx) const;
+        LineInfo     getAddr(const int16_t addr) const;
+        void         update(const unsigned int idx, const LineInfo& l);
         unsigned int getNumLines(void) const;
-        void toFile(const std::string& filename) const;
+        void         toFile(const std::string& filename) const;
+
+        // symbol table functions
+        void         addSym(const Symbol& s);
+        void         updateSym(const unsigned int idx, const Symbol& s);
+        Symbol       getSym(const unsigned int idx) const;
+        uint16_t     getSymAddr(const std::string& label) const;
+        std::string  getSymName(const uint16_t addr) const;
+        unsigned int getNumSyms(void) const;
+        std::string  symTableString(void) const;
+        //void         init(void);
+        //unsigned int size(void) const;
+
+        std::string  toString(void) const;
 };
 
 #endif /*__SOURCE_HPP*/
