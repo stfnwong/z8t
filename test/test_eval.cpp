@@ -29,3 +29,23 @@ TEST_CASE("test_eval_result_init", "eval")
     REQUIRE(res2.val == 0);
     REQUIRE(res2.ok == false);
 }
+
+
+TEST_CASE("test_eval_copy_ctor_assign", "eval")
+{
+    EvalResult er1, er2;
+
+    REQUIRE(er1.ok == false);
+    REQUIRE(er1.val == 0);
+
+    REQUIRE(er2.ok == false);
+    REQUIRE(er2.val == 0);
+
+    er2.ok = true;
+    er2.val = 20;
+    REQUIRE(er1 != er2);
+
+    //er = EvalResult(30, true);
+    //REQUIRE(er.val == 30);
+    //REQUIRE(er.ok == true);
+}

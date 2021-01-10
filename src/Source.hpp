@@ -295,10 +295,9 @@ struct LineInfo
         void init(void);
 
         // text methods 
-        uint32_t argHash(void) const;
-
+        uint32_t     argHash(void) const;
         // directive methods
-        void eval(const SourceInfo& info);
+        void         eval(const SourceInfo& info);
         unsigned int data_size(void) const;
 
         // stringify

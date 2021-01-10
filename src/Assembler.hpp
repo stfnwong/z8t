@@ -257,7 +257,7 @@ class Assembler
 
     // input source text
     private:
-        void init_mem(void);    // create token buffer memory
+        void        init_mem(void);    // create token buffer memory
         std::string source;
         std::string filename;
 
@@ -275,8 +275,8 @@ class Assembler
 
     // source movement 
     private:
-        bool exhausted(void);
-        void advance(void);
+        bool         exhausted(void);
+        void         advance(void);
         unsigned int cur_pos;
         unsigned int cur_line;
         char         cur_char;

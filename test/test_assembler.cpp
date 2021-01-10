@@ -895,3 +895,122 @@ TEST_CASE("test_org", "directive")
     assem.assemble();
     REQUIRE(assem.getCurAddr() == 0xBEEF);
 }
+
+
+
+
+
+// ======== DIRECTIVES WITH EXPRESSIONS ======== //
+SourceInfo get_expr_expected_source(void)
+{
+    SourceInfo info;
+    LineInfo line;
+
+    // scale: equ 256
+    line.init();
+    line.type = LineType::DirectiveLine;
+    line.line_num = 4;  
+    line.opcode = Token(SYM_DIRECTIVE, DIR_EQU, ".equ");
+    line.addr = TEXT_START_ADDR;
+    line.label = "scale";
+    line.is_label = true;
+    line.data = 256;
+    info.add(line);
+
+    // y: defw -5 * scale / 4
+    line.init();
+    line.type = LineType::DirectiveLine;
+    line.line_num = 5;  
+    line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
+    line.addr = TEXT_START_ADDR + 1;
+    line.label = "y";
+    line.is_label = true;
+    line.data = -320;
+    info.add(line);
+
+    return info;
+}
+
+Program get_expr_expected_program(void)
+{
+    Program prog;
+    Instr cur_instr;
+
+    // scale: equ 256
+    cur_instr.ins = 256;
+    cur_instr.size = 1;
+    cur_instr.adr = TEXT_START_ADDR;
+    prog.add(cur_instr);
+    // y: defw -5 * scale / 4
+    cur_instr.init();
+    cur_instr.ins = uint16_t(-320);
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 1;
+    prog.add(cur_instr);
+
+    return prog;
+}
+
+TEST_CASE("test_directive_expr", "expression")
+{
+    int status;
+    Assembler assem;
+    Program exp_program;
+    Program out_program;
+    SourceInfo exp_source;
+    SourceInfo out_source;
+    LineInfo out_line;
+    LineInfo exp_line;
+
+    assem.setVerbose(GLOBAL_VERBOSE);
+    status = assem.read(expr_filename);
+    REQUIRE(status == 0);
+    assem.assemble();
+
+    out_source = assem.getSourceInfo();
+    exp_source = get_expr_expected_source();
+
+    REQUIRE(out_source.getNumLines() == exp_source.getNumLines());
+    for(unsigned int idx = 0; idx < out_source.getNumLines(); ++idx)
+    {
+        exp_line = exp_source.get(idx);
+        out_line = out_source.get(idx);
+
+        if(!out_line.evaluated)
+            out_line.eval(out_source);
+
+        if(exp_line != out_line)
+        {
+            std::cout << std::dec << "Error in line " << idx+1 << "/" 
+                << exp_source.getNumLines() << std::endl;
+
+            std::cout << exp_line.diff(out_line) << std::endl;
+
+            std::cout << "Expected :" << std::endl;
+            std::cout << exp_line.toString() << std::endl;
+
+            std::cout << "Got :" << std::endl;
+            std::cout << out_line.toString() << std::endl;
+        }
+        REQUIRE(exp_line == out_line);
+    }
+
+    out_program = assem.getProgram();
+    exp_program = get_expr_expected_program();
+
+
+    REQUIRE(out_program.length() == exp_program.length());
+    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
+    {
+        Instr out_instr = out_program.get(idx);
+        Instr exp_instr = exp_program.get(idx);
+
+        if(out_instr != exp_instr)
+        {
+            std::cout << "Difference in instruction " << idx << std::endl;
+            std::cout << "Expected : " << exp_instr.toString() << std::endl;
+            std::cout << "Got      : " << out_instr.toString() << std::endl;
+        }
+        REQUIRE(out_instr == exp_instr);
+    }
+}

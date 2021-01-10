@@ -267,6 +267,7 @@ bool LineInfo::operator==(const LineInfo& that) const
             return false;
     }
     // directive fields
+    // we don't bother comparing the directive strings 
     if(this->data != that.data)
         return false;
     //if(this->data_size() != that.data_size())
@@ -353,7 +354,11 @@ void LineInfo::eval(const SourceInfo& info)
     {
         cur_string = this->expr.substr(str_start, str_idx - str_start);
         EvalResult eval = eval_expr_string(cur_string, info);
+        std::cout << "[" << __func__ << "] result : " << eval.toString() << std::endl;
         this->data = eval.val;
+
+        std::cout << "[" << __func__ << "] line is now " << std::endl;
+        std::cout << this->toString() << std::endl;
         //this->data.push_back(int(eval));
     }
 
@@ -377,7 +382,7 @@ std::string LineInfo::toString(void) const
     std::ostringstream oss;
 
     oss << "---------------------------------------------------------------------" << std::endl;
-    oss << "Line   Type   Addr  Mnemonic    Opcode  flags  args/data" << std::endl;
+    oss << "Line   Type     Addr  Mnemonic    Opcode  flags  args/data" << std::endl;
 
     oss << std::left << std::setw(6) << std::setfill(' ') << this->line_num;
 
@@ -392,6 +397,10 @@ std::string LineInfo::toString(void) const
         oss << ".";
     if(this->error == true)
         oss << "e";
+    else
+        oss << ".";
+    if(this->evaluated)
+        oss << "E";
     else
         oss << ".";
     oss << "]  ";
@@ -416,6 +425,7 @@ std::string LineInfo::toString(void) const
     // (Next line) Text 
     oss << std::endl;
     oss << "Label [" << std::left << std::setw(16) << std::setfill(' ') << this->label << "] ";
+    oss << "Expr [" << std::left << std::setw(16) << std::setfill(' ') << this->expr << "] ";
     //oss << "Symbol[" << std::left << std::setw(16) << std::setfill(' ') << this->symbol << "] ";
 
     oss << std::endl;

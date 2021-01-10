@@ -388,11 +388,14 @@ std::string Assembler::read_to_line_end(void)
     int str_start_idx = this->cur_pos;
     int str_end_idx = this->cur_pos;
 
-    while(!this->exhausted() && (this->cur_char != ';' || this->cur_char != '\n')) // || this->cur_char == '\0')
+    while(!this->exhausted())
     {
+        if(this->cur_char == ';' || this->cur_char == '\n')
+            break;
         this->advance();
         str_end_idx++;
     }
+    
     std::string line_to_end = this->source.substr(str_start_idx, str_end_idx - str_start_idx);
 
     return line_to_end;
@@ -439,6 +442,8 @@ void Assembler::parse_directive(const Token& token)
                 this->line_info.errstr = "org directive got invalid argument " + std::string(arg_token.repr);
                 break;
             }
+            std::cout << "[" << __func__ << "] setting address to 0x"
+                << std::hex << arg_token.val << std::endl;
             this->cur_addr = arg_token.val;
             break;
 
@@ -557,7 +562,15 @@ void Assembler::parse_line(void)
         this->line_info.line_num = this->cur_line;
     }   
     this->line_info.addr = this->cur_addr;
-    this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
+    if(this->line_info.type == LineType::TextLine)
+        this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
+    else
+    {
+        if(this->line_info.opcode.val == DIR_DEFW)
+            this->cur_addr = this->cur_addr + 2;
+        else if(this->line_info.opcode.val != DIR_ORG)
+            this->cur_addr++;
+    }
 
     if(this->verbose)
     {
@@ -629,7 +642,6 @@ void Assembler::assem_instr(void)
         line = this->source_info.get(idx);
         line_hash = line.argHash();
 
-
         if(line.type == LineType::TextLine)
         {
             auto lookup_val = instr_lookup.find(line_hash);
@@ -662,16 +674,20 @@ void Assembler::assem_instr(void)
         }
         else if(line.type == LineType::DirectiveLine)
         {
-            //if(line.opcode.val == DIR_DEFW || line.opcode.val == DIR_DEFB)
             if(line.expr.size() > 0 && line.evaluated == false)
                 line.eval(this->source_info);
 
             cur_instr.adr = line.addr;
             if(line.opcode.val == DIR_DEFW)
+            {
                 cur_instr.size = 2;
+                cur_instr.ins  = uint16_t(line.data);
+            }
             else
-                cur_instr.size = 1;     // TODO: this depends on defw, defb, etc
-            cur_instr.ins  = uint8_t(line.data);
+            {
+                cur_instr.size = 1;     
+                cur_instr.ins  = uint16_t(line.data);
+            }
         }
         else
         {

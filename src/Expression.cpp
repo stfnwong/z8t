@@ -490,37 +490,55 @@ EvalResult eval_postfix_expr_stack(const ExprStack& expr_stack)
             output_stack.push(cur_token.literal());
         if(cur_token.isOperator())
         {
-            if(output_stack.size() < 2)
-                return EvalResult(0.0, false);
-
-            r = output_stack.top();
-            output_stack.pop();
-            l = output_stack.top();
-            output_stack.pop();
-            switch(cur_token.type)
+            // note that TOK_MINUS can also be a unary minus
+            if(output_stack.size() > 1)
             {
-                case TOK_PLUS:
-                    y = l + r;
-                    break;
-                case TOK_MINUS:
-                    y = l - r;
-                    break;
-                case TOK_STAR:
-                    y = l * r;
-                    break;
-                case TOK_SLASH:
-                    y = l / r;
-                    break;
-                default:
-                    std::cerr << "[" << __func__ << "] somehow got token " << cur_token.toString()
-                        << " in operator path." << std::endl;
-                    return EvalResult(0, false);      
+                r = output_stack.top();
+                output_stack.pop();
+                l = output_stack.top();
+                output_stack.pop();
+                switch(cur_token.type)
+                {
+                    case TOK_PLUS:
+                        y = l + r;
+                        break;
+                    case TOK_MINUS:
+                        y = l - r;
+                        break;
+                    case TOK_STAR:
+                        y = l * r;
+                        break;
+                    case TOK_SLASH:
+                        y = l / r;
+                        break;
+                    default:
+                        std::cerr << "[" << __func__ << "] somehow got token " << cur_token.toString()
+                            << " in operator path." << std::endl;
+                        return EvalResult(0, false);      
+                }
             }
+            else if(output_stack.size() == 1 && cur_token.type == TOK_MINUS)
+            {
+                y = -y;
+            }
+
+            //if(output_stack.size() < 2)
+            //{
+            //    std::cout << "[" << __func__ << "] output_stack size too small (" << std::dec << output_stack.size() << ")" << std::endl;
+            //    return EvalResult(0.0, false);
+            //}
+
             output_stack.push(y);
         }
     }
     y = output_stack.top();
+    std::cout << "[" << __func__ << "] y : " << y << std::endl;
 
+    //EvalResult result;
+    //result.val = int(y);
+    //result.ok = false;
+    //std::cout << "[" << __func__ << "] result : " << result.toString() << std::endl;
+    //return result;
     return EvalResult(int(y), true);
 }
 
@@ -579,5 +597,9 @@ EvalResult eval_expr_string(const std::string& expr_string, const SourceInfo& in
     infix_stack = expr_stack_resolve_strings(infix_stack, info);    // TODO; inplace version
     postfix_stack = expr_infix_to_postfix(infix_stack);
 
-    return eval_postfix_expr_stack(postfix_stack);
+    // TODO: debug, remove 
+    EvalResult result = eval_postfix_expr_stack(postfix_stack);
+    std::cout << "[" << __func__ << "] result : "  << result.toString() << std::endl;
+    return result;
+    //return eval_postfix_expr_stack(postfix_stack);
 }

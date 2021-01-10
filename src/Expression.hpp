@@ -133,13 +133,13 @@ struct ExprToken
         ExprToken(const ExprToken& that); 
         ExprToken(ExprToken&& that);
 
-        ExprToken& operator=(const ExprToken& that);        // TODO: default?
-        ExprToken& operator=(ExprToken&& that);
-        bool operator==(const ExprToken& that) const;
-        bool operator!=(const ExprToken& that) const;
-        bool isOperator(void) const;
-        bool isParen(void) const;
-        float literal(void) const;
+        ExprToken&  operator=(const ExprToken& that);        // TODO: default?
+        ExprToken&  operator=(ExprToken&& that);
+        bool        operator==(const ExprToken& that) const;
+        bool        operator!=(const ExprToken& that) const;
+        bool        isOperator(void) const;
+        bool        isParen(void) const;
+        float       literal(void) const;
 
         std::string toString(void) const;
 };
@@ -160,10 +160,11 @@ struct ParseResult
         ParseResult();
         ParseResult(const ExprToken& tok, int p);
         ParseResult(const ParseResult& that) = default;
+
         ParseResult& operator=(const ParseResult& that);
-        bool operator==(const ParseResult& that) const;
-        bool operator!=(const ParseResult& that) const;
-        std::string toString(void) const;
+        bool         operator==(const ParseResult& that) const;
+        bool         operator!=(const ParseResult& that) const;
+        std::string  toString(void) const;
 };
 
 /*
@@ -180,9 +181,9 @@ struct ExprStack
         ExprStack(const ExprStack& that) = default;
 
         const ExprToken& operator[](unsigned int idx) const;
-        ExprToken& operator[](unsigned int idx);
-        bool operator==(const ExprStack& that) const;
-        bool operator!=(const ExprStack& that) const;
+        ExprToken&       operator[](unsigned int idx);
+        bool             operator==(const ExprStack& that) const;
+        bool             operator!=(const ExprStack& that) const;
 
         void             push(const ExprToken& t);
         const ExprToken& top(void);

@@ -23,6 +23,18 @@ void EvalResult::init(void)
     this->ok = false;
 }
 
+EvalResult& EvalResult::operator=(const EvalResult& that) 
+{
+    if(this != &that)
+    {
+        this->val = that.val;
+        this->ok = that.ok;
+    }
+
+    return *this;
+}
+
+
 bool EvalResult::operator==(const EvalResult& that) const
 {
     if(this->val != that.val)

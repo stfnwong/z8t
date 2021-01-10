@@ -199,7 +199,9 @@ TEST_CASE("test_expr_literal", "expression")
     EvalResult wrapper_out = eval_expr_string(expr_input, dummy_info);
 
     REQUIRE(eval_out.val == 5);
+    REQUIRE(eval_out.ok == true);
     REQUIRE(wrapper_out.val == 5);
+    REQUIRE(wrapper_out.ok == true);
 }
 
 TEST_CASE("test_expr_eval", "expression")
@@ -289,6 +291,7 @@ TEST_CASE("test_expr_eval_symbols", "expression")
     EvalResult eval_out = eval_postfix_expr_stack(token_stack);
     std::cout << "eval_out : " << eval_out.toString() << std::endl;
     REQUIRE(eval_out.val == exp_eval);
+    REQUIRE(eval_out.ok == true);
 }
 
 TEST_CASE("test_expr_eval_symbols_direct", "directive")
@@ -301,6 +304,7 @@ TEST_CASE("test_expr_eval_symbols_direct", "directive")
 
     EvalResult eval_out = eval_expr_string(expr_input, info);
     REQUIRE(eval_out.val == exp_eval);
+    REQUIRE(eval_out.ok == true);
 }
 
 TEST_CASE("test_expr_eval_symbol_failure", "directive")
@@ -312,5 +316,5 @@ TEST_CASE("test_expr_eval_symbol_failure", "directive")
 
     EvalResult eval_out = eval_expr_string(expr_input, info);
     std::cout << "eval_out : " << eval_out.toString() << std::endl;
-
+    REQUIRE(eval_out.ok == false);
 }
