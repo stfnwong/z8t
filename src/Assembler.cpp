@@ -277,7 +277,7 @@ void Assembler::parse_arg(int arg_idx)
             + std::string(token.toString()) + ")";
 
         if(this->verbose)
-            std::cout << this->line_info.error << std::endl;
+            std::cout << "[" << __func__ << "] " << this->line_info.error << std::endl;
         
         return;
     }
@@ -356,12 +356,10 @@ void Assembler::parse_instruction(const Token& token)
         case INSTR_SUB:
         case INSTR_XOR:
             this->parse_arg(0);
+            // do the 'ol switcheroo
             if(this->line_info.args[0].type == SYM_COND)
-            {
                 this->line_info.args[0] = Token(SYM_REG, REG_C, "c");
-            }
 
-            //std::cout << "[" << __func__ << "] args[0] is " << this->line_info.args[0].toString() << std::endl;
             break;
 
         // instructions with no operands
@@ -557,6 +555,7 @@ void Assembler::parse_line(void)
         this->line_info.line_num = this->cur_line;
     }   
     this->line_info.addr = this->cur_addr;
+
     if(this->line_info.type == LineType::TextLine)
         this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
     else
@@ -626,8 +625,6 @@ const SourceInfo& Assembler::getSourceInfo(void) const
  */
 void Assembler::assem_instr(void)
 {
-    // TODO ; just worry about stuff that goes in the text section, not sure what the 
-    // data section layout actually is yet..
     Instr cur_instr;
     LineInfo line;
     uint32_t line_hash;
@@ -653,17 +650,16 @@ void Assembler::assem_instr(void)
                 // ld bc, ** | ld de, ** | ld hl, ** | ld sp, **
                 else if(cur_instr.size == 3 && line.args[1].type == SYM_LITERAL)
                     cur_instr.ins = (instr_size.first << 16) | (line.args[1].val & 0xFFFF);
+                // ld (**) hl | ld (**) a
                 else if(cur_instr.size == 3 && line.args[0].type == SYM_LITERAL_IND)
                     cur_instr.ins = (instr_size.first << 16) | (line.args[0].val & 0xFFFF);
             }
             else
             {
-                if(this->verbose)
-                {
-                    std::cerr << "[" << __func__ << "] skipping instruction " << line.toInstrString() 
-                        << " with hash " << std::hex << line_hash << std::endl;
-                }
-                continue;
+                std::cout << "Error on line " << line.line_num << " [Address 0x" 
+                    << std::hex << std::setw(4) << line.addr << "] invalid instruction " 
+                    << line.toInstrString() << std::endl;
+                return;
             }
             cur_instr.adr = line.addr;      
         }
@@ -686,8 +682,10 @@ void Assembler::assem_instr(void)
         }
         else
         {
+            // TODO; add proper error message here
             std::cerr << "[" << __func__ << "] line " << line.line_num << " has invalid line type " << std::endl;
             std::cerr << line.toString() << std::endl;
+            return;
         }
         this->program.add(cur_instr);
     }
@@ -722,11 +720,20 @@ void Assembler::assemble(void)
         }
         this->parse_line();
         this->source_info.add(this->line_info);
+
+        // if there were errors then stop on this line
+        if(this->line_info.error)
+        {
+            std::cout << "Error on line " << std::dec << this->line_info.line_num << " [Address 0x" 
+                << std::hex << std::setw(4) << this->line_info.addr << "] : " 
+                << this->line_info.errstr << std::endl;
+
+            return;
+        }
     }
 
     // Resolve symbols 
     this->resolve_labels();
-
     // now walk over the sourceinfo and assemble
     this->assem_instr();
 }
@@ -748,10 +755,4 @@ void Assembler::setVerbose(const bool v)
 bool Assembler::getVerbose(void) const
 {
     return this->verbose;
-}
-
-void Assembler::printSource(void) const
-{
-    std::cout << "[" << __func__ << "] source string : " << std::endl;
-    std::cout << this->source << std::endl;
 }

@@ -319,6 +319,7 @@ class SourceInfo
         std::vector<LineInfo> info;
         // maps address to index in info vector
         std::unordered_map <int16_t, unsigned int> directive_addr_lut;
+        // TODO : do we also want to have a lookup for 
         // symbol table 
         std::vector<Symbol> syms;
         Symbol null_symbol;

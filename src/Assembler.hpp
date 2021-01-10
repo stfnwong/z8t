@@ -13,7 +13,6 @@
 #include "Program.hpp"
 
 
-
 /*
  * get the size of an instruction from the lookup table
  */
@@ -60,8 +59,8 @@ class Assembler
 
     // token check 
     private:
-        bool is_space(void);
-        bool is_comment(void);
+        bool        is_space(void);
+        bool        is_comment(void);
 
     // parsing 
     private:
@@ -90,20 +89,17 @@ class Assembler
         Assembler(const Assembler& that) = delete;
         Assembler(const Assembler&& that) = delete;
 
-        void  init(void);
-        void  assemble(void);
-        void  setVerbose(const bool v);
-        bool  getVerbose(void) const;
-        int   read(const std::string& filename);
-        void  loadSource(const std::string& src);
+        void              init(void);
+        void              assemble(void);
+        void              setVerbose(const bool v);
+        bool              getVerbose(void) const;
+        int               read(const std::string& filename);
+        void              loadSource(const std::string& src);
         const SourceInfo& getSourceInfo(void) const;
-        unsigned int getCurAddr(void) const;
+        unsigned int      getCurAddr(void) const;
 
         // getters, setters 
         Program getProgram(void) const;
-
-        // TODO: debug, remove 
-        void printSource(void) const;
 };
 
 #endif /*__ASSEMBLER_HPP*/
