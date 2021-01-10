@@ -791,9 +791,6 @@ TEST_CASE("test_org", "directive")
 }
 
 
-
-
-
 // ======== DIRECTIVES WITH EXPRESSIONS ======== //
 SourceInfo get_expr_expected_source(void)
 {
@@ -816,7 +813,7 @@ SourceInfo get_expr_expected_source(void)
     line.type = LineType::DirectiveLine;
     line.line_num = 5;  
     line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
-    line.addr = TEXT_START_ADDR + 1;
+    line.addr = TEXT_START_ADDR + 2;
     line.label = "x";
     line.is_label = true;
     line.data = 128;
@@ -827,7 +824,7 @@ SourceInfo get_expr_expected_source(void)
     line.type = LineType::DirectiveLine;
     line.line_num = 6;  
     line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
-    line.addr = TEXT_START_ADDR + 3;
+    line.addr = TEXT_START_ADDR + 4;
     line.label = "y";
     line.is_label = true;
     line.data = -320;
@@ -838,7 +835,7 @@ SourceInfo get_expr_expected_source(void)
     line.type = LineType::DirectiveLine;
     line.line_num = 8;  
     line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
-    line.addr = TEXT_START_ADDR + 5;
+    line.addr = TEXT_START_ADDR + 6;
     line.label = "equation";
     line.is_label = true;
     line.data = -64;
@@ -852,13 +849,13 @@ Program get_expr_expected_program(void)
     Program prog;
 
     // scale: equ 256
-    prog.add(Instr(TEXT_START_ADDR, 256, 1));
+    prog.add(Instr(TEXT_START_ADDR, 256, 2));
     // x: .defw 2 * scale / 4
-    prog.add(Instr(TEXT_START_ADDR + 1, 128, 2));
+    prog.add(Instr(TEXT_START_ADDR + 2, 128, 2));
     // y: defw -5 * scale / 4
-    prog.add(Instr(TEXT_START_ADDR + 3, uint16_t(-320), 2));
+    prog.add(Instr(TEXT_START_ADDR + 4, uint16_t(-320), 2));
     // equation: .defw (2 * x) + y
-    prog.add(Instr(TEXT_START_ADDR + 5, uint16_t(-64), 2));
+    prog.add(Instr(TEXT_START_ADDR + 6, uint16_t(-64), 2));
 
     return prog;
 }

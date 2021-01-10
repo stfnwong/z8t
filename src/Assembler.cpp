@@ -561,7 +561,7 @@ void Assembler::parse_line(void)
         this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
     else
     {
-        if(this->line_info.opcode.val == DIR_DEFW)
+        if(this->line_info.opcode.val == DIR_DEFW || this->line_info.opcode.val == DIR_EQU)
             this->cur_addr = this->cur_addr + 2;
         else if(this->line_info.opcode.val != DIR_ORG)
             this->cur_addr++;
@@ -673,7 +673,7 @@ void Assembler::assem_instr(void)
                 line.eval(this->source_info);
 
             cur_instr.adr = line.addr;
-            if(line.opcode.val == DIR_DEFW)
+            if(line.opcode.val == DIR_DEFW || line.opcode.val == DIR_EQU)
             {
                 cur_instr.size = 2;
                 cur_instr.ins  = uint16_t(line.data);

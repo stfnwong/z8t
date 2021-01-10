@@ -17,7 +17,7 @@
 #include "Source.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = true;
+constexpr const bool GLOBAL_VERBOSE = false;
 
 
 TEST_CASE("test_dis_instr_to_string", "[classic]")

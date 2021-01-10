@@ -15,7 +15,7 @@
 #include "Assembler.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = true;
+constexpr const bool GLOBAL_VERBOSE = false;
 
 
 TEST_CASE("test_src_program_read_write", "program")

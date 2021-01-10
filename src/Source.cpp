@@ -388,7 +388,7 @@ std::string LineInfo::toString(void) const
     std::ostringstream oss;
 
     oss << "---------------------------------------------------------------------" << std::endl;
-    oss << "Line   Type     Addr  Mnemonic    Opcode  flags  args/data" << std::endl;
+    oss << "Line   Type   Addr    Mnemonic   Opcode  flags  args/data" << std::endl;
 
     oss << std::left << std::setw(6) << std::setfill(' ') << this->line_num;
 
