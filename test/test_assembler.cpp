@@ -917,15 +917,37 @@ SourceInfo get_expr_expected_source(void)
     line.data = 256;
     info.add(line);
 
-    // y: defw -5 * scale / 4
+    // x: defw  2 * scale / 4
     line.init();
     line.type = LineType::DirectiveLine;
     line.line_num = 5;  
     line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
     line.addr = TEXT_START_ADDR + 1;
+    line.label = "x";
+    line.is_label = true;
+    line.data = 128;
+    info.add(line);
+
+    // y: defw -5 * scale / 4
+    line.init();
+    line.type = LineType::DirectiveLine;
+    line.line_num = 6;  
+    line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
+    line.addr = TEXT_START_ADDR + 3;
     line.label = "y";
     line.is_label = true;
     line.data = -320;
+    info.add(line);
+
+    // equation: .defw (2 * x) + y
+    line.init();
+    line.type = LineType::DirectiveLine;
+    line.line_num = 8;  
+    line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
+    line.addr = TEXT_START_ADDR + 5;
+    line.label = "equation";
+    line.is_label = true;
+    line.data = -64;
     info.add(line);
 
     return info;
@@ -941,11 +963,23 @@ Program get_expr_expected_program(void)
     cur_instr.size = 1;
     cur_instr.adr = TEXT_START_ADDR;
     prog.add(cur_instr);
+    // x: .defw 2 * scale / 4
+    cur_instr.init();
+    cur_instr.ins = uint16_t(128);
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 1;
+    prog.add(cur_instr);
     // y: defw -5 * scale / 4
     cur_instr.init();
     cur_instr.ins = uint16_t(-320);
     cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 1;
+    cur_instr.adr = TEXT_START_ADDR + 3;
+    prog.add(cur_instr);
+    // equation: .defw (2 * x) + y
+    cur_instr.init();
+    cur_instr.ins = uint16_t(-64);
+    cur_instr.size = 2;
+    cur_instr.adr = TEXT_START_ADDR + 5;
     prog.add(cur_instr);
 
     return prog;
