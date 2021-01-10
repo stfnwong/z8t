@@ -20,6 +20,7 @@ const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
 const std::string expr_filename = "asm/expr.asm";
+const std::string label_resolve_filename = "asm/label_resolve.asm";
 
 // TODO: a test which goes through the entire lookup table and checks
 // that all instructions return valid pairs
@@ -473,6 +474,95 @@ TEST_CASE("test_lex_gcd", "lexer")
 
         REQUIRE(exp_line == lex_line);
     }
+}
+
+SourceInfo get_label_resolve_expected_source(void)
+{
+    SourceInfo info;
+    LineInfo cur_line;
+
+    // x: .defw 30
+    cur_line.init();
+    cur_line.type = LineType::DirectiveLine;
+    cur_line.line_num = 5;
+    cur_line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
+    cur_line.addr = TEXT_START_ADDR;
+    cur_line.data = 30;
+    cur_line.label = "x";
+    info.add(cur_line);
+    // y: .defw 20
+    cur_line.init();
+    cur_line.type = LineType::DirectiveLine;
+    cur_line.line_num = 6;
+    cur_line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
+    cur_line.addr = TEXT_START_ADDR + 2;
+    cur_line.data = 20;
+    cur_line.label = "y";
+    info.add(cur_line);
+    // z: .defw -10 * (2 + x) - (3 * y)
+    cur_line.init();
+    cur_line.type = LineType::DirectiveLine;
+    cur_line.line_num = 7;
+    cur_line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
+    cur_line.addr = TEXT_START_ADDR + 4;
+    cur_line.data = -380;
+    cur_line.label = "z";
+    info.add(cur_line);
+    // ld hl (z)
+    cur_line.init();
+    cur_line.line_num = 9;
+    cur_line.addr = TEXT_START_ADDR + 6;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
+    cur_line.args[0] = Token(SYM_REG, REG_HL, "hl");
+    cur_line.args[1] = Token(SYM_LITERAL_IND, uint16_t(-320), "-320");
+    info.add(cur_line);
+
+
+    return info;
+}
+
+TEST_CASE("test_lex_label_resolve", "lexer")
+{
+    SourceInfo lex_source;
+    SourceInfo exp_source;
+
+    lex_source = lex_helper(label_resolve_filename);
+    std::cout << "\t Lexer generated " << lex_source.getNumLines() << " line of output" << std::endl;
+
+    exp_source = get_label_resolve_expected_source();
+
+    if(GLOBAL_VERBOSE)
+    {
+        for(unsigned int i = 0; i < lex_source.getNumLines(); ++i)
+        {
+            LineInfo cur_line = lex_source.get(i);
+            std::cout << cur_line.toString() << std::endl;
+        }
+    }
+
+    // Check intermediate results
+    for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
+    {
+        LineInfo exp_line = exp_source.get(i);
+        LineInfo lex_line = lex_source.get(i);
+
+        if(exp_line != lex_line)
+        {
+            std::cout << "Error in line " << std::dec << i+1 << "/" 
+                << std::dec << exp_source.getNumLines() << std::endl;
+
+            std::cout << exp_line.diff(lex_line) << std::endl;
+
+            std::cout << "Expected :" << std::endl;
+            std::cout << exp_line.toString() << std::endl;
+
+            std::cout << "Got :" << std::endl;
+            std::cout << lex_line.toString() << std::endl;
+        }
+
+        REQUIRE(exp_line == lex_line);
+    }
+
 }
 
 // ======== ASSEMBLER TESTS ======== //

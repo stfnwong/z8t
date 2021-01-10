@@ -114,6 +114,7 @@ typedef enum {
  */
 struct Token
 {
+    // TODO: if we have a non-zero length repr then we need to do lookups later..
     TokenType   type;
     int         val;
     std::string repr;
@@ -126,6 +127,7 @@ struct Token
         bool operator==(const Token& that) const;
         bool operator!=(const Token& that) const;
         void init(void);
+        bool needs_lookup(void) const;
 
         std::string toString(void) const;
 };

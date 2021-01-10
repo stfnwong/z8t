@@ -5,7 +5,6 @@
 
 #include "Common.hpp"
 
-#include <iostream>
 #include <iomanip>
 
 

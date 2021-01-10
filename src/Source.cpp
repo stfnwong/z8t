@@ -64,6 +64,11 @@ void Token::init(void)
     this->repr.clear();
 }
 
+bool Token::needs_lookup(void) const
+{
+    return ((this->repr.length() > 0) && (this->val == -1)) ? true : false;
+}
+
 /*
  * toString()
  */

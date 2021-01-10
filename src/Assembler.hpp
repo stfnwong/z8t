@@ -14,11 +14,6 @@
 
 
 /*
- * get the size of an instruction from the lookup table
- */
-uint8_t instr_get_size(uint32_t arg_hash);
-
-/*
  * Assembler 
  * Takes source text and transforms into a Program object 
  * which can be written out as a program executable.

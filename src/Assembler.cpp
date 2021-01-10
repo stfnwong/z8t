@@ -10,20 +10,10 @@
 #include <iostream>
 #include <iomanip>
 
+#include "Common.hpp"
 #include "Assembler.hpp"
 #include "Instruction.hpp"
 
-/*
- * instr_get_size()
- */
-uint8_t instr_get_size(uint32_t arg_hash)
-{
-    auto lookup_val = instr_hash_to_code.find(arg_hash);
-    if(lookup_val != instr_hash_to_code.end())
-        return lookup_val->second.second;
-
-    return 0;
-}
 
 /*
  *  ASSEMBLER
@@ -44,7 +34,6 @@ void Assembler::init(void)
     this->cur_pos        = 0;
     this->cur_pos        = 0;
     this->cur_addr       = TEXT_START_ADDR;     
-    //this->cur_char       = '\0';
     this->source_info.init();
     this->program.init();
 }
@@ -186,7 +175,7 @@ Token Assembler::tok_string_to_literal(const std::string& tok_string) const
     Token token;
 
     token.repr = tok_string;
-    token.type = SYM_LITERAL;
+    std::cout << "[" << __func__ << "] parsing " << tok_string << std::endl;
     try
     {
         if(tok_string[0] == '$')
@@ -195,10 +184,14 @@ Token Assembler::tok_string_to_literal(const std::string& tok_string) const
             token.val = std::stoi(tok_string.substr(1, tok_string.size()-1), nullptr, 2);
         else
             token.val = std::stoi(tok_string, nullptr, 10);
+        token.type = SYM_LITERAL;
     }
     catch(std::exception& ex)
     {
-        std::cerr << "[" << __func__ << "] " << ex.what() << std::endl;
+        std::cerr << "[" << __func__ << "] got exception " << ex.what() 
+            << " on line " << std::dec << this->line_info.line_num << std::endl;
+
+        std::cerr << "[" << __func__ << "] returning token " << token.toString() << std::endl;
     }
 
     return token;
@@ -224,21 +217,25 @@ Token Assembler::next_token(void)
         {
             token = this->tok_string_to_literal(tok_string);
         }
+        // if the next character is alpha assume this is a labelled indirect 
+        else if(tok_string[0] == '(' && std::isalpha(tok_string[1]))
+        {
+            token.type = SYM_LITERAL_IND;
+            token.repr = tok_string.substr(1, tok_string.length() - 2);
+            std::cout << "[" << __func__ << "] labelled indirect literal (" << token.toString() << ")" << std::endl;
+        }
         else if(tok_string[0] == '(')
         {
             // This must be a literal indirect (or its invalid) because if it
             // was a register indirect we would have a valid token before we 
             // check if the type was SYM_NULL.
-            unsigned int close_idx = 0;         // shuts warning up, even though we don't need this kind of size
+            unsigned int close_idx = 0;         
             while(tok_string[close_idx] != ')' && close_idx < tok_string.size())
                 close_idx++;
             if(close_idx >= tok_string.size())
             {
-                if(this->verbose)
-                {
-                    std::cout << "[" << __func__ << "] no matching closing paren on line " 
-                        << std::dec << this->cur_line << std::endl;
-                }
+                this->line_info.error = true;
+                this->line_info.errstr = "no matching closing paren on line " + std::to_string(this->cur_line);
                 return token;
             }
             // we know that tok_string[0] is an opening paren
@@ -255,8 +252,8 @@ Token Assembler::next_token(void)
         }
     }
 
-    if(this->verbose)
-        std::cout << "[" << __func__ << "] token is " << token.toString() << std::endl;
+    //if(this->verbose)
+    std::cout << "[" << __func__ << "] token is " << token.toString() << std::endl;
 
     return token;
 }
@@ -272,16 +269,20 @@ void Assembler::parse_arg(int arg_idx)
     token = this->next_token();
     if(token.type == SYM_NULL)
     {
-        this->line_info.error = true;
-        this->line_info.errstr = "Argument " + std::to_string(arg_idx) + " must be REG, LITERAL, COND, or LABEL (got "
-            + std::string(token.toString()) + ")";
-
+        // only add a new error here if there wasn't already one 
+        if(!this->line_info.error)
+        {
+            this->line_info.error = true;
+            this->line_info.errstr = "Argument " + std::to_string(arg_idx) + " must be REG, LITERAL, COND, or LABEL (got "
+                + std::string(token.toString()) + ")";
+        }
         if(this->verbose)
             std::cout << "[" << __func__ << "] " << this->line_info.error << std::endl;
-        
+
         return;
     }
-    if(token.type == SYM_LABEL)
+    //if(token.type == SYM_LABEL || (token.type == SYM_LITERAL_IND & )
+    if(token.needs_lookup())
     {
         this->line_info.sym_arg = arg_idx;
     }
@@ -327,7 +328,9 @@ void Assembler::parse_instruction(const Token& token)
     switch(token.val)
     {
         case INSTR_ADD:
+        case INSTR_ADC:
         case INSTR_LD: 
+        case INSTR_SBC:
             this->parse_arg(0);
             this->parse_arg(1);
 
@@ -348,11 +351,17 @@ void Assembler::parse_instruction(const Token& token)
             this->parse_one_or_two_arg();
             break;
 
+        case INSTR_JP:
+            this->parse_arg(0);
+            break;
+
         case INSTR_AND: 
         case INSTR_CP:
         case INSTR_DEC:
         case INSTR_INC:
         case INSTR_OR:
+        case INSTR_POP:
+        case INSTR_PUSH:
         case INSTR_SUB:
         case INSTR_XOR:
             this->parse_arg(0);
@@ -485,10 +494,27 @@ void Assembler::resolve_labels(void)
 
             if(label_addr > 0)
             {
-                target_addr = label_addr - cur_line.addr;
-                cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, target_addr, std::to_string(target_addr));
-                this->source_info.update(idx, cur_line);
+                switch(cur_line.opcode.val)
+                {
+                    // for relative jumps
+                    case INSTR_JR:
+                    case INSTR_JP:
+                        target_addr = label_addr - cur_line.addr;
+                        cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, target_addr, std::to_string(target_addr));
+                        break;
+
+                    // if we have any literals with no value then lookup the value now
+                    case INSTR_LD:
+                        cur_line.args[cur_line.sym_arg].val = label_addr;
+                        break;
+                }
             }
+            if(this->verbose)
+            {
+                std::cout << "[" << __func__ << "] updated line " << cur_line.line_num << "to : " << std::endl;
+                std::cout << cur_line.toString() << std::endl;
+            }
+            this->source_info.update(idx, cur_line);
         }
     }
 }
@@ -682,9 +708,10 @@ void Assembler::assem_instr(void)
         }
         else
         {
+            error_general(line.line_num, line.addr, std::string("invalid line type " + line.toInstrString()));
             // TODO; add proper error message here
-            std::cerr << "[" << __func__ << "] line " << line.line_num << " has invalid line type " << std::endl;
-            std::cerr << line.toString() << std::endl;
+            //std::cerr << "[" << __func__ << "] line " << line.line_num << " has invalid line type " << std::endl;
+            //std::cerr << line.toString() << std::endl;
             return;
         }
         this->program.add(cur_instr);
