@@ -113,6 +113,7 @@ class Program
          * numBytes()
          * TODO: Returns the length of the program in bytes
          */
+        unsigned int numBytes(void) const;
 
         /*
          * save()

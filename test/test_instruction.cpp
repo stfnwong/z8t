@@ -101,7 +101,7 @@ TEST_CASE("test_all_instructions", "[sanity]")
         LineInfo(Token(SYM_INSTR, INSTR_LD, "ld"), Token(SYM_REG, REG_SP, "sp"), Token(SYM_LITERAL, 200, "200")),
         // 
         //LineInfo(Token(SYM_INSTR, INSTR_LD, "ld"), Token(SYM_LITERAL_IND, 8, "(8)"), Token(SYM_REG, REG_HL, "hl")),
-        //LineInfo(Token(SYM_INSTR, INSTR_LD, "ld"), Token(SYM_REG, REG_H, "h"), Token(SYM_REG, REG_HL_IND, "(hl)")),
+        LineInfo(Token(SYM_INSTR, INSTR_LD, "ld"), Token(SYM_REG, REG_H, "h"), Token(SYM_REG, REG_HL_IND, "(hl)")),
     };
 
     std::cout << std::dec << input_instrs.size() << " instructions in test" << std::endl;

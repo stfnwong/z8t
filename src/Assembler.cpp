@@ -443,8 +443,6 @@ void Assembler::parse_directive(const Token& token)
                 this->line_info.errstr = "org directive got invalid argument " + std::string(arg_token.repr);
                 break;
             }
-            std::cout << "[" << __func__ << "] setting address to 0x"
-                << std::hex << arg_token.val << std::endl;
             this->cur_addr = arg_token.val;
             break;
 
@@ -462,10 +460,6 @@ void Assembler::parse_directive(const Token& token)
             }
             break;
     }
-
-    // TODO: debug, remove 
-    std::cout << "[" << __func__ << "] cur line : " << std::endl;
-    std::cout << this->line_info.toString() << std::endl;
 }
 
 

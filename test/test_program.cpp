@@ -18,7 +18,7 @@
 constexpr const bool GLOBAL_VERBOSE = true;
 
 
-TEST_CASE("test_src_program_read_write", "[classic]")
+TEST_CASE("test_src_program_read_write", "program")
 {
     Assembler assem;
     Program src_prog;
@@ -52,7 +52,7 @@ TEST_CASE("test_src_program_read_write", "[classic]")
 }
 
 
-TEST_CASE("test_to_array", "[classic]")
+TEST_CASE("test_to_array", "program")
 {
     Assembler assem;
     Program prog;
@@ -77,6 +77,7 @@ TEST_CASE("test_to_array", "[classic]")
     }
 }
 
-//TEST_CASE("test_program_end_to_end", "[classic]")
+
+//TEST_CASE("test_program_end_to_end", "program")
 //{
 //}

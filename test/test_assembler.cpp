@@ -69,7 +69,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_A, "a");
     line.args[1] = Token(SYM_LITERAL, 8, "8");
     info.add(line);
-
     // add a, 10
     line.init();
     line.line_num = 6;
@@ -78,7 +77,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_A, "a");
     line.args[1] = Token(SYM_LITERAL, 10, "10");
     info.add(line);
-    
     // ld hl, $FC00
     line.init();
     line.line_num = 7;
@@ -87,7 +85,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_HL, "hl");
     line.args[1] = Token(SYM_LITERAL, 0xFC00, "$fc00");
     info.add(line);
-
     // ld bc, $00BB
     line.init();
     line.line_num = 8;
@@ -96,7 +93,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_BC, "bc");
     line.args[1] = Token(SYM_LITERAL, 0x00BB, "$00bb");
     info.add(line);
-
     // ld b, 8
     line.init();
     line.line_num = 11;
@@ -105,7 +101,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_B, "b");
     line.args[1] = Token(SYM_LITERAL, 8, "8");
     info.add(line);
-
     // ld a, b
     line.init();
     line.line_num = 12;
@@ -114,7 +109,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_A, "a");
     line.args[1] = Token(SYM_REG, REG_B, "b");
     info.add(line);
-
     // add a, 5
     line.init();
     line.line_num = 13;
@@ -123,7 +117,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_A, "a");
     line.args[1] = Token(SYM_LITERAL, 5, "5");
     info.add(line);
-
     // ld b, a
     line.init();
     line.line_num = 14;
@@ -132,7 +125,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_B, "b");
     line.args[1] = Token(SYM_REG, REG_A, "a");
     info.add(line);
-
     // ld bc, 46
     line.init();
     line.line_num = 17;
@@ -141,7 +133,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_BC, "bc");
     line.args[1] = Token(SYM_LITERAL, 46, "46");
     info.add(line);
-
     // ld h, b
     line.init();
     line.line_num = 18;
@@ -150,7 +141,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_H, "h");
     line.args[1] = Token(SYM_REG, REG_B, "b");
     info.add(line);
-
     // ld l, c
     line.init();
     line.line_num = 19;
@@ -159,7 +149,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_L, "l");
     line.args[1] = Token(SYM_REG, REG_C, "c");
     info.add(line);
-
     // ld bc, 52
     line.init();
     line.line_num = 20;
@@ -168,7 +157,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_BC, "bc");
     line.args[1] = Token(SYM_LITERAL, 52, "52");
     info.add(line);
-
     // add hl, bc
     line.init();
     line.line_num = 21;
@@ -177,7 +165,6 @@ SourceInfo get_add_sub_expected_source(void)
     line.args[0] = Token(SYM_REG, REG_HL, "hl");
     line.args[1] = Token(SYM_REG, REG_BC, "bc");
     info.add(line);
-
     // ld b, h
     line.init();
     line.line_num = 22;
@@ -493,98 +480,37 @@ TEST_CASE("test_lex_gcd", "lexer")
 Program get_add_sub_expected_program(void)
 {
     Program prog;
-    Instr cur_instr;
 
     // ld a, 8  
-    cur_instr.init();
-    cur_instr.ins = 0x3E08;
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR, 0x3E08, 2));
     // add a, 10
-    cur_instr.init();
-    cur_instr.ins = 0xC60A;
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 2;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 2, 0xC60A, 2));
     // ld hl, $FC00 
-    cur_instr.init();
-    cur_instr.ins = 0x21FC00;
-    cur_instr.size = 3;
-    cur_instr.adr = TEXT_START_ADDR + 4;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 4, 0x21FC00, 3));
     // ld bc, $00BB
-    cur_instr.init();
-    cur_instr.ins = 0x0100BB;
-    cur_instr.size = 3;
-    cur_instr.adr = TEXT_START_ADDR + 7;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 7, 0x0100BB, 3));
     // ld b, 8
-    cur_instr.init();
-    cur_instr.ins = 0x0608;
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 10;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 10, 0x0608, 2));
     // ld a, b
-    cur_instr.init();
-    cur_instr.ins = 0x78;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 12;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 12, 0x78, 1));
     // add a, 5
-    cur_instr.init();
-    cur_instr.ins = 0xC605;
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 13;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 13, 0xC605, 2));
     // ld b,a 
-    cur_instr.init();
-    cur_instr.ins = 0x47;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 15;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 15, 0x47, 1));
     // ld bc, 46
-    cur_instr.init();
-    cur_instr.ins = 0x01002E;
-    cur_instr.size = 3;
-    cur_instr.adr = TEXT_START_ADDR + 16;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 16, 0x01002E, 3));
     // ld h, b
-    cur_instr.init();
-    cur_instr.ins = 0x60;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 19;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 19, 0x60, 1));
     // ld l,c
-    cur_instr.init();
-    cur_instr.ins = 0x69;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 20;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 20, 0x69, 1));
     // ld bc, 52
-    cur_instr.init();
-    cur_instr.ins = 0x010034;
-    cur_instr.size = 3;
-    cur_instr.adr = TEXT_START_ADDR + 21;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 21, 0x010034, 3));
     // add hl, bc
-    cur_instr.init();
-    cur_instr.ins = 0x09;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 24;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 24, 0x09, 1));
     // ld b, h
-    cur_instr.init();
-    cur_instr.ins = 0x44;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 25;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 25, 0x44, 1));
     // ld c, l
-    cur_instr.init();
-    cur_instr.ins = 0x4D;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 26;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 26, 0x4D, 1));
 
     return prog;
 }
@@ -642,75 +568,29 @@ TEST_CASE("test_asm_add_sub", "assembler")
 Program get_gcd_expected_program(void)
 {
     Program prog;
-    Instr cur_instr;
 
     // gcd: cp b
-    cur_instr.init();
-    cur_instr.ins = 0xB8;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR, 0xB8, 1));
     // ret z
-    cur_instr.init();
-    cur_instr.ins = 0xC8;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 1;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 1, 0xC8, 1));
     // jr c, else
-    cur_instr.init();
-    cur_instr.ins = 0x3805;     // offset AFTER PC is incremented
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 2;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 2, 0x3805, 2));
     // sub b
-    cur_instr.init();
-    cur_instr.ins = 0x90;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 4;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 4, 0x90, 1));
     // jr gcd
-    cur_instr.init();
-    cur_instr.ins = 0x1800 | uint8_t(-5);
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 5;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 5, 0x1800 | uint8_t(-5), 2));
     //  else: ld c, a
-    cur_instr.init();
-    cur_instr.ins = 0x4F;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 7;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 7, 0x4F, 1));
     // ld a, b
-    cur_instr.init();
-    cur_instr.ins = 0x78;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 8;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 8, 0x78, 1));
     // sub c
-    cur_instr.init();
-    cur_instr.ins = 0x91;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 9;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 9, 0x91, 1));
     // ld b, a
-    cur_instr.init();
-    cur_instr.ins = 0x47;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 10;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 10, 0x47, 1));
     // ld a, c
-    cur_instr.init();
-    cur_instr.ins = 0x79;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR + 11;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 11, 0x79, 1));
     // jr gcd
-    cur_instr.init();
-    cur_instr.ins = 0x1800 | uint8_t(-12);
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 12;
-    prog.add(cur_instr);
-
+    prog.add(Instr(TEXT_START_ADDR + 12, 0x1800 | uint8_t(-12), 2));
 
     return prog;
 }
@@ -970,31 +850,15 @@ SourceInfo get_expr_expected_source(void)
 Program get_expr_expected_program(void)
 {
     Program prog;
-    Instr cur_instr;
 
     // scale: equ 256
-    cur_instr.ins = 256;
-    cur_instr.size = 1;
-    cur_instr.adr = TEXT_START_ADDR;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR, 256, 1));
     // x: .defw 2 * scale / 4
-    cur_instr.init();
-    cur_instr.ins = uint16_t(128);
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 1;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 1, 128, 2));
     // y: defw -5 * scale / 4
-    cur_instr.init();
-    cur_instr.ins = uint16_t(-320);
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 3;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 3, uint16_t(-320), 2));
     // equation: .defw (2 * x) + y
-    cur_instr.init();
-    cur_instr.ins = uint16_t(-64);
-    cur_instr.size = 2;
-    cur_instr.adr = TEXT_START_ADDR + 5;
-    prog.add(cur_instr);
+    prog.add(Instr(TEXT_START_ADDR + 5, uint16_t(-64), 2));
 
     return prog;
 }

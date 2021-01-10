@@ -175,6 +175,18 @@ unsigned int Program::length(void) const
 }
 
 /*
+ * numBytes()
+ */
+unsigned int Program::numBytes(void) const
+{
+    unsigned int num_bytes = 0;
+    for(unsigned int idx = 0; idx < this->instructions.size(); ++idx)
+        num_bytes += this->instructions[idx].size;
+
+    return num_bytes;
+}
+
+/*
  * save()
  */
 int Program::save(const std::string& filename)
