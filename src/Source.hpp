@@ -277,7 +277,7 @@ struct LineInfo
     bool        is_label;
     bool        error;
     // text only fields 
-    Token       opcode;             // TODO : change to instr, the type here replaces LineType?
+    Token       opcode;             
     Token       args[2];
     int         sym_arg;
     // directive fields
@@ -306,10 +306,13 @@ struct LineInfo
         std::string diff(const LineInfo& that);
 };
 
-
-// TODO ; in keeping with the text/data segment distinction, this should be at some point
-// renamed into something that indicates that its a collection of LineInfo objects
-// TODO: move symbol table to be here?
+/*
+ * SourceInfo
+ * Wraps a collection of LineInfo objects that represents each
+ * of the lines in the source file.
+ * NOTE that when include is supported (ie: compilation of multiple
+ * files) that the implementation here may need to slightly change
+ */
 class SourceInfo
 {
     private: 

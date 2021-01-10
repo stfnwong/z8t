@@ -272,15 +272,16 @@ TEST_CASE("test_expr_eval_symbols", "expression")
     REQUIRE(token_stack[7].type == TOK_STRING);
 
     // NOTE: need to resolve before postfix conversion...
-    ExprStack resolved_stack = expr_stack_resolve_strings(token_stack, info);
+    std::pair<ExprStack,bool> resolved_stack = expr_stack_resolve_strings(token_stack, info);
+    REQUIRE(resolved_stack.second == true);
 
     if(GLOBAL_VERBOSE)
     {
         std::cout << "resolved : " << std::endl;
-        std::cout << resolved_stack.toString() << std::endl;
+        std::cout << resolved_stack.first.toString() << std::endl;
     }
 
-    token_stack = expr_infix_to_postfix(resolved_stack);
+    token_stack = expr_infix_to_postfix(resolved_stack.first);
 
     if(GLOBAL_VERBOSE)
     {

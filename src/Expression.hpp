@@ -220,7 +220,7 @@ EvalResult eval_postfix_expr_stack(const ExprStack& expr_stack);
  * exp_stack_resolve_strings()
  * Lookup string tokens in SourceInfo struct. 
  */
-ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceInfo& info);
+std::pair<ExprStack, bool> expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceInfo& info);
 
 /*
  * eval_expr_string()

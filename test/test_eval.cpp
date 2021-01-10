@@ -45,6 +45,9 @@ TEST_CASE("test_eval_copy_ctor_assign", "eval")
     er2.val = 20;
     REQUIRE(er1 != er2);
 
+    er1 = er2;
+    REQUIRE(er1 == er2);
+
     //er = EvalResult(30, true);
     //REQUIRE(er.val == 30);
     //REQUIRE(er.ok == true);

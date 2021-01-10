@@ -518,27 +518,13 @@ EvalResult eval_postfix_expr_stack(const ExprStack& expr_stack)
                 }
             }
             else if(output_stack.size() == 1 && cur_token.type == TOK_MINUS)
-            {
                 y = -y;
-            }
-
-            //if(output_stack.size() < 2)
-            //{
-            //    std::cout << "[" << __func__ << "] output_stack size too small (" << std::dec << output_stack.size() << ")" << std::endl;
-            //    return EvalResult(0.0, false);
-            //}
 
             output_stack.push(y);
         }
     }
     y = output_stack.top();
-    std::cout << "[" << __func__ << "] y : " << y << std::endl;
 
-    //EvalResult result;
-    //result.val = int(y);
-    //result.ok = false;
-    //std::cout << "[" << __func__ << "] result : " << result.toString() << std::endl;
-    //return result;
     return EvalResult(int(y), true);
 }
 
@@ -546,7 +532,7 @@ EvalResult eval_postfix_expr_stack(const ExprStack& expr_stack)
  * expr_stack_resolve_strings()
  * NOTE: for now I just make a copy. Eventually it do this in-place
  */
-ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceInfo& info)
+std::pair<ExprStack, bool> expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceInfo& info)
 {
     ExprStack out_stack;
 
@@ -558,7 +544,7 @@ ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceIn
             if(addr == 0)
             {
                 std::cerr << "[" << __func__ << "] failed to resolve address for token " << expr_stack[idx].toString() << std::endl;
-                return out_stack;
+                return std::pair<ExprStack, bool>(out_stack, false);
                 //return expr_stack;
             }
 
@@ -566,7 +552,7 @@ ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceIn
             if(dir_line.addr != addr || dir_line.addr == 0)
             { 
                 std::cerr << "[" << __func__ << "] failed to find directive at address 0x" << std::hex << std::setw(4) << addr << std::endl;
-                return out_stack;
+                return std::pair<ExprStack, bool>(out_stack, false);
                 //return expr_stack;
             }
             if(!dir_line.evaluated)
@@ -582,7 +568,7 @@ ExprStack expr_stack_resolve_strings(const ExprStack& expr_stack, const SourceIn
             out_stack.push(expr_stack[idx]);
     }
 
-    return out_stack;
+    return std::pair<ExprStack, bool>(out_stack, true);
 }
 
 
@@ -593,13 +579,12 @@ EvalResult eval_expr_string(const std::string& expr_string, const SourceInfo& in
 {
     ExprStack infix_stack, postfix_stack;
 
-    infix_stack = expr_tokenize(expr_string);
-    infix_stack = expr_stack_resolve_strings(infix_stack, info);    // TODO; inplace version
-    postfix_stack = expr_infix_to_postfix(infix_stack);
+    infix_stack      = expr_tokenize(expr_string);
+    auto resolve_out = expr_stack_resolve_strings(infix_stack, info);    // TODO; inplace version
+    if(resolve_out.second == false)
+        return EvalResult(0, false);
 
-    // TODO: debug, remove 
-    EvalResult result = eval_postfix_expr_stack(postfix_stack);
-    std::cout << "[" << __func__ << "] result : "  << result.toString() << std::endl;
-    return result;
-    //return eval_postfix_expr_stack(postfix_stack);
+    postfix_stack = expr_infix_to_postfix(resolve_out.first);
+
+    return eval_postfix_expr_stack(postfix_stack);
 }

@@ -337,6 +337,7 @@ void LineInfo::eval(const SourceInfo& info)
     unsigned int str_idx;
 
     // TODO : note that comma seperated args are not yet supported
+    // TODO : check EvalResult and report errors
     for(str_idx = 0; str_idx < this->expr.size(); ++str_idx)
     {
         if(this->expr[str_idx] == ',')
@@ -354,10 +355,7 @@ void LineInfo::eval(const SourceInfo& info)
     {
         cur_string = this->expr.substr(str_start, str_idx - str_start);
         EvalResult eval = eval_expr_string(cur_string, info);
-        std::cout << "[" << __func__ << "] result : " << eval.toString() << std::endl;
         this->data = eval.val;
-
-        std::cout << "[" << __func__ << "] line is now " << std::endl;
         std::cout << this->toString() << std::endl;
         //this->data.push_back(int(eval));
     }
@@ -603,7 +601,7 @@ unsigned int SourceInfo::getNumLines(void) const
 
 void SourceInfo::toFile(const std::string& filename) const
 {
-    std::cout << "[" << __FUNCTION__ << "] : TODO:" << std::endl;
+    std::cout << "[" << __func__ << "] : TODO:" << std::endl;
 }
 
 
