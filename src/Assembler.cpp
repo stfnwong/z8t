@@ -182,16 +182,20 @@ bool Assembler::check_ahead(void)
 {
     unsigned int idx = this->cur_pos;
     char check_char = this->source[idx];
-    this->skip_whitespace();
+    //this->skip_whitespace();
+
+    std::cout << "[" << __func__ << "] checking characters from offset " << this->cur_pos << std::endl;
 
     while(!this->exhausted())
     {
         check_char = this->source[idx];
+        std::cout << "[" << __func__ << "] check_char : [" << std::string(check_char, 1) 
+            << "] idx: " << idx << " disp: " << idx - this->cur_pos << std::endl;
         if(check_char == '\n')
             break;
         if(check_char == ';')
             break;
-        if(check_char != ' ' || check_char != ',')
+        if(check_char == ' ' || check_char == ',')
             idx++;
         if(std::isalnum(check_char))
             return true;
@@ -392,11 +396,13 @@ void Assembler::parse_ret(void)
 {
     Token token;
 
+    std::cout << "[" << __func__ << "] checking for following tokens..." << std::endl;
     if(this->check_ahead())
     {
         // the next token should be a conditional
         this->scan_token();
         token = this->lookup_condition(std::string(this->token_buf));
+        std::cout << "[" << __func__ << "] scanned token " << token.toString() << std::endl;
         if(token.type == SYM_COND)
             this->line_info.args[0] = token;
         else
@@ -560,6 +566,7 @@ void Assembler::parse_instruction(const Token& token)
 
         case INSTR_RET:
             this->parse_ret();
+            std::cout << "[" << __func__ << "] after parse_ret() line is " << std::endl << this->line_info.toString() << std::endl;
             break;
 
         case INSTR_CCF:
@@ -795,7 +802,12 @@ void Assembler::parse_line(void)
     }
 
     if(this->line_info.type == LineType::TextLine)
+    {
+        // TODO: debug, remove 
+        std::cout << "[" << __func__ << "] instr_get_size() : " 
+            << int(this->line_info.argHash()) << " for instr " << this->line_info.toInstrString() << std::endl;
         this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
+    }
     else
     {
         if(this->line_info.opcode.val == DIR_DEFW || this->line_info.opcode.val == DIR_EQU)

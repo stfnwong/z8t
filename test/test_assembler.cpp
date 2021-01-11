@@ -21,6 +21,7 @@ const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
 const std::string expr_filename = "asm/expr.asm";
 const std::string label_resolve_filename = "asm/label_resolve.asm";
+const std::string ret_lookahead_filename = "asm/ret_lookahead.asm";
 
 // TODO: a test which goes through the entire lookup table and checks
 // that all instructions return valid pairs
@@ -60,6 +61,83 @@ SourceInfo lex_helper(const std::string& filename)
 
     return info;
 }
+
+void source_check_helper(const SourceInfo& exp_source, const SourceInfo& lex_source)
+{
+    if(GLOBAL_VERBOSE)
+    {
+        for(unsigned int i = 0; i < lex_source.getNumLines(); ++i)
+        {
+            LineInfo cur_line = lex_source.get(i);
+            std::cout << cur_line.toString() << std::endl;
+        }
+    }
+
+    // Check intermediate results
+    for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
+    {
+        LineInfo exp_line = exp_source.get(i);
+        LineInfo lex_line = lex_source.get(i);
+
+        // note that eval happens during instruction assemble, so we need to do it here manually
+        if(!lex_line.evaluated)
+            lex_line.eval(lex_source);
+
+        if(exp_line != lex_line)
+        {
+            std::cout << "Error in line " << std::dec << i+1 << "/" 
+                << std::dec << exp_source.getNumLines() << std::endl;
+
+            std::cout << exp_line.diff(lex_line) << std::endl;
+
+            std::cout << "Expected :" << std::endl;
+            std::cout << exp_line.toString() << std::endl;
+
+            std::cout << "Got :" << std::endl;
+            std::cout << lex_line.toString() << std::endl;
+        }
+        REQUIRE(exp_line == lex_line);
+    }
+}
+
+void program_check_helper(const Program& exp_program, const Program& out_program)
+{
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "Expected program :" << std::endl;
+        for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
+            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
+
+        std::cout << "Output program :" << std::endl;
+        for(unsigned int idx = 0; idx < out_program.length(); ++idx)
+            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
+
+        for(unsigned int idx = 0; idx < out_program.length(); ++idx)
+        {
+            Instr out_instr = out_program.get(idx);
+            Instr exp_instr = exp_program.get(idx);
+
+            std::cout << "instr " << std::dec << idx << " exp: " << exp_instr.toString() 
+                << ", out: " << out_instr.toString() << std::endl;
+        }
+    }
+
+    // Check instructions 
+    for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
+    {
+        Instr out_instr = out_program.get(idx);
+        Instr exp_instr = exp_program.get(idx);
+
+        if(out_instr != exp_instr)
+        {
+            std::cout << "Difference in instruction " << idx << std::endl;
+            std::cout << "Expected : " << exp_instr.toString() << std::endl;
+            std::cout << "Got      : " << out_instr.toString() << std::endl;
+        }
+        REQUIRE(out_instr == exp_instr);
+    }
+}
+
 
 // ======== LEXER TESTS ======== //
 
@@ -204,27 +282,8 @@ TEST_CASE("test_lex_add_sub", "lexer")
     // Check intermediate results
     exp_source = get_add_sub_expected_source();
     REQUIRE(lex_source.getNumLines() == exp_source.getNumLines());
-    for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
-    {
-        LineInfo exp_line = exp_source.get(i);
-        LineInfo lex_line = lex_source.get(i);
 
-        if(exp_line != lex_line)
-        {
-            std::cout << "Error in line " << i+1 << "/" 
-                << exp_source.getNumLines() << std::endl;
-
-            std::cout << exp_line.diff(lex_line) << std::endl;
-
-            std::cout << "Expected :" << std::endl;
-            std::cout << exp_line.toString() << std::endl;
-
-            std::cout << "Got :" << std::endl;
-            std::cout << lex_line.toString() << std::endl;
-        }
-
-        REQUIRE(exp_line == lex_line);
-    }
+    source_check_helper(exp_source, lex_source);
 }
 
 /*
@@ -314,27 +373,8 @@ TEST_CASE("test_lex_indirect", "lexer")
 
     // Check intermediate results
     exp_source = get_indirect_expected_source();
-    for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
-    {
-        LineInfo exp_line = exp_source.get(i);
-        LineInfo lex_line = lex_source.get(i);
 
-        if(exp_line != lex_line)
-        {
-            std::cout << "Error in line " << i+1 << "/" 
-                << exp_source.getNumLines() << std::endl;
-
-            std::cout << exp_line.diff(lex_line) << std::endl;
-
-            std::cout << "Expected :" << std::endl;
-            std::cout << exp_line.toString() << std::endl;
-
-            std::cout << "Got :" << std::endl;
-            std::cout << lex_line.toString() << std::endl;
-        }
-
-        REQUIRE(exp_line == lex_line);
-    }
+    source_check_helper(exp_source, lex_source);
 }
 
 /*
@@ -448,38 +488,7 @@ TEST_CASE("test_lex_gcd", "lexer")
     std::cout << "\t Lexer generated " << std::dec << lex_source.getNumLines() << " line of output" << std::endl;
 
     exp_source = get_gcd_expected_source();
-
-    if(GLOBAL_VERBOSE)
-    {
-        for(unsigned int i = 0; i < lex_source.getNumLines(); ++i)
-        {
-            LineInfo cur_line = lex_source.get(i);
-            std::cout << cur_line.toString() << std::endl;
-        }
-    }
-
-    // Check intermediate results
-    for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
-    {
-        LineInfo exp_line = exp_source.get(i);
-        LineInfo lex_line = lex_source.get(i);
-
-        if(exp_line != lex_line)
-        {
-            std::cout << "Error in line " << std::dec << i+1 << "/" 
-                << std::dec << exp_source.getNumLines() << std::endl;
-
-            std::cout << exp_line.diff(lex_line) << std::endl;
-
-            std::cout << "Expected :" << std::endl;
-            std::cout << exp_line.toString() << std::endl;
-
-            std::cout << "Got :" << std::endl;
-            std::cout << lex_line.toString() << std::endl;
-        }
-
-        REQUIRE(exp_line == lex_line);
-    }
+    source_check_helper(exp_source, lex_source);
 }
 
 SourceInfo get_label_resolve_expected_source(void)
@@ -495,7 +504,7 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.addr = TEXT_START_ADDR;
     cur_line.label = "x";
     cur_line.is_label = true;
-    //cur_line.data = 30;       // NOTE: not resolved until assembly time, not ported back to info
+    cur_line.data = 30;       // NOTE: not resolved until assembly time, not ported back to info
     info.add(cur_line);
     // y: .defw 20
     cur_line.init();
@@ -505,7 +514,7 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.addr = TEXT_START_ADDR + 2;
     cur_line.label = "y";
     cur_line.is_label = true;
-    //cur_line.data = 20;
+    cur_line.data = 20;
     info.add(cur_line);
     // z: .defw -10 * (2 + x) - (3 * y)
     cur_line.init();
@@ -515,7 +524,7 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.addr = TEXT_START_ADDR + 4;
     cur_line.label = "z";
     cur_line.is_label = true;
-    //cur_line.data = -380;
+    cur_line.data = -380;
     info.add(cur_line);
     // ld hl (z)
     cur_line.init();
@@ -538,39 +547,61 @@ TEST_CASE("test_lex_label_resolve", "lexer")
     std::cout << "\t Lexer generated " << std::dec << lex_source.getNumLines() << " line of output" << std::endl;
 
     exp_source = get_label_resolve_expected_source();
+    source_check_helper(exp_source, lex_source);
+}
 
-    if(GLOBAL_VERBOSE)
-    {
-        for(unsigned int i = 0; i < lex_source.getNumLines(); ++i)
-        {
-            LineInfo cur_line = lex_source.get(i);
-            std::cout << cur_line.toString() << std::endl;
-        }
-    }
+SourceInfo get_ret_lookahead_expected_source(void)
+{
+    SourceInfo info;
+    LineInfo cur_line;
 
-    // Check intermediate results
-    for(unsigned int i = 0; i < exp_source.getNumLines(); ++i)
-    {
-        LineInfo exp_line = exp_source.get(i);
-        LineInfo lex_line = lex_source.get(i);
+    // ret nz 
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RET, "ret");
+    cur_line.args[0] = Token(SYM_COND, COND_NZ, "nz");
+    cur_line.addr = TEXT_START_ADDR;
+    info.add(cur_line);
+    // ret nc 
+    cur_line.init();
+    cur_line.line_num = 5;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RET, "ret");
+    cur_line.args[0] = Token(SYM_COND, COND_NC, "nc");
+    cur_line.addr = TEXT_START_ADDR + 1;
+    info.add(cur_line);
+    // ret 
+    cur_line.init();
+    cur_line.line_num = 6;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RET, "ret");
+    cur_line.addr = TEXT_START_ADDR + 2;
+    info.add(cur_line);
+    // ret m 
+    cur_line.init();
+    cur_line.line_num = 7;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RET, "ret");
+    cur_line.args[0] = Token(SYM_COND, COND_M, "m");
+    cur_line.addr = TEXT_START_ADDR + 3;
+    info.add(cur_line);
+    // ret  
+    cur_line.init();
+    cur_line.line_num = 9;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RET, "ret");
+    cur_line.addr = TEXT_START_ADDR + 4;
+    info.add(cur_line);
 
-        if(exp_line != lex_line)
-        {
-            std::cout << "Error in line " << std::dec << i+1 << "/" 
-                << std::dec << exp_source.getNumLines() << std::endl;
+    return info;
+}
 
-            std::cout << exp_line.diff(lex_line) << std::endl;
+TEST_CASE("test_lex_ret_lookahead", "lexer")
+{
+    SourceInfo lex_source;
+    SourceInfo exp_source;
 
-            std::cout << "Expected :" << std::endl;
-            std::cout << exp_line.toString() << std::endl;
+    lex_source = lex_helper(ret_lookahead_filename);
+    std::cout << "\t Lexer generated " << std::dec << lex_source.getNumLines() << " line of output" << std::endl;
 
-            std::cout << "Got :" << std::endl;
-            std::cout << lex_line.toString() << std::endl;
-        }
-
-        REQUIRE(exp_line == lex_line);
-    }
-
+    exp_source = get_ret_lookahead_expected_source();
+    source_check_helper(exp_source, lex_source);
 }
 
 // ======== ASSEMBLER TESTS ======== //
@@ -633,30 +664,7 @@ TEST_CASE("test_asm_add_sub", "assembler")
     std::cout << "Assembler produced " << std::dec << out_program.length() << " instructions" << std::endl;
     REQUIRE(exp_program.length() == out_program.length());
 
-    if(GLOBAL_VERBOSE)
-    {
-        std::cout << "Expected program :" << std::endl;
-        for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
-            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
-
-        std::cout << "Output program :" << std::endl;
-        for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
-    }
-
-    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-    {
-        Instr out_instr = out_program.get(idx);
-        Instr exp_instr = exp_program.get(idx);
-
-        if(out_instr != exp_instr)
-        {
-            std::cout << "Difference in instruction " << idx + 1 << std::endl;
-            std::cout << "Expected : " << exp_instr.toString() << std::endl;
-            std::cout << "Got      : " << out_instr.toString() << std::endl;
-        }
-        REQUIRE(out_instr == exp_instr);
-    }
+    program_check_helper(exp_program, out_program);
 }
 
 
@@ -711,44 +719,7 @@ TEST_CASE("test_asm_gcd", "assembler")
 
     std::cout << "Assembler produced " << std::dec << out_program.length() << " instructions" << std::endl;
     REQUIRE(exp_program.length() == out_program.length());
-
-    if(GLOBAL_VERBOSE)
-    {
-        std::cout << "Expected program :" << std::endl;
-        for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
-            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << exp_program.get(idx).toString() << std::endl;
-
-        std::cout << "Output program :" << std::endl;
-        for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-            std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
-    }
-
-    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-    {
-        Instr out_instr = out_program.get(idx);
-        Instr exp_instr = exp_program.get(idx);
-
-        std::cout << "instr " << std::dec << idx << " exp: " << exp_instr.toString() 
-            << ", out: " << out_instr.toString() << std::endl;
-    }
-
-    // Check instructions 
-    for(unsigned int idx = 0; idx < exp_program.length(); ++idx)
-    {
-        Instr out_instr = out_program.get(idx);
-        Instr exp_instr = exp_program.get(idx);
-
-        //std::cout << "instr " << std::dec << idx << " exp: " << exp_instr.toString() 
-        //    << ", out: " << out_instr.toString() << std::endl;
-
-        if(out_instr != exp_instr)
-        {
-            std::cout << "Difference in instruction " << idx << std::endl;
-            std::cout << "Expected : " << exp_instr.toString() << std::endl;
-            std::cout << "Got      : " << out_instr.toString() << std::endl;
-        }
-        REQUIRE(out_instr == exp_instr);
-    }
+    program_check_helper(exp_program, out_program);
 }
 
 
@@ -806,7 +777,7 @@ TEST_CASE("test_defw_single_literal", "directive")
     Program exp_program;
     Program out_program;
     SourceInfo exp_source;
-    SourceInfo out_source;
+    SourceInfo lex_source;
     LineInfo out_line;
     LineInfo exp_line;
 
@@ -814,12 +785,12 @@ TEST_CASE("test_defw_single_literal", "directive")
     assem.loadSource(defw_literal_label);
     assem.assemble();
 
-    out_source = assem.getSourceInfo();
+    lex_source = assem.getSourceInfo();
     exp_source = get_defw_expected_source();
 
-    REQUIRE(out_source.getNumLines() == 1);
-    //REQUIRE(out_source.get(0) == exp_source.get(0));
-    out_line = out_source.get(0);
+    REQUIRE(lex_source.getNumLines() == 1);
+    //REQUIRE(lex_source.get(0) == exp_source.get(0));
+    out_line = lex_source.get(0);
     out_line.data = 16;         // NOTE: we set here since at this time we don't do the eval until we are assembling the instruction (so its not available from the sourceinfo itself)
     exp_line = exp_source.get(0);
 
@@ -844,7 +815,7 @@ TEST_CASE("test_defw_literal_expr", "directive")
     Program exp_program;
     Program out_program;
     SourceInfo exp_source;
-    SourceInfo out_source;
+    SourceInfo lex_source;
     LineInfo out_line;
     LineInfo exp_line;
 
@@ -852,13 +823,13 @@ TEST_CASE("test_defw_literal_expr", "directive")
     assem.loadSource(defw_literal_expr);
     assem.assemble();
 
-    out_source = assem.getSourceInfo();
+    lex_source = assem.getSourceInfo();
     exp_source = get_defw_expected_source();
 
-    REQUIRE(out_source.getNumLines() == 1);
-    //REQUIRE(out_source.get(0) == exp_source.get(0));
+    REQUIRE(lex_source.getNumLines() == 1);
+    //REQUIRE(lex_source.get(0) == exp_source.get(0));
 
-    out_line = out_source.get(0);
+    out_line = lex_source.get(0);
     out_line.data = 16;         // NOTE: we set here since at this time we don't do the eval until we are assembling the instruction (so its not available from the sourceinfo itself)
     exp_line = exp_source.get(0);
 
@@ -965,7 +936,7 @@ TEST_CASE("test_directive_expr", "expression")
     Program exp_program;
     Program out_program;
     SourceInfo exp_source;
-    SourceInfo out_source;
+    SourceInfo lex_source;
     LineInfo out_line;
     LineInfo exp_line;
 
@@ -974,48 +945,17 @@ TEST_CASE("test_directive_expr", "expression")
     REQUIRE(status == 0);
     assem.assemble();
 
-    out_source = assem.getSourceInfo();
+    lex_source = assem.getSourceInfo();
     exp_source = get_expr_expected_source();
 
-    REQUIRE(out_source.getNumLines() == exp_source.getNumLines());
-    for(unsigned int idx = 0; idx < out_source.getNumLines(); ++idx)
-    {
-        exp_line = exp_source.get(idx);
-        out_line = out_source.get(idx);
+    REQUIRE(lex_source.getNumLines() == exp_source.getNumLines());
 
-        if(!out_line.evaluated)
-            out_line.eval(out_source);
-
-        if(exp_line != out_line)
-        {
-            std::cout << std::dec << "Error in line " << idx+1 << "/" 
-                << exp_source.getNumLines() << std::endl;
-
-            std::cout << exp_line.diff(out_line) << std::endl;
-            std::cout << "Expected :" << std::endl;
-            std::cout << exp_line.toString() << std::endl;
-            std::cout << "Got :" << std::endl;
-            std::cout << out_line.toString() << std::endl;
-        }
-        REQUIRE(exp_line == out_line);
-    }
+    source_check_helper(exp_source, lex_source);
 
     out_program = assem.getProgram();
     exp_program = get_expr_expected_program();
 
-
     REQUIRE(out_program.length() == exp_program.length());
-    for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-    {
-        Instr out_instr = out_program.get(idx);
-        Instr exp_instr = exp_program.get(idx);
-
-        if(out_instr != exp_instr)
-        {
-            std::cout << "Difference in instruction " << idx << std::endl;
-            std::cout << "Expected : " << exp_instr.toString() << std::endl;
-            std::cout << "Got      : " << out_instr.toString() << std::endl;
-        }
-        REQUIRE(out_instr == exp_instr);
-    }
+    program_check_helper(exp_program, out_program);
 }
+

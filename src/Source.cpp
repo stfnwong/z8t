@@ -349,6 +349,8 @@ uint32_t LineInfo::argHash(void) const
                ((this->args[0].val & 0xFF) << 8) | 
                ((SYM_LITERAL & 0xFF));
     }
+    // instructions with a single cond arg
+    // instructions with no args 
     else
     {
         hash = ((this->opcode.val  & 0xFF) << 16) | 
@@ -568,7 +570,9 @@ std::string LineInfo::toInstrString(void) const
 {
     std::ostringstream oss;
 
-    oss << this->opcode.repr << " " << this->args[0].repr << "," << this->args[1].repr;
+    oss << this->opcode.repr << " " << this->args[0].repr;
+    if(this->args[1].type != SYM_NULL)
+        oss << "," << this->args[1].repr;
 
     return oss.str();
 }

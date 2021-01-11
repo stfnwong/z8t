@@ -217,7 +217,7 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
     {(INSTR_RET << 16)  | (COND_C     << 8),                   std::pair(0xD8, 1)},   // ret c
     {(INSTR_RET << 16)  | (COND_PE    << 8),                   std::pair(0xE8, 1)},   // ret pe
     {(INSTR_RET << 16)  | (COND_M     << 8),                   std::pair(0xF8, 1)},   // ret m
-    {(INSTR_RET << 16)  ,                                      std::pair(0xC9, 1)},   // ret 
+    {(INSTR_RET << 16)                     ,                   std::pair(0xC9, 1)},   // ret 
     // sbc
     {(INSTR_SBC << 16) | (REG_A       << 8) | REG_A,           std::pair(0x9F, 1)},   // sbc a, a 
     {(INSTR_SBC << 16) | (REG_A       << 8) | REG_B,           std::pair(0x98, 1)},   // sbc a, b 
