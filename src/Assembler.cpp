@@ -193,9 +193,14 @@ bool Assembler::check_ahead(void)
             break;
         if(check_char != ' ' || check_char != ',')
             idx++;
+        if(std::isalnum(check_char))
+            return true;
     }
 
-    return (idx > 0) ? true : false;
+    return false;
+
+    //return (idx > this->cur_pos) ? true : false;
+    //return (idx > 0) ? true : false;        // TODO: this is incorrect since idx will always be > 0
 }
 
 
@@ -359,14 +364,12 @@ void Assembler::parse_jump(void)
     if(token.type == SYM_COND)
     {
         this->line_info.args[arg_num] = token;
-        //token = this->next_token();
         this->scan_token();
         arg_num++;
     }
     // Try and get a literal. We either got the condition
     // already or the condition test failed and we are checking the
     // same token is a literal
-    //token = this->parse_literal(token.repr);
     token = this->parse_literal(std::string(this->token_buf));
     if(token.type == SYM_LITERAL || token.type == SYM_LABEL)
     {
@@ -377,7 +380,7 @@ void Assembler::parse_jump(void)
     else
     {
         this->line_info.error = true;
-        this->line_info.errstr = "failed to parse " + this->line_info.opcode.repr 
+        this->line_info.errstr = this->line_info.opcode.repr + ": failed to parse " + this->line_info.opcode.repr 
             + ", current token " + token.toString();
     }
 }
@@ -399,7 +402,8 @@ void Assembler::parse_ret(void)
         else
         {
             this->line_info.error = true;
-            this->line_info.errstr = "Expected conditional after ret, got " + token.toString();
+            this->line_info.errstr = "Expected conditional after ret, got " + token.toString()
+                + "\n line processed so far : " + this->line_info.toInstrString();
         }
     }
 }
@@ -432,7 +436,31 @@ void Assembler::parse_call(void)
     else
     {
         this->line_info.error = true;
-        this->line_info.errstr = "failed to parse " + this->line_info.opcode.repr 
+        this->line_info.errstr = this->line_info.opcode.repr + ": failed to parse " + this->line_info.opcode.repr 
+            + ", current token " + token.toString();
+    }
+}
+
+/*
+ * parse_one_literal()
+ * Parse only a single literal into the first argument slot
+ */
+void Assembler::parse_one_literal(void)
+{
+    Token token;
+
+    this->scan_token();
+    token = this->parse_literal(std::string(this->token_buf));
+    if(token.type == SYM_LITERAL || token.type == SYM_LABEL)
+    {
+        this->line_info.args[0] = token;
+        if(token.type == SYM_LABEL)
+            this->line_info.sym_arg = 0;      // mark for symbol resolve
+    }
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = this->line_info.opcode.repr + ": failed to parse " + this->line_info.opcode.repr 
             + ", current token " + token.toString();
     }
 }
@@ -478,25 +506,6 @@ void Assembler::parse_arg(int arg_idx)
 }
 
 
-/*
- * pase_one_or_two_arg()
- */
-void Assembler::parse_one_or_two_arg(void)
-{
-    unsigned int start_line = this->cur_line;
-
-    this->parse_arg(0);
-    // TODO: this is bad - how complicated would it be to have a feature where 
-    // you pass like an 'expected type' and it gets that instead. Note that so far the 
-    // only case for this is because we have a register c and a condition c
-    if(this->line_info.args[0].type == SYM_REG)
-        this->line_info.args[0] = Token(SYM_COND, COND_C,  "c"); 
-
-    this->skip_to_next_token();
-
-    if(this->cur_line == start_line)
-        this->parse_arg(1);
-}
 
 /*
  * parse_instruction()
@@ -541,12 +550,28 @@ void Assembler::parse_instruction(const Token& token)
             this->parse_arg(0);
             break;
 
+        case INSTR_DJNZ:
+            this->parse_one_literal();
+            break;
+
         case INSTR_CALL:
             this->parse_call();
             break;
 
         case INSTR_RET:
             this->parse_ret();
+            break;
+
+        case INSTR_CCF:
+        case INSTR_CPL:
+        case INSTR_RRA:
+        case INSTR_RRCA:
+        case INSTR_NOP:
+        case INSTR_RLCA:
+        case INSTR_RLA:
+        case INSTR_DAA:
+        case INSTR_SCF:
+            // no args
             break;
 
         default:

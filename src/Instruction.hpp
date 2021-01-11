@@ -198,6 +198,16 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
     {(INSTR_OR << 16)  | (REG_L       << 8),                   std::pair(0xB5, 1)},   // or l
     {(INSTR_OR << 16)  | (REG_HL_IND  << 8),                   std::pair(0xB6, 1)},   // or (hl)
     {(INSTR_OR << 16)  | (SYM_LITERAL << 8),                   std::pair(0xF6, 2)},   // or *
+    // pop
+    {(INSTR_POP << 16)  | (REG_BC     << 8),                   std::pair(0xC1, 1)},   // pop bc
+    {(INSTR_POP << 16)  | (REG_DE     << 8),                   std::pair(0xD1, 1)},   // pop de
+    {(INSTR_POP << 16)  | (REG_HL     << 8),                   std::pair(0xE1, 1)},   // pop hl
+    {(INSTR_POP << 16)  | (REG_AF     << 8),                   std::pair(0xF1, 1)},   // pop af
+    // push
+    {(INSTR_PUSH << 16) | (REG_BC     << 8),                   std::pair(0xC5, 1)},   // push bc
+    {(INSTR_PUSH << 16) | (REG_DE     << 8),                   std::pair(0xD5, 1)},   // push de
+    {(INSTR_PUSH << 16) | (REG_HL     << 8),                   std::pair(0xE5, 1)},   // push hl
+    {(INSTR_PUSH << 16) | (REG_AF     << 8),                   std::pair(0xF5, 1)},   // push af
     // ret
     {(INSTR_RET << 16)  | (COND_NZ    << 8),                   std::pair(0xC0, 1)},   // ret nz
     {(INSTR_RET << 16)  | (COND_NC    << 8),                   std::pair(0xD0, 1)},   // ret nc

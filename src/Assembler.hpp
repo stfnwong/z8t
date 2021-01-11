@@ -82,8 +82,8 @@ class Assembler
         void        parse_jump(void);
         void        parse_ret(void);
         void        parse_call(void);
+        void        parse_one_literal(void);
         void        parse_arg(int arg_idx);
-        void        parse_one_or_two_arg(void);
         void        parse_instruction(const Token& token);
         std::string read_to_line_end(void);
         void        parse_directive(const Token& token); 

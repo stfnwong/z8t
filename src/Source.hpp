@@ -39,15 +39,19 @@ typedef enum {
     INSTR_JR,
     INSTR_LD, 
     INSTR_INC, 
+    INSTR_NOP,
     INSTR_OR,
     INSTR_OUT,
     INSTR_POP, 
     INSTR_PUSH,
+    INSTR_RLA,
+    INSTR_RLCA,
     INSTR_RRA,
     INSTR_RRCA,
     INSTR_RET,
     INSTR_RST,
     INSTR_SBC,
+    INSTR_SCF,
     INSTR_SUB,
     INSTR_XOR
 } Z80_INSTR;
@@ -83,6 +87,7 @@ typedef enum {
     REG_BC,
     REG_DE,
     REG_SP,
+    REG_AF,
     REG_BC_IND,     // indirect, ie: (BC)
     REG_HL_IND,     // indirect, ie: (HL)
     REG_DE_IND,     // indirect, ie: (DE)
