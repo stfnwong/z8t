@@ -667,14 +667,22 @@ void Assembler::resolve_labels(void)
 
                     // if we have any literals with no value then lookup the value now
                     case INSTR_LD:
-                        cur_line.args[cur_line.sym_arg].val = label_addr;
+                        if(cur_line.args[cur_line.sym_arg].type == SYM_LABEL)
+                            cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, label_addr, std::to_string(label_addr));
+                        else if(cur_line.args[cur_line.sym_arg].type == SYM_LITERAL_IND)
+                        {
+                            cur_line.eval(this->source_info);
+                        }
                         break;
                 }
             }
             if(this->verbose)
             {
-                std::cout << "[" << __func__ << "] updated line " << cur_line.line_num << "to : " << std::endl;
-                std::cout << cur_line.toString() << std::endl;
+                msg_general_funcname(
+                        __func__, 
+                        cur_line.line_num,
+                        "updated line to " + cur_line.toString()
+                );
             }
             this->source_info.update(idx, cur_line);
         }

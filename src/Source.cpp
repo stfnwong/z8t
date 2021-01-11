@@ -371,6 +371,12 @@ void LineInfo::eval(const SourceInfo& info)
     unsigned int str_start = 0;
     unsigned int str_idx;
 
+    //if(this->evaluated)
+    //    return;
+
+    // TODO: not sold on the idea that eval() is cleanest place to handle this conversion....
+    // however it is true that we need access to some SourceInfo reference in order to dereference
+    // the address of a SYM_LITERAL_IND address...
     if(sym_arg > -1)
     {
         std::cout << "[" << __func__ << "] evaluating arg " << this->sym_arg << ": " 
@@ -382,10 +388,13 @@ void LineInfo::eval(const SourceInfo& info)
             if(addr > 0)
             {
                 LineInfo dir_line = info.getAddr(addr);
+                // TODO: this kind of recursive eval is going to get old...
+                dir_line.eval(info);
                 std::cout << "[" << __func__ << "] dir_line : " << std::endl;
                 std::cout << dir_line.toString() << std::endl;
-                this->args[this->sym_arg].val = dir_line.data;
-                this->args[this->sym_arg].type = SYM_LITERAL;
+                this->args[this->sym_arg] = Token(SYM_LITERAL, uint16_t(dir_line.data), std::to_string(dir_line.data));
+                //this->args[this->sym_arg].val = dir_line.data;
+                //this->args[this->sym_arg].type = SYM_LITERAL;
                 this->evaluated = true;
                 std::cout << "[" << __func__ << "] line is now : " << std::endl;
                 std::cout << this->toString() << std::endl;

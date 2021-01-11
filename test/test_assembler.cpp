@@ -523,7 +523,7 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.addr = TEXT_START_ADDR + 6;
     cur_line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
     cur_line.args[0] = Token(SYM_REG, REG_HL, "hl");
-    cur_line.args[1] = Token(SYM_LITERAL_IND, uint16_t(-380), "-320");
+    cur_line.args[1] = Token(SYM_LITERAL, uint16_t(-380), "-380");
     info.add(cur_line);
 
     return info;
