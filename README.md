@@ -8,7 +8,10 @@ And maybe eventually RTL as well.
 ### TODO : Most of everything
 - Assembler is in progress.
 - Disassembler is not started.
-- Emulator is not started.
+- Emulator is started, but very incomplete.
+
+The careful reader will be able to deduce that I have no format background in
+parsing, lexing, etc.
 
 ## Requirements 
 - Catch2 (included)

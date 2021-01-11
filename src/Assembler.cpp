@@ -165,10 +165,40 @@ void Assembler::scan_token(void)
 
     if(this->verbose)
     {
-        std::cout << "[" << __func__ << "] (line " << std::dec 
-            << this->cur_line << ") : token_buf contains [" 
-            << std::string(this->token_buf) << "] " << std::endl;
+        msg_general_funcname(
+                __func__,
+                this->cur_line, 
+                std::string("token_buf contains ") + std::string(this->token_buf)
+        );
     }
+}
+
+/*
+ * check_ahead()
+ * Similar to scan token, but doesn't advance the internal position tracking.
+ * Useful to see if there is another token or if the line ends.
+ */
+bool Assembler::check_ahead(void)
+{
+    unsigned int idx = this->cur_pos;
+    char check_char = this->source[idx];
+    this->skip_whitespace();
+
+    while(!this->exhausted())
+    {
+        check_char = this->source[idx];
+        if(check_char == '\n')
+            break;
+        if(check_char == ';')
+            break;
+        if(check_char != ' ' || check_char != ',')
+            idx++;
+        std::cout << "[" << __func__ << "] checking " << idx << " characters ahead, cur character is " 
+            << check_char << std::endl;
+            //<< std::string(this->cur_char) << std::endl;
+    }
+
+    return (idx > 0) ? true : false;
 }
 
 
@@ -356,6 +386,28 @@ void Assembler::parse_jump(void)
     }
 }
 
+/*
+ * parse_ret()
+ */
+void Assembler::parse_ret(void)
+{
+    Token token;
+
+    if(this->check_ahead())
+    {
+        // the next token should be a conditional
+        this->scan_token();
+        token = this->lookup_condition(std::string(this->token_buf));
+        if(token.type == SYM_COND)
+            this->line_info.args[0] = token;
+        else
+        {
+            this->line_info.error = true;
+            this->line_info.errstr = "Expected conditional after ret, got " + token.toString();
+        }
+    }
+}
+
 
 
 /*
@@ -485,7 +537,8 @@ void Assembler::parse_instruction(const Token& token)
 
         // instructions with no operands
         case INSTR_RET:
-            this->parse_arg(0);
+            this->parse_ret();
+            //this->parse_arg(0);
             break;
 
         default:
@@ -817,11 +870,8 @@ void Assembler::assem_instr(void)
                 error_general(
                         line.line_num, 
                         line.addr, 
-                        std::string("invalid instruction" + line.toInstrString())
+                        std::string("invalid instruction " + line.toInstrString())
                 );
-                std::cout << "Error on line " << line.line_num << " [Address 0x" 
-                    << std::hex << std::setw(4) << line.addr << "] invalid instruction " 
-                    << line.toInstrString() << std::endl;
                 return;
             }
             cur_instr.adr = line.addr;      

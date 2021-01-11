@@ -38,5 +38,8 @@ struct Z8TLogger
 void error_general(const int line_num, const int addr, const std::string& errstr);
 void error_general_funcname(const std::string& funcname, const int line_num, const int addr, const std::string& errstr);
 
+// TODO; the logger above would actually be better than this...
+void msg_general(const int line_num, const std::string& msg);
+void msg_general_funcname(const std::string& funcname, const int line_num, const std::string& msg);
 
 #endif /*__COMMON_HPP*/
