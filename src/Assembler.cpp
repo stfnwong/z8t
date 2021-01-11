@@ -404,6 +404,38 @@ void Assembler::parse_ret(void)
     }
 }
 
+/*
+ * parse_call()
+ */
+void Assembler::parse_call(void)
+{
+    int argn = 0;
+    Token token;
+
+    this->scan_token();     
+    // Try a conditional. If there is one then set the first arg 
+    // as the conditional and try to get a literal
+    token = this->lookup_condition(std::string(this->token_buf));
+    if(token.type == SYM_COND)
+    {
+        this->line_info.args[argn] = token;
+        this->scan_token();
+        argn++;
+    }
+    token = this->parse_literal(std::string(this->token_buf));
+    if(token.type == SYM_LITERAL || token.type == SYM_LABEL)
+    {
+        this->line_info.args[argn] = token;
+        if(token.type == SYM_LABEL)
+            this->line_info.sym_arg = argn;      // mark for symbol resolve
+    }
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "failed to parse " + this->line_info.opcode.repr 
+            + ", current token " + token.toString();
+    }
+}
 
 
 /*
@@ -507,6 +539,10 @@ void Assembler::parse_instruction(const Token& token)
         case INSTR_SUB:
         case INSTR_XOR:
             this->parse_arg(0);
+            break;
+
+        case INSTR_CALL:
+            this->parse_call();
             break;
 
         case INSTR_RET:
