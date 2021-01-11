@@ -11,6 +11,7 @@
 ; which is expected in HL), and _putc: Print a single character which is 
 ; expected in A. RST 0 give control back to the monitor.
 ;
+; NOTE: taken from rosetta code
 #include        "mondef.asm"
  
                 org     ram_start
