@@ -316,6 +316,5 @@ TEST_CASE("test_expr_eval_symbol_failure", "directive")
     info = get_expr_eval_source();
 
     EvalResult eval_out = eval_expr_string(expr_input, info);
-    std::cout << "eval_out : " << eval_out.toString() << std::endl;
     REQUIRE(eval_out.ok == false);
 }

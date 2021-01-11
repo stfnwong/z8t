@@ -33,8 +33,11 @@ TEST_CASE("test_src_program_read_write", "program")
 
     src_prog = assem.getProgram();
 
-    //std::cout << "Output src_program is :" << std::endl;
-    //std::cout << src_prog.toString() << std::endl;
+    if(GLOBAL_VERBOSE)
+    {
+        std::cout << "Output src_program is :" << std::endl;
+        std::cout << src_prog.toString() << std::endl;
+    }
    
     REQUIRE(src_prog.length() == 1);
     src_prog.save(prog_file);
@@ -72,9 +75,7 @@ TEST_CASE("test_to_array", "program")
 
     REQUIRE(prog_vector.size() == expected_vector.size());
     for(unsigned int idx = 0; idx < expected_vector.size(); ++idx)
-    {
         REQUIRE(prog_vector[idx] == expected_vector[idx]);
-    }
 }
 
 

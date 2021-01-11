@@ -15,7 +15,7 @@
 #include "Source.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = true;
+constexpr const bool GLOBAL_VERBOSE = false;
 const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
@@ -199,7 +199,7 @@ TEST_CASE("test_lex_add_sub", "lexer")
     SourceInfo exp_source;
 
     lex_source = lex_helper(add_sub_filename);
-    std::cout << "\t Lexer generated " << lex_source.getNumLines() << " line of output" << std::endl;
+    std::cout << "\t Lexer generated " << std::dec << lex_source.getNumLines() << " line of output" << std::endl;
 
     // Check intermediate results
     exp_source = get_add_sub_expected_source();
@@ -310,7 +310,7 @@ TEST_CASE("test_lex_indirect", "lexer")
     SourceInfo exp_source;
 
     lex_source = lex_helper(indirect_filename);
-    std::cout << "\t Lexer generated " << lex_source.getNumLines() << " line of output" << std::endl;
+    std::cout << "\t Lexer generated " << std::dec << lex_source.getNumLines() << " line of output" << std::endl;
 
     // Check intermediate results
     exp_source = get_indirect_expected_source();
@@ -445,7 +445,7 @@ TEST_CASE("test_lex_gcd", "lexer")
     SourceInfo exp_source;
 
     lex_source = lex_helper(gcd_filename);
-    std::cout << "\t Lexer generated " << lex_source.getNumLines() << " line of output" << std::endl;
+    std::cout << "\t Lexer generated " << std::dec << lex_source.getNumLines() << " line of output" << std::endl;
 
     exp_source = get_gcd_expected_source();
 
@@ -535,7 +535,7 @@ TEST_CASE("test_lex_label_resolve", "lexer")
     SourceInfo exp_source;
 
     lex_source = lex_helper(label_resolve_filename);
-    std::cout << "\t Lexer generated " << lex_source.getNumLines() << " line of output" << std::endl;
+    std::cout << "\t Lexer generated " << std::dec << lex_source.getNumLines() << " line of output" << std::endl;
 
     exp_source = get_label_resolve_expected_source();
 
@@ -630,7 +630,7 @@ TEST_CASE("test_asm_add_sub", "assembler")
     exp_program = get_add_sub_expected_program();
     out_program = assem.getProgram();
 
-    std::cout << "Assembler produced " << out_program.length() << " instructions" << std::endl;
+    std::cout << "Assembler produced " << std::dec << out_program.length() << " instructions" << std::endl;
     REQUIRE(exp_program.length() == out_program.length());
 
     if(GLOBAL_VERBOSE)
@@ -992,10 +992,8 @@ TEST_CASE("test_directive_expr", "expression")
                 << exp_source.getNumLines() << std::endl;
 
             std::cout << exp_line.diff(out_line) << std::endl;
-
             std::cout << "Expected :" << std::endl;
             std::cout << exp_line.toString() << std::endl;
-
             std::cout << "Got :" << std::endl;
             std::cout << out_line.toString() << std::endl;
         }

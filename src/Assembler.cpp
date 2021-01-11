@@ -193,9 +193,6 @@ bool Assembler::check_ahead(void)
             break;
         if(check_char != ' ' || check_char != ',')
             idx++;
-        std::cout << "[" << __func__ << "] checking " << idx << " characters ahead, cur character is " 
-            << check_char << std::endl;
-            //<< std::string(this->cur_char) << std::endl;
     }
 
     return (idx > 0) ? true : false;
@@ -222,10 +219,12 @@ Token Assembler::tok_string_to_literal(const std::string& tok_string) const
     }
     catch(std::exception& ex)
     {
-        std::cerr << "[" << __func__ << "] got exception " << ex.what() 
-            << " on line " << std::dec << this->line_info.line_num << std::endl;
-
-        std::cerr << "[" << __func__ << "] returning token " << token.toString() << std::endl;
+        if(this->verbose)
+        {
+            std::cerr << "[" << __func__ << "] got exception " << ex.what() 
+                << " on line " << std::dec << this->line_info.line_num << std::endl;
+            std::cerr << "[" << __func__ << "] returning token " << token.toString() << std::endl;
+        }
     }
 
     return token;
@@ -357,13 +356,11 @@ void Assembler::parse_jump(void)
     //token = this->next_token();
     this->scan_token();
     token = this->lookup_condition(std::string(this->token_buf));
-    std::cout << "[" << __func__ << "] first token : " << token.toString() << std::endl;
     if(token.type == SYM_COND)
     {
         this->line_info.args[arg_num] = token;
         //token = this->next_token();
         this->scan_token();
-        std::cout << "[" << __func__ << "] after scan_token: " << std::string(this->token_buf) << std::endl;
         arg_num++;
     }
     // Try and get a literal. We either got the condition
@@ -371,7 +368,6 @@ void Assembler::parse_jump(void)
     // same token is a literal
     //token = this->parse_literal(token.repr);
     token = this->parse_literal(std::string(this->token_buf));
-    std::cout << "[" << __func__ << "] second token : " << token.toString() << std::endl;
     if(token.type == SYM_LITERAL || token.type == SYM_LABEL)
     {
         this->line_info.args[arg_num] = token;
@@ -493,32 +489,14 @@ void Assembler::parse_instruction(const Token& token)
         case INSTR_SBC:
             this->parse_arg(0);
             this->parse_arg(1);
-
-            // FIXME: This is a dumb hack to get the arg types right
-            if(this->line_info.args[0].type == SYM_COND)
-            {
-                this->line_info.args[0] = Token(SYM_REG, REG_C, "c");
-            }
-            if(this->line_info.args[1].type == SYM_COND)
-            {
-                this->line_info.args[1] = Token(SYM_REG, REG_C, "c");
-            }
             break;
 
-        // TODO: jr and ret can take the cond c which will get confused with the register c
-        // We may need to force the type if we find that its come back as SYM_REG
         case INSTR_JR:
         case INSTR_JP:
             this->parse_jump();
-            //this->parse_one_or_two_arg();
-            std::cout << "[" << __func__ << "] after parsing JR line becomes : " << std::endl;
-            std::cout << this->line_info.toString() << std::endl;
             break;
 
-        //case INSTR_JP:
-        //    this->parse_arg(0);
-        //    break;
-
+        // instructions that accept a single argument
         case INSTR_AND: 
         case INSTR_CP:
         case INSTR_DEC:
@@ -529,16 +507,10 @@ void Assembler::parse_instruction(const Token& token)
         case INSTR_SUB:
         case INSTR_XOR:
             this->parse_arg(0);
-            // do the 'ol switcheroo
-            if(this->line_info.args[0].type == SYM_COND)
-                this->line_info.args[0] = Token(SYM_REG, REG_C, "c");
-
             break;
 
-        // instructions with no operands
         case INSTR_RET:
             this->parse_ret();
-            //this->parse_arg(0);
             break;
 
         default:
@@ -546,8 +518,7 @@ void Assembler::parse_instruction(const Token& token)
             this->line_info.errstr = "Invalid instruction " + std::string(token.repr);
             if(this->verbose)
             {
-                std::cout << "[" << __func__ << "] (line " << this->cur_line 
-                    << ") : " << this->line_info.errstr << std::endl;
+                error_general_funcname(__func__, this->cur_line, this->cur_addr, this->line_info.errstr);
             }
     }
 }
@@ -727,7 +698,7 @@ void Assembler::parse_line(void)
         this->line_info.label = sym.label;
 
         if(this->verbose)
-            std::cout << "[" << __func__ << "] added symbol [" << sym.toString() << "] to table" << std::endl;
+            msg_general_funcname(__func__, this->cur_line, "added symbol " + sym.toString() + " to table");
 
         // Scan the next token
         token = this->next_token();
@@ -920,8 +891,6 @@ void Assembler::assemble(void)
 {
     this->init();
     this->cur_char = this->source[0];
-    if(this->verbose)
-        std::cout << "[" << __func__ << "] verbose is true" << std::endl;
 
     if(this->source.length() == 0)
         return;
@@ -951,10 +920,6 @@ void Assembler::assemble(void)
                     this->cur_addr,
                     this->line_info.errstr
             );
-            std::cout << "Error on line " << std::dec << this->line_info.line_num << " [Address 0x" 
-                << std::hex << std::setw(4) << this->line_info.addr << "] : " 
-                << this->line_info.errstr << std::endl;
-
             return;
         }
     }

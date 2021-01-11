@@ -253,7 +253,6 @@ int Program::load(const std::string& filename)
     while(idx < length)
     {
         uint8_t opcode;
-        uint32_t instr_code;
         uint32_t buf;
 
         infile.read(reinterpret_cast<char*>(&opcode), sizeof(uint8_t));
