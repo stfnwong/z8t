@@ -7,6 +7,7 @@
 #ifndef __SOURCE_HPP
 #define __SOURCE_HPP
 
+#include <array>
 #include <cstdint>
 #include <sstream>
 #include <string>
@@ -132,15 +133,6 @@ struct Token
         std::string toString(void) const;
 };
 
-// Argument - this is for the data section 
-struct Argument
-{
-    uint8_t size;       // how many bytes are actually used
-    uint32_t val;
-
-    public:
-        Argument();
-};
 
 // hash on a key like 
 //
@@ -210,6 +202,79 @@ const Token Z80_TOKENS[] =
     Token(SYM_DIRECTIVE, DIR_ORG,     ".org"),
 };
 
+// Instruction/Directive tokens 
+const Token Z80_INSTRUCTIONS[] = 
+{
+    // Instructions 
+    Token(SYM_INSTR, INSTR_ADD,  "add" ),
+    Token(SYM_INSTR, INSTR_ADC,  "adc" ),
+    Token(SYM_INSTR, INSTR_AND,  "and" ),
+    Token(SYM_INSTR, INSTR_CALL, "call" ),
+    Token(SYM_INSTR, INSTR_CCF,  "ccf" ),
+    Token(SYM_INSTR, INSTR_CP,   "cp" ),
+    Token(SYM_INSTR, INSTR_CPL,  "cpl" ),
+    Token(SYM_INSTR, INSTR_DAA,  "daa" ),
+    Token(SYM_INSTR, INSTR_DEC,  "dec" ),
+    Token(SYM_INSTR, INSTR_DI,   "di" ),
+    Token(SYM_INSTR, INSTR_DJNZ, "djnz" ),
+    Token(SYM_INSTR, INSTR_EX,   "ex" ),
+    Token(SYM_INSTR, INSTR_JP,   "jp" ),
+    Token(SYM_INSTR, INSTR_JR,   "jr" ),
+    Token(SYM_INSTR, INSTR_LD ,  "ld"  ),
+    Token(SYM_INSTR, INSTR_INC,  "inc" ),
+    Token(SYM_INSTR, INSTR_OR,   "or"),
+    Token(SYM_INSTR, INSTR_OUT,  "out"),
+    Token(SYM_INSTR, INSTR_POP,  "pop" ),
+    Token(SYM_INSTR, INSTR_PUSH, "push" ),
+    Token(SYM_INSTR, INSTR_RRA,  "rra"),
+    Token(SYM_INSTR, INSTR_RRCA, "rrca"),
+    Token(SYM_INSTR, INSTR_RET,  "ret"),
+    Token(SYM_INSTR, INSTR_SBC,  "sbc"),
+    Token(SYM_INSTR, INSTR_SUB,  "sub"),
+    Token(SYM_INSTR, INSTR_XOR,  "xor"),
+    // directives
+    Token(SYM_DIRECTIVE, DIR_DEFB,    ".defb"),
+    Token(SYM_DIRECTIVE, DIR_DEFW,    ".defw"),
+    Token(SYM_DIRECTIVE, DIR_DEFS,    ".defs"),
+    Token(SYM_DIRECTIVE, DIR_END,     ".end"),
+    Token(SYM_DIRECTIVE, DIR_EQU,     ".equ"),
+    Token(SYM_DIRECTIVE, DIR_INCLUDE, ".include"),
+    Token(SYM_DIRECTIVE, DIR_ORG,     ".org"),
+};
+
+// Register tokens 
+const Token Z80_REGISTERS[] = 
+{
+    Token(SYM_REG,  REG_A,      "a"),
+    Token(SYM_REG,  REG_B,      "b"),
+    Token(SYM_REG,  REG_C,      "c"),
+    Token(SYM_REG,  REG_D,      "d"),
+    Token(SYM_REG,  REG_E,      "e"),
+    Token(SYM_REG,  REG_H,      "h"),
+    Token(SYM_REG,  REG_L,      "l"),
+    Token(SYM_REG,  REG_HL,     "hl"),
+    Token(SYM_REG,  REG_BC,     "bc"),
+    Token(SYM_REG,  REG_DE,     "de"),
+    Token(SYM_REG,  REG_SP,     "sp"),
+    Token(SYM_REG,  REG_BC_IND, "(bc)"),
+    Token(SYM_REG,  REG_DE_IND, "(de)"),
+    Token(SYM_REG,  REG_HL_IND, "(hl)"),
+};
+
+// Conditions
+const Token Z80_CONDITIONS[] = 
+{
+    Token(SYM_COND, COND_C,  "c"),        // TODO: need to find a better way to do this..
+    Token(SYM_COND, COND_NC, "nc"),
+    Token(SYM_COND, COND_Z,  "z"), 
+    Token(SYM_COND, COND_NZ, "nz"),
+    Token(SYM_COND, COND_M,  "m"), 
+    Token(SYM_COND, COND_P,  "p"), 
+    Token(SYM_COND, COND_PE, "pe"),
+    Token(SYM_COND, COND_PO, "po"),
+};
+
+enum struct TokenSet{ All, Instructions, Registers, Conditions }; 
 
 /*
  * TokenLookup
@@ -221,6 +286,7 @@ class TokenLookup
 
     public:
         TokenLookup();
+        TokenLookup(const TokenSet& tok_set);
         Token lookup(const std::string& s) const;
 };
 

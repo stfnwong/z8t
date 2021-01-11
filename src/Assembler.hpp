@@ -39,7 +39,10 @@ class Assembler
 
     // token lookup
     private:
-        TokenLookup token_lookup;
+        TokenLookup  token_lookup;
+        TokenLookup  instr_lookup;
+        TokenLookup  register_lookup;
+        TokenLookup  condition_lookup;
         OpcodeLookup opcode_lookup;
 
     // source movement 
@@ -61,12 +64,21 @@ class Assembler
     private:
         Token       tok_string_to_literal(const std::string& tok_string) const;
         Token       next_token(void);
+        
+        // consume tokens only of a specific type
 
         void        skip_whitespace(void);
         void        skip_line(void);
         void        skip_seperators(void);
         void        skip_to_next_token(void);
         void        scan_token(void);
+        Token       lookup_any(const std::string& tok_str);
+        Token       lookup_condition(const std::string& tok_str);
+        Token       lookup_register(const std::string& tok_str);
+        Token       lookup_instruction(const std::string& tok_str);
+        Token       parse_literal(const std::string& tok_str);
+        // instruction specific parsing routines 
+        void        parse_jump(void);
         void        parse_arg(int arg_idx);
         void        parse_one_or_two_arg(void);
         void        parse_instruction(const Token& token);
@@ -94,7 +106,7 @@ class Assembler
         unsigned int      getCurAddr(void) const;
 
         // getters, setters 
-        Program getProgram(void) const;
+        Program           getProgram(void) const;
 };
 
 #endif /*__ASSEMBLER_HPP*/

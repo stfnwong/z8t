@@ -107,6 +107,28 @@ TokenLookup::TokenLookup()
         this->name_to_token[token.repr] = token;
 }
 
+TokenLookup::TokenLookup(const TokenSet& set)
+{
+    switch(set)
+    {
+        case TokenSet::Instructions:
+            for(const Token& token : Z80_INSTRUCTIONS)
+                this->name_to_token[token.repr] = token;
+            break;
+        case TokenSet::Registers:
+            for(const Token& token: Z80_REGISTERS)
+                this->name_to_token[token.repr] = token;
+            break;
+        case TokenSet::Conditions:
+            for(const Token& token: Z80_CONDITIONS)
+                this->name_to_token[token.repr] = token;
+            break;
+        default:
+            for(const Token& token : Z80_TOKENS)
+                this->name_to_token[token.repr] = token;
+            break;
+    }
+}
 
 Token TokenLookup::lookup(const std::string& s) const
 {
@@ -348,6 +370,32 @@ void LineInfo::eval(const SourceInfo& info)
     std::string cur_string;
     unsigned int str_start = 0;
     unsigned int str_idx;
+
+    if(sym_arg > -1)
+    {
+        std::cout << "[" << __func__ << "] evaluating arg " << this->sym_arg << ": " 
+            << this->args[this->sym_arg].toString() << std::endl;
+
+        if(this->args[this->sym_arg].type == SYM_LITERAL_IND)
+        {
+            uint16_t addr = info.getSymAddr(this->args[this->sym_arg].repr);
+            if(addr > 0)
+            {
+                LineInfo dir_line = info.getAddr(addr);
+                std::cout << "[" << __func__ << "] dir_line : " << std::endl;
+                std::cout << dir_line.toString() << std::endl;
+                this->args[this->sym_arg].val = dir_line.data;
+                this->args[this->sym_arg].type = SYM_LITERAL;
+                this->evaluated = true;
+                std::cout << "[" << __func__ << "] line is now : " << std::endl;
+                std::cout << this->toString() << std::endl;
+                std::cout << this->args[this->sym_arg].toString() << std::endl;
+                return;
+            }
+        }
+    }
+    if(this->expr.size() == 0)
+        return;
 
     // TODO : note that comma seperated args are not yet supported
     // TODO : check EvalResult and report errors

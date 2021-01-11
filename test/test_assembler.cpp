@@ -15,7 +15,7 @@
 #include "Source.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = false;
+constexpr const bool GLOBAL_VERBOSE = true;
 const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
@@ -29,6 +29,12 @@ const std::string label_resolve_filename = "asm/label_resolve.asm";
 //
 //}
 
+TEST_CASE("test_assembler_init", "assembler")
+{
+    Assembler assem;
+
+    REQUIRE(assem.getCurAddr() == TEXT_START_ADDR);
+}
 
 /*
  * helper function for lexing source
@@ -487,8 +493,9 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.line_num = 5;
     cur_line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
     cur_line.addr = TEXT_START_ADDR;
-    cur_line.data = 30;
     cur_line.label = "x";
+    cur_line.is_label = true;
+    //cur_line.data = 30;       // NOTE: not resolved until assembly time, not ported back to info
     info.add(cur_line);
     // y: .defw 20
     cur_line.init();
@@ -496,8 +503,9 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.line_num = 6;
     cur_line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
     cur_line.addr = TEXT_START_ADDR + 2;
-    cur_line.data = 20;
     cur_line.label = "y";
+    cur_line.is_label = true;
+    //cur_line.data = 20;
     info.add(cur_line);
     // z: .defw -10 * (2 + x) - (3 * y)
     cur_line.init();
@@ -505,8 +513,9 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.line_num = 7;
     cur_line.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
     cur_line.addr = TEXT_START_ADDR + 4;
-    cur_line.data = -380;
     cur_line.label = "z";
+    cur_line.is_label = true;
+    //cur_line.data = -380;
     info.add(cur_line);
     // ld hl (z)
     cur_line.init();
@@ -514,9 +523,8 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.addr = TEXT_START_ADDR + 6;
     cur_line.opcode = Token(SYM_INSTR, INSTR_LD, "ld");
     cur_line.args[0] = Token(SYM_REG, REG_HL, "hl");
-    cur_line.args[1] = Token(SYM_LITERAL_IND, uint16_t(-320), "-320");
+    cur_line.args[1] = Token(SYM_LITERAL_IND, uint16_t(-380), "-320");
     info.add(cur_line);
-
 
     return info;
 }

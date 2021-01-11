@@ -58,6 +58,66 @@ TEST_CASE("test_token_lookup", "source")
     REQUIRE(out_token.val == DIR_EQU);
 }
 
+TEST_CASE("test_token_lookup_instructions", "source")
+{
+    TokenLookup token_lut(TokenSet::Instructions);
+    Token out_token;
+
+    out_token = token_lut.lookup("adc");
+    REQUIRE(out_token.type == SYM_INSTR);
+    REQUIRE(out_token.val == INSTR_ADC);
+    // directives are also in this set
+    out_token = token_lut.lookup(".defw");
+    REQUIRE(out_token.type == SYM_DIRECTIVE);
+    REQUIRE(out_token.val == DIR_DEFW);
+    // if we ask for something that isn't a directive or 
+    // instruction we get a null token
+    out_token = token_lut.lookup("hl");
+    REQUIRE(out_token == Token());
+}
+
+TEST_CASE("test_token_lookup_registers", "source")
+{
+    TokenLookup token_lut(TokenSet::Registers);
+    Token out_token;
+
+    out_token = token_lut.lookup("a");
+    REQUIRE(out_token.type == SYM_REG);
+    REQUIRE(out_token.val == REG_A);
+    out_token = token_lut.lookup("(hl)");
+    REQUIRE(out_token.type == SYM_REG);
+    REQUIRE(out_token.val == REG_HL_IND);
+    // anything else returns a null token
+    out_token = token_lut.lookup(".defw");
+    REQUIRE(out_token == Token());
+    out_token = token_lut.lookup("xor");
+    REQUIRE(out_token == Token());
+}
+
+TEST_CASE("test_token_lookup_conditions", "source")
+{
+    TokenLookup token_lut(TokenSet::Conditions);
+    Token out_token;
+
+    out_token = token_lut.lookup("a");
+    REQUIRE(out_token == Token());
+    // c here will always return a cond rather than a reg
+    out_token = token_lut.lookup("c");
+    REQUIRE(out_token.type == SYM_COND);
+    REQUIRE(out_token.val == COND_C);
+    out_token = token_lut.lookup("pe");
+    REQUIRE(out_token.type == SYM_COND);
+    REQUIRE(out_token.val == COND_PE);
+
+    out_token = token_lut.lookup("(hl)");
+    REQUIRE(out_token == Token());
+    // anything else returns a null token
+    out_token = token_lut.lookup(".defw");
+    REQUIRE(out_token == Token());
+    out_token = token_lut.lookup("xor");
+    REQUIRE(out_token == Token());
+}
+
 // ======== LineInfo and related structures ======== //
 TEST_CASE("test_lineinfo_init", "source")
 {
