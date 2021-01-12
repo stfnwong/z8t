@@ -46,9 +46,9 @@ std::string dis_instr_to_repr(const std::vector<uint8_t>& code_buffer)
 
             // consume one more byte from the stream
             if(instr_size > 1)
-                oss << "$" << std::hex << unsigned(code_buffer[pc+1]);
+                oss << " $" << std::hex << unsigned(code_buffer[pc+1]);
             if(instr_size > 2)
-                oss << std::hex << unsigned(code_buffer[pc+2]);
+                oss << " " << std::hex << unsigned(code_buffer[pc+2]);
 
             oss << std::endl;
             pc += instr_size;

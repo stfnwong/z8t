@@ -85,12 +85,19 @@ int main(int argc, char *argv[])
     if(dis_opts.literal != "\0")
     {
         uint32_t instr_literal = std::strtoul(dis_opts.literal.c_str(), nullptr, 16);
-        //LineInfo dis_out = dis_instr(instr_literal, 0);
-        std::vector<uint8_t> code_buf(4);
-        code_buf[0] = (instr_literal & 0xFF000000) >> 24;
-        code_buf[1] = (instr_literal & 0x00FF0000) >> 16;
-        code_buf[2] = (instr_literal & 0x0000FF00) >> 8;
-        code_buf[3] = (instr_literal & 0x000000FF) >> 0;
+        std::vector<uint8_t> code_buf;
+
+        uint32_t instr_mask = 0xFF000000;
+        uint8_t buf_elem;
+        for(int i = 0; i < 4; ++i)
+        {
+            if((instr_literal & instr_mask) > 0)
+            {
+                buf_elem = (instr_literal & instr_mask) >> ((3-i) * 8);
+                code_buf.push_back(buf_elem);
+            }
+            instr_mask = instr_mask >> 8;
+        }
 
         std::string dis_repr = dis_instr_to_repr(code_buf);
         std::cout << dis_repr << std::endl;

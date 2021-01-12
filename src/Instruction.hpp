@@ -488,7 +488,28 @@ const std::map<const uint8_t, std::pair<std::string, uint8_t>> code_to_instr_rep
     {0xAC, std::pair("xor h", 1)},        // xor h
     {0xAD, std::pair("xor l", 1)},        // xor l
     {0xAE, std::pair("xor (hl)", 1)},     // xor (hl)
-    {0xEE, std::pair("xor ", 2)}          // xor *
+    {0xEE, std::pair("xor ", 2)},         // xor *
+
+    // no arg instructions
+    {0x07, std::pair("rlca", 1)},        // rlca
+    {0x17, std::pair("rla", 1)},         // rla
+    {0x27, std::pair("daa", 1)},         // daa
+    {0x37, std::pair("scf", 1)},         // scf
+    {0x0F, std::pair("rrca", 1)},        // rrca
+    {0x1F, std::pair("rra", 1)},         // rra
+    {0x2F, std::pair("cpl", 1)},         // cpl
+    {0x3F, std::pair("ccf", 1)},         // ccf
+    {0xF8, std::pair("di", 1)},          // di
+    {0xFB, std::pair("ei", 1)},          // ei
+    // Ex instructions 
+    {0xD9, std::pair("exx", 1)},         // exx
+    {0x08, std::pair("ex af, af'", 1)},  // ex af, af'
+    {0xE4, std::pair("ex (sp), hl", 1)}, // ex (sp), hl
+    {0xEB, std::pair("ex de, hl", 1)},   // ex de, hl
+
+
+    {0x10, std::pair("djnz", 2)},        // djnz
+
 };
 
 /*
