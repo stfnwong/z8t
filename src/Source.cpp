@@ -326,39 +326,61 @@ bool LineInfo::operator!=(const LineInfo& that) const
  */
 uint32_t LineInfo::argHash(void) const
 {
-    uint32_t hash = 0;
+    uint32_t hash;
 
-    if(this->args[0].type == SYM_LITERAL || this->args[0].type == SYM_LABEL)
-    {
-        hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((SYM_LITERAL & 0xFF) << 8);
-
-        if(this->args[1].val >= 0)
-            hash = hash | ((this->args[1].val & 0xFF));
-    }
-    else if(this->args[1].type == SYM_LITERAL)
-    {
-        hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((this->args[0].val & 0xFF) << 8) | 
-               ((this->args[1].type & 0xFF));
-    }
-    // this handles the case where the labels have not yet been resolved
-    else if(this->args[1].type == SYM_LABEL)
-    {
-        hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((this->args[0].val & 0xFF) << 8) | 
-               ((SYM_LITERAL & 0xFF));
-    }
-    // instructions with a single cond arg
-    // instructions with no args 
+    hash = (this->opcode.val & 0xFF) << 16;
+    // First argument. If the argument is a literal or indirect literal then 
+    // we use the type in place of the value
+    if(this->args[0].type == SYM_LITERAL || 
+       this->args[0].type == SYM_LITERAL_IND || 
+       this->args[0].type == SYM_NULL)
+        hash = hash | ((this->args[0].type & 0xFF) << 8);
+    else if(this->args[0].type == SYM_LABEL)
+        hash = hash | (SYM_LITERAL << 8);
     else
-    {
-        hash = ((this->opcode.val  & 0xFF) << 16) | 
-               ((this->args[0].val & 0xFF) << 8);
+        hash = hash | ((this->args[0].val & 0xFF) << 8);
 
-        if(this->args[1].val >= 0)
-            hash = hash | ((this->args[1].val & 0xFF));
-    }
+    // Second argument 
+    if(this->args[1].type == SYM_LITERAL || 
+       this->args[1].type == SYM_LITERAL_IND ||
+       this->args[1].type == SYM_NULL)
+        hash = hash | (this->args[1].type & 0xFF);
+    else if(this->args[1].type == SYM_LABEL)
+        hash = hash | SYM_LITERAL;
+    else
+        hash = hash | (this->args[1].val & 0xFF);
+
+    //if(this->args[0].type == SYM_LITERAL || this->args[0].type == SYM_LABEL)
+    //{
+    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
+    //           ((SYM_LITERAL & 0xFF) << 8);
+
+    //    if(this->args[1].val >= 0)
+    //        hash = hash | ((this->args[1].val & 0xFF));
+    //}
+    //else if(this->args[1].type == SYM_LITERAL)
+    //{
+    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
+    //           ((this->args[0].val & 0xFF) << 8) | 
+    //           ((this->args[1].type & 0xFF));
+    //}
+    //// this handles the case where the labels have not yet been resolved
+    //else if(this->args[1].type == SYM_LABEL)
+    //{
+    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
+    //           ((this->args[0].val & 0xFF) << 8) | 
+    //           ((SYM_LITERAL & 0xFF));
+    //}
+    //// instructions with a single cond arg
+    //// instructions with no args 
+    //else
+    //{
+    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
+    //           ((this->args[0].val & 0xFF) << 8);
+
+    //    if(this->args[1].val >= 0)
+    //        hash = hash | ((this->args[1].val & 0xFF));
+    //}
 
     return hash;
 }
@@ -479,7 +501,13 @@ std::string LineInfo::toString(void) const
     if(this->type == LineType::TextLine)
     {
         for(int i = 0; i < 2; ++i)
+        {
+            if(this->args[i].type == SYM_REG)
+                oss << "R";
+            else if(this->args[i].type == SYM_COND)
+                oss << "C";
             oss << this->args[i].repr << " ";
+        }
     }
     else
         oss << "0x" << std::hex << std::setw(2) << std::setfill('0') << this->data;
@@ -585,7 +613,10 @@ std::string LineInfo::toInstrString(void) const
 /*
  * SourceInfo
  */
-SourceInfo::SourceInfo() {} 
+SourceInfo::SourceInfo()
+{
+    this->init();
+}
 
 /*
  * SourceInfo::init()

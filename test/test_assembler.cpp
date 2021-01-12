@@ -15,7 +15,7 @@
 #include "Source.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = false;
+constexpr const bool GLOBAL_VERBOSE = true;
 const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
@@ -407,7 +407,7 @@ SourceInfo get_gcd_expected_source(void)
     line.opcode = Token(SYM_INSTR, INSTR_JR, "jr");
     line.addr = TEXT_START_ADDR + 2;
     line.args[0] = Token(SYM_COND, COND_C, "c");
-    line.args[1] = Token(SYM_LITERAL, 0x5, "5");  // jump over PC 
+    line.args[1] = Token(SYM_LITERAL, 3, "3");  // add to PC, even though distance is 5 bytes we only need to jump 3 more (since this instr is already 2 bytes long)
     line.sym_arg = 1;
     info.add(line);
     // sub b

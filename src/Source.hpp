@@ -144,6 +144,7 @@ struct Token
 // SYM_TYPE | ARG1_VAL | ARG2_VAL
 
 // Collection of all valid tokens 
+// TODO: now that there are seperate lookups I gues this can go...
 const Token Z80_TOKENS[] =
 {
     // Instructions 
@@ -374,9 +375,9 @@ struct LineInfo
         unsigned int data_size(void) const;
 
         // stringify
-        std::string toString(void) const;
-        std::string toInstrString(void) const;
-        std::string diff(const LineInfo& that);
+        std::string  toString(void) const;
+        std::string  toInstrString(void) const;
+        std::string  diff(const LineInfo& that);
 };
 
 /*
