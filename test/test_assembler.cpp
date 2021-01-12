@@ -111,15 +111,6 @@ void program_check_helper(const Program& exp_program, const Program& out_program
         std::cout << "Output program :" << std::endl;
         for(unsigned int idx = 0; idx < out_program.length(); ++idx)
             std::cout << "[" << std::setw(4) << std::dec << idx << "] " << out_program.get(idx).toString() << std::endl;
-
-        for(unsigned int idx = 0; idx < out_program.length(); ++idx)
-        {
-            Instr out_instr = out_program.get(idx);
-            Instr exp_instr = exp_program.get(idx);
-
-            std::cout << "instr " << std::dec << idx << " exp: " << exp_instr.toString() 
-                << ", out: " << out_instr.toString() << std::endl;
-        }
     }
 
     // Check instructions 

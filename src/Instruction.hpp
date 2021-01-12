@@ -247,7 +247,22 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
     {(INSTR_XOR << 16) | (REG_H       << 8),                   std::pair(0xAC, 1)},   // xor h
     {(INSTR_XOR << 16) | (REG_L       << 8),                   std::pair(0xAD, 1)},   // xor l
     {(INSTR_XOR << 16) | (REG_HL_IND  << 8),                   std::pair(0xAE, 1)},   // xor (hl)
-    {(INSTR_XOR << 16) | (SYM_LITERAL << 8),                   std::pair(0xEE, 2)}    // xor *
+    {(INSTR_XOR << 16) | (SYM_LITERAL << 8),                   std::pair(0xEE, 2)},   // xor *
+
+    // instructions that take no args
+    {(INSTR_RRCA << 16)                    ,                   std::pair(0x0F, 1)},   // rrca 
+    {(INSTR_RRA << 16)                     ,                   std::pair(0x1F, 1)},   // rra 
+    {(INSTR_CPL << 16)                     ,                   std::pair(0x2F, 1)},   // cpl 
+    {(INSTR_CCF << 16)                     ,                   std::pair(0x3F, 1)},   // ccf 
+    {(INSTR_RLCA << 16)                    ,                   std::pair(0x07, 1)},   // rlca 
+    {(INSTR_RLA << 16)                     ,                   std::pair(0x17, 1)},   // rla 
+    {(INSTR_DAA << 16)                     ,                   std::pair(0x27, 1)},   // daa 
+    {(INSTR_SCF << 16)                     ,                   std::pair(0x37, 1)},   // scf 
+
+    // TODO: ED instructions 
+    // TODO: CB instructions 
+    // TODO: DD instructions 
+    // TODO: DDCB instructions 
 };
 
 // Map of pairs. Each pair is <repr, size>

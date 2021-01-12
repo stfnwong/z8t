@@ -182,15 +182,10 @@ bool Assembler::check_ahead(void)
 {
     unsigned int idx = this->cur_pos;
     char check_char = this->source[idx];
-    //this->skip_whitespace();
-
-    std::cout << "[" << __func__ << "] checking characters from offset " << this->cur_pos << std::endl;
 
     while(!this->exhausted())
     {
         check_char = this->source[idx];
-        std::cout << "[" << __func__ << "] check_char : [" << std::string(check_char, 1) 
-            << "] idx: " << idx << " disp: " << idx - this->cur_pos << std::endl;
         if(check_char == '\n')
             break;
         if(check_char == ';')
@@ -202,9 +197,6 @@ bool Assembler::check_ahead(void)
     }
 
     return false;
-
-    //return (idx > this->cur_pos) ? true : false;
-    //return (idx > 0) ? true : false;        // TODO: this is incorrect since idx will always be > 0
 }
 
 
@@ -396,13 +388,11 @@ void Assembler::parse_ret(void)
 {
     Token token;
 
-    std::cout << "[" << __func__ << "] checking for following tokens..." << std::endl;
     if(this->check_ahead())
     {
         // the next token should be a conditional
         this->scan_token();
         token = this->lookup_condition(std::string(this->token_buf));
-        std::cout << "[" << __func__ << "] scanned token " << token.toString() << std::endl;
         if(token.type == SYM_COND)
             this->line_info.args[0] = token;
         else
@@ -566,7 +556,6 @@ void Assembler::parse_instruction(const Token& token)
 
         case INSTR_RET:
             this->parse_ret();
-            std::cout << "[" << __func__ << "] after parse_ret() line is " << std::endl << this->line_info.toString() << std::endl;
             break;
 
         case INSTR_CCF:
@@ -795,10 +784,10 @@ void Assembler::parse_line(void)
     {
         this->parse_directive(token);
     }
-    // no idea - must be a symbol/label
     else
     {
-        this->line_info.line_num = this->cur_line;
+        this->line_info.error = true;
+        this->line_info.errstr = "got unexpected token " + token.repr + " on line " + std::to_string(this->cur_line);
     }   
     this->line_info.addr = this->cur_addr;
 
@@ -879,17 +868,15 @@ void Assembler::assem_instr(void)
 {
     Instr cur_instr;
     LineInfo line;
-    uint32_t line_hash;
 
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
     {
         line = this->source_info.get(idx);
-        line.eval(this->source_info);       // TODO : do I need to this for all lines as a matter of course?
-        line_hash = line.argHash();
+        line.eval(this->source_info);       
 
         if(line.type == LineType::TextLine)
         {
-            auto lookup_val = instr_hash_to_code.find(line_hash);
+            auto lookup_val = instr_hash_to_code.find(line.argHash());
             if(lookup_val != instr_hash_to_code.end())
             {
                 auto instr_size = lookup_val->second;
@@ -897,7 +884,7 @@ void Assembler::assem_instr(void)
                 // TODO: debug, remove 
                 //std::cout << "[" << __func__ << "] got instr_size as " << std::dec << cur_instr.size 
                 //    << " for instruction " << line.toInstrString() << " at line " << line.line_num 
-                //    << " (hash was 0x" << std::hex << line_hash << ")" << std::endl;
+                //    << " (hash was 0x" << std::hex << line.argHash() << ")" << std::endl;
                 if(cur_instr.size == 1)
                     cur_instr.ins  = instr_size.first;
                 else if(cur_instr.size == 2 && line.args[0].type == SYM_LITERAL)
@@ -960,9 +947,6 @@ void Assembler::assem_instr(void)
         else
         {
             error_general(line.line_num, line.addr, std::string("invalid line type " + line.toInstrString()));
-            // TODO; add proper error message here
-            //std::cerr << "[" << __func__ << "] line " << line.line_num << " has invalid line type " << std::endl;
-            //std::cerr << line.toString() << std::endl;
             return;
         }
         this->program.add(cur_instr);
