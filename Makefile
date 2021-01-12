@@ -59,7 +59,7 @@ $(TESTS): $(TEST_OBJECTS) $(OBJECTS)
 		-o $(TEST_BIN_DIR)/$@ $(LIBS) $(TEST_LIBS)
 
 ## ===== TOOL TARGETS ===== # 
-TOOLS = z8tasm 
+TOOLS = z8tasm z8dis
 
 $(TOOLS): $(OBJECTS) $(TOOL_OBJECTS)
 	$(CXX) $(LDFLAGS) $(OBJECTS) $(OBJ_DIR)/$@.o \

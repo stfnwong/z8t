@@ -272,6 +272,8 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
 const std::map<const uint8_t, std::pair<std::string, uint8_t>> code_to_instr_repr = {
     // format 
     // <First byte of instr> -> (repr, size)
+    // nop
+    {0x00, std::pair("nop", 1)},          // nop
     // add 
     {0x87, std::pair("add a, a", 1)},     // add a, a 
     {0x80, std::pair("add a, b", 1)},     // add a, b 
