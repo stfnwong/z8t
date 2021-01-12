@@ -15,7 +15,7 @@
 #include "Source.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = true;
+constexpr const bool GLOBAL_VERBOSE = false;
 const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
@@ -680,7 +680,7 @@ Program get_gcd_expected_program(void)
     // ret z
     prog.add(Instr(TEXT_START_ADDR + 1, 0xC8, 1));
     // jr c, else
-    prog.add(Instr(TEXT_START_ADDR + 2, 0x3805, 2));
+    prog.add(Instr(TEXT_START_ADDR + 2, 0x3803, 2));
     // sub b
     prog.add(Instr(TEXT_START_ADDR + 4, 0x90, 1));
     // jr gcd
@@ -722,6 +722,44 @@ TEST_CASE("test_asm_gcd", "assembler")
     program_check_helper(exp_program, out_program);
 }
 
+Program get_ret_lookahead_expected_program(void)
+{
+    Program prog;
+
+    // ret nz
+    prog.add(Instr(TEXT_START_ADDR, 0xC0, 1));
+    // ret nc
+    prog.add(Instr(TEXT_START_ADDR + 1, 0xD0, 1));
+    // ret 
+    prog.add(Instr(TEXT_START_ADDR + 2, 0xC9, 1));
+    // ret m
+    prog.add(Instr(TEXT_START_ADDR + 3, 0xF8, 1));
+    // ret
+    prog.add(Instr(TEXT_START_ADDR + 4, 0xC9, 1));
+
+    return prog;
+}
+
+TEST_CASE("test_asm_ret_lookahead", "assembler")
+{
+    int status;
+    Assembler assem;
+    SourceInfo lex_source;
+    Program exp_program;
+    Program out_program;
+
+    assem.setVerbose(GLOBAL_VERBOSE);
+    status = assem.read(ret_lookahead_filename);
+    REQUIRE(status == 0);
+    assem.assemble();
+
+    exp_program = get_ret_lookahead_expected_program();
+    out_program = assem.getProgram();
+
+    std::cout << "Assembler produced " << std::dec << out_program.length() << " instructions" << std::endl;
+    REQUIRE(exp_program.length() == out_program.length());
+    program_check_helper(exp_program, out_program);
+}
 
 // TEST_DIRECTIVES
 TEST_CASE("test_equ_directive", "directive")
@@ -958,4 +996,5 @@ TEST_CASE("test_directive_expr", "expression")
     REQUIRE(out_program.length() == exp_program.length());
     program_check_helper(exp_program, out_program);
 }
+
 

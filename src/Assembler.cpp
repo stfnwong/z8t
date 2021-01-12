@@ -702,10 +702,6 @@ void Assembler::resolve_labels(void)
                         target_addr = label_addr - cur_line.addr;
                         if(target_addr > 0)
                             target_addr -= instr_get_size(cur_line.argHash());      // for forward instructions, we are adding to value after PC increment
-                        //target_addr = label_addr - cur_line.addr; // + instr_get_size(cur_line.argHash()));
-                        // TODO: debug, remove 
-                        std::cout << "[" << __func__ << "] jr target : " << std::dec << target_addr 
-                            << " label: " << std::hex << label_addr << ", cur_line : " << cur_line.addr << std::endl;
                         cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, target_addr, std::to_string(target_addr));
                         break;
 
@@ -720,7 +716,7 @@ void Assembler::resolve_labels(void)
                             cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, label_addr, std::to_string(label_addr));
                         else if(cur_line.args[cur_line.sym_arg].type == SYM_LITERAL_IND)
                         {
-                            cur_line.eval(this->source_info);
+                            cur_line.eval(this->source_info);   // sort of untested....
                         }
                         break;
                 }
@@ -813,13 +809,7 @@ void Assembler::parse_line(void)
 
     if(this->line_info.type == LineType::TextLine)
     {
-        // TODO: debug, remove 
-        std::cout << "[" << __func__ << "] instr_get_size() : " 
-            << std::dec << int(this->line_info.argHash()) << " for instr " << this->line_info.toInstrString() << std::endl;
-
         this->cur_addr = this->cur_addr + instr_get_size(this->line_info.argHash());
-
-        std::cout << "[" << __func__ << "] cur_addr is now 0x" << std::hex << this->cur_addr << std::endl;
     }
     else
     {
