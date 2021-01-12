@@ -91,7 +91,7 @@ TEST_CASE("test_memory_load_save", "memory")
     for(unsigned int b = 0; b < test_mem_data.size(); ++b)
         REQUIRE(mem[b] == out_mem[b]);
 
-    std::remove(filename);
+    //std::remove(filename);
 }
 
 

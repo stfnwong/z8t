@@ -4,12 +4,14 @@
 
 # Ignore object files
 *.o
-# Ignore everything under bin/
+
+# Ignore anything under $ROOT_DIR/bin
 bin/*
-# Ignore tags file
-tags
-# Ignore memory files 
-*.dat
+# Ignore binaries
 *.bin
+*.dat
+
 # Ignore my notes 
 notes
+# Ignore tags file
+tags

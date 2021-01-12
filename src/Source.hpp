@@ -7,12 +7,17 @@
 #ifndef __SOURCE_HPP
 #define __SOURCE_HPP
 
+#include <array>
 #include <cstdint>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <unordered_map>
 
+#include "Eval.hpp"
+
+// TODO : find real start address
+#define TEXT_START_ADDR 0x1000
 
 /*
  * Instruction constants
@@ -34,15 +39,19 @@ typedef enum {
     INSTR_JR,
     INSTR_LD, 
     INSTR_INC, 
+    INSTR_NOP,
     INSTR_OR,
     INSTR_OUT,
     INSTR_POP, 
     INSTR_PUSH,
+    INSTR_RLA,
+    INSTR_RLCA,
     INSTR_RRA,
     INSTR_RRCA,
     INSTR_RET,
     INSTR_RST,
     INSTR_SBC,
+    INSTR_SCF,
     INSTR_SUB,
     INSTR_XOR
 } Z80_INSTR;
@@ -60,12 +69,8 @@ typedef enum {
     SYM_LITERAL_IND,
     SYM_LABEL,
     SYM_REG,
-    SYM_COND
-} TokenType;
-
-// Register names 
-typedef enum Z80_REG
-{
+    SYM_COND,
+    // registers 
     REG_NULL,
     REG_A, 
     REG_B, 
@@ -80,15 +85,13 @@ typedef enum Z80_REG
     REG_IYL, 
     REG_HL, 
     REG_BC,
+    REG_DE,
+    REG_SP,
+    REG_AF,
     REG_BC_IND,     // indirect, ie: (BC)
     REG_HL_IND,     // indirect, ie: (HL)
-    REG_DE_IND      // indirect, ie: (DE)
-} Z80_REG;
-
-
-// Condition codes
-typedef enum
-{
+    REG_DE_IND,     // indirect, ie: (DE)
+    // conditions
     COND_C,
     COND_NC, 
     COND_Z,
@@ -96,7 +99,20 @@ typedef enum
     COND_M,
     COND_P,
     COND_PE,
-} Z80_COND;
+    COND_PO,
+    // directives
+    DIR_DEFB,    // define byte
+    DIR_DEFW,    // define word
+    DIR_DEFS,    // define space
+    DIR_DEFM,    // define message (sequence of bytes)
+    DIR_DEFINE,  // define a macro (ala #define in C)
+    DIR_END,     // stop assembling at this point
+    DIR_EQU,     // set a labels value to the literal after equ (rather than the current address)
+    DIR_INCLUDE, // include text content
+    DIR_INCBIN,  // include binary content
+    DIR_ORG,     // adjust current address (eg: for mapped memory)
+    DIR_SEEK
+} TokenType;
 
 
 /*
@@ -104,6 +120,7 @@ typedef enum
  */
 struct Token
 {
+    // TODO: if we have a non-zero length repr then we need to do lookups later..
     TokenType   type;
     int         val;
     std::string repr;
@@ -116,61 +133,154 @@ struct Token
         bool operator==(const Token& that) const;
         bool operator!=(const Token& that) const;
         void init(void);
+        bool needs_lookup(void) const;
 
         std::string toString(void) const;
 };
 
+
+// hash on a key like 
+//
+// SYM_TYPE | ARG1_VAL | ARG2_VAL
+
 // Collection of all valid tokens 
+// TODO: now that there are seperate lookups I gues this can go...
 const Token Z80_TOKENS[] =
 {
     // Instructions 
-    Token(SYM_INSTR, INSTR_ADD, "add" ),
-    Token(SYM_INSTR, INSTR_ADC, "adc" ),
-    Token(SYM_INSTR, INSTR_AND, "and" ),
+    Token(SYM_INSTR, INSTR_ADD,  "add" ),
+    Token(SYM_INSTR, INSTR_ADC,  "adc" ),
+    Token(SYM_INSTR, INSTR_AND,  "and" ),
     Token(SYM_INSTR, INSTR_CALL, "call" ),
-    Token(SYM_INSTR, INSTR_CCF, "ccf" ),
-    Token(SYM_INSTR, INSTR_CP, "cp" ),
-    Token(SYM_INSTR, INSTR_CPL, "cpl" ),
-    Token(SYM_INSTR, INSTR_DAA, "daa" ),
-    Token(SYM_INSTR, INSTR_DEC, "dec" ),
-    Token(SYM_INSTR, INSTR_DI, "di" ),
+    Token(SYM_INSTR, INSTR_CCF,  "ccf" ),
+    Token(SYM_INSTR, INSTR_CP,   "cp" ),
+    Token(SYM_INSTR, INSTR_CPL,  "cpl" ),
+    Token(SYM_INSTR, INSTR_DAA,  "daa" ),
+    Token(SYM_INSTR, INSTR_DEC,  "dec" ),
+    Token(SYM_INSTR, INSTR_DI,   "di" ),
     Token(SYM_INSTR, INSTR_DJNZ, "djnz" ),
-    Token(SYM_INSTR, INSTR_EX, "ex" ),
-    Token(SYM_INSTR, INSTR_JP, "jp" ),
-    Token(SYM_INSTR, INSTR_JR, "jr" ),
-    Token(SYM_INSTR, INSTR_LD , "ld"  ),
-    Token(SYM_INSTR, INSTR_INC, "inc" ),
-    Token(SYM_INSTR, INSTR_OR, "or"),
-    Token(SYM_INSTR, INSTR_OUT, "out"),
-    Token(SYM_INSTR, INSTR_POP, "pop" ),
+    Token(SYM_INSTR, INSTR_EX,   "ex" ),
+    Token(SYM_INSTR, INSTR_JP,   "jp" ),
+    Token(SYM_INSTR, INSTR_JR,   "jr" ),
+    Token(SYM_INSTR, INSTR_LD ,  "ld"  ),
+    Token(SYM_INSTR, INSTR_INC,  "inc" ),
+    Token(SYM_INSTR, INSTR_OR,   "or"),
+    Token(SYM_INSTR, INSTR_OUT,  "out"),
+    Token(SYM_INSTR, INSTR_POP,  "pop" ),
     Token(SYM_INSTR, INSTR_PUSH, "push" ),
-    Token(SYM_INSTR, INSTR_RRA, "rra"),
+    Token(SYM_INSTR, INSTR_RRA,  "rra"),
     Token(SYM_INSTR, INSTR_RRCA, "rrca"),
-    Token(SYM_INSTR, INSTR_RET, "ret"),
-    Token(SYM_INSTR, INSTR_SBC, "sbc"),
-    Token(SYM_INSTR, INSTR_SUB, "sub"),
-    Token(SYM_INSTR, INSTR_XOR, "xor"),
+    Token(SYM_INSTR, INSTR_RET,  "ret"),
+    Token(SYM_INSTR, INSTR_SBC,  "sbc"),
+    Token(SYM_INSTR, INSTR_SUB,  "sub"),
+    Token(SYM_INSTR, INSTR_XOR,  "xor"),
     // Registers 
-    Token(SYM_REG,  REG_A,  "a"),
-    Token(SYM_REG,  REG_B,  "b"),
-    Token(SYM_REG,  REG_C,  "c"),
-    Token(SYM_REG,  REG_D,  "d"),
-    Token(SYM_REG,  REG_E,  "e"),
-    Token(SYM_REG,  REG_H,  "h"),
-    Token(SYM_REG,  REG_L,  "l"),
-    Token(SYM_REG,  REG_HL, "hl"),
-    Token(SYM_REG,  REG_BC, "bc"),
-    // directives
+    Token(SYM_REG,  REG_A,      "a"),
+    Token(SYM_REG,  REG_B,      "b"),
+    Token(SYM_REG,  REG_C,      "c"),
+    Token(SYM_REG,  REG_D,      "d"),
+    Token(SYM_REG,  REG_E,      "e"),
+    Token(SYM_REG,  REG_H,      "h"),
+    Token(SYM_REG,  REG_L,      "l"),
+    Token(SYM_REG,  REG_HL,     "hl"),
+    Token(SYM_REG,  REG_BC,     "bc"),
+    Token(SYM_REG,  REG_DE,     "de"),
+    Token(SYM_REG,  REG_SP,     "sp"),
+    Token(SYM_REG,  REG_BC_IND, "(bc)"),
+    Token(SYM_REG,  REG_DE_IND, "(de)"),
+    Token(SYM_REG,  REG_HL_IND, "(hl)"),
     // conditions
-    Token(SYM_COND, COND_C,  "C"), 
-    Token(SYM_COND, COND_NC, "NC"),
-    Token(SYM_COND, COND_Z,  "Z"), 
-    Token(SYM_COND, COND_NZ, "NZ"),
-    Token(SYM_COND, COND_M,  "M"), 
-    Token(SYM_COND, COND_P,  "P"), 
-    Token(SYM_COND, COND_PE, "PE"),
+    //Token(SYM_COND, COND_C,  "c"),        // TODO: need to find a better way to do this..
+    Token(SYM_COND, COND_NC, "nc"),
+    Token(SYM_COND, COND_Z,  "z"), 
+    Token(SYM_COND, COND_NZ, "nz"),
+    Token(SYM_COND, COND_M,  "m"), 
+    Token(SYM_COND, COND_P,  "p"), 
+    Token(SYM_COND, COND_PE, "pe"),
+    Token(SYM_COND, COND_PO, "po"),
+    // directives
+    Token(SYM_DIRECTIVE, DIR_DEFB,    ".defb"),
+    Token(SYM_DIRECTIVE, DIR_DEFW,    ".defw"),
+    Token(SYM_DIRECTIVE, DIR_DEFS,    ".defs"),
+    Token(SYM_DIRECTIVE, DIR_END,     ".end"),
+    Token(SYM_DIRECTIVE, DIR_EQU,     ".equ"),
+    Token(SYM_DIRECTIVE, DIR_INCLUDE, ".include"),
+    Token(SYM_DIRECTIVE, DIR_ORG,     ".org"),
 };
 
+// Instruction/Directive tokens 
+const Token Z80_INSTRUCTIONS[] = 
+{
+    // Instructions 
+    Token(SYM_INSTR, INSTR_ADD,  "add" ),
+    Token(SYM_INSTR, INSTR_ADC,  "adc" ),
+    Token(SYM_INSTR, INSTR_AND,  "and" ),
+    Token(SYM_INSTR, INSTR_CALL, "call" ),
+    Token(SYM_INSTR, INSTR_CCF,  "ccf" ),
+    Token(SYM_INSTR, INSTR_CP,   "cp" ),
+    Token(SYM_INSTR, INSTR_CPL,  "cpl" ),
+    Token(SYM_INSTR, INSTR_DAA,  "daa" ),
+    Token(SYM_INSTR, INSTR_DEC,  "dec" ),
+    Token(SYM_INSTR, INSTR_DI,   "di" ),
+    Token(SYM_INSTR, INSTR_DJNZ, "djnz" ),
+    Token(SYM_INSTR, INSTR_EX,   "ex" ),
+    Token(SYM_INSTR, INSTR_JP,   "jp" ),
+    Token(SYM_INSTR, INSTR_JR,   "jr" ),
+    Token(SYM_INSTR, INSTR_LD ,  "ld"  ),
+    Token(SYM_INSTR, INSTR_INC,  "inc" ),
+    Token(SYM_INSTR, INSTR_OR,   "or"),
+    Token(SYM_INSTR, INSTR_OUT,  "out"),
+    Token(SYM_INSTR, INSTR_POP,  "pop" ),
+    Token(SYM_INSTR, INSTR_PUSH, "push" ),
+    Token(SYM_INSTR, INSTR_RRA,  "rra"),
+    Token(SYM_INSTR, INSTR_RRCA, "rrca"),
+    Token(SYM_INSTR, INSTR_RET,  "ret"),
+    Token(SYM_INSTR, INSTR_SBC,  "sbc"),
+    Token(SYM_INSTR, INSTR_SUB,  "sub"),
+    Token(SYM_INSTR, INSTR_XOR,  "xor"),
+    // directives
+    Token(SYM_DIRECTIVE, DIR_DEFB,    ".defb"),
+    Token(SYM_DIRECTIVE, DIR_DEFW,    ".defw"),
+    Token(SYM_DIRECTIVE, DIR_DEFS,    ".defs"),
+    Token(SYM_DIRECTIVE, DIR_END,     ".end"),
+    Token(SYM_DIRECTIVE, DIR_EQU,     ".equ"),
+    Token(SYM_DIRECTIVE, DIR_INCLUDE, ".include"),
+    Token(SYM_DIRECTIVE, DIR_ORG,     ".org"),
+};
+
+// Register tokens 
+const Token Z80_REGISTERS[] = 
+{
+    Token(SYM_REG,  REG_A,      "a"),
+    Token(SYM_REG,  REG_B,      "b"),
+    Token(SYM_REG,  REG_C,      "c"),
+    Token(SYM_REG,  REG_D,      "d"),
+    Token(SYM_REG,  REG_E,      "e"),
+    Token(SYM_REG,  REG_H,      "h"),
+    Token(SYM_REG,  REG_L,      "l"),
+    Token(SYM_REG,  REG_HL,     "hl"),
+    Token(SYM_REG,  REG_BC,     "bc"),
+    Token(SYM_REG,  REG_DE,     "de"),
+    Token(SYM_REG,  REG_SP,     "sp"),
+    Token(SYM_REG,  REG_BC_IND, "(bc)"),
+    Token(SYM_REG,  REG_DE_IND, "(de)"),
+    Token(SYM_REG,  REG_HL_IND, "(hl)"),
+};
+
+// Conditions
+const Token Z80_CONDITIONS[] = 
+{
+    Token(SYM_COND, COND_C,  "c"),        // TODO: need to find a better way to do this..
+    Token(SYM_COND, COND_NC, "nc"),
+    Token(SYM_COND, COND_Z,  "z"), 
+    Token(SYM_COND, COND_NZ, "nz"),
+    Token(SYM_COND, COND_M,  "m"), 
+    Token(SYM_COND, COND_P,  "p"), 
+    Token(SYM_COND, COND_PE, "pe"),
+    Token(SYM_COND, COND_PO, "po"),
+};
+
+enum struct TokenSet{ All, Instructions, Registers, Conditions }; 
 
 /*
  * TokenLookup
@@ -182,52 +292,24 @@ class TokenLookup
 
     public:
         TokenLookup();
+        TokenLookup(const TokenSet& tok_set);
         Token lookup(const std::string& s) const;
 };
 
-/* 
- * Opcode 
- * Holds the mnemonic string and opcode value of 
- * an assembly opcode 
+
+/*
+ * OpcodeLookup
+ * Same as above, but only for opcodes
  */
-struct Opcode
-{
-    int         code;
-    std::string mnemonic;
-
-    public:
-        Opcode();
-        Opcode(int opcode, const std::string& mnemonic);
-
-        bool operator==(const Opcode& that) const;
-        bool operator!=(const Opcode& that) const;
-        void init(void);
-
-        std::string toString(void) const;
-};
-
-
-const Opcode Z80_OPCODES[] = 
-{
-    Opcode(INSTR_ADD, "add" ),
-    Opcode(INSTR_AND, "and" ),
-    Opcode(INSTR_DEC, "dec" ),
-    Opcode(INSTR_LD , "ld"  ),
-    Opcode(INSTR_INC, "inc" ),
-    Opcode(INSTR_POP, "pop" ),
-    Opcode(INSTR_PUSH, "push"),
-};
-
-
 class OpcodeLookup
 {
-    std::unordered_map<int, Opcode> val_to_opcode;
-    std::unordered_map<std::string, Opcode> name_to_opcode;
+    std::unordered_map<int, Token> val_to_opcode;
+    std::unordered_map<std::string, Token> name_to_opcode;
 
     public:
         OpcodeLookup();
-        Opcode get(const int val) const;
-        Opcode get(const std::string& name) const;
+        Token get(const int val) const;
+        Token get(const std::string& name) const;
 }; 
 
 
@@ -243,81 +325,104 @@ struct Symbol
         Symbol();
         Symbol(const uint16_t addr, const std::string& label);
 
+        void init(void);
         bool operator==(const Symbol& that) const;
         bool operator!=(const Symbol& that) const;
-};
-
-/*
- * SymbolTable 
- */
-class SymbolTable
-{
-    private:
-        std::vector<Symbol> syms;
-        Symbol null_symbol;
-
-    private:
-        SymbolTable(const SymbolTable& that) = delete;
-
-    public:
-        SymbolTable();
-
-        void         add(const Symbol& s);
-        void         update(const unsigned int idx, const Symbol& s);
-        Symbol       get(const unsigned int idx) const;
-        uint16_t     getAddr(const std::string& label) const;
-        void         init(void);
-        unsigned int getNumSyms(void) const;
-        // debug 
-        void         dump(void);
+        std::string toString(void) const;
 };
 
 
 /*
- * TextLine
- * Class representing a line from the source file that will go in the text segment.
+ * LineInfo
+ * Base class for line structures (either text or data)
  */
-struct TextLine
+enum struct LineType {TextLine, DirectiveLine};
+class SourceInfo;       // fwd delcare until we resolve how to split eval lookups
+
+struct LineInfo
 {
-    // avoid having a large number of setters and getters 
-    std::string symbol;
+    // common fields 
+    LineType    type;
     std::string label;
     std::string errstr;
-    Opcode      opcode;     // TODO : make this just another Token?
-    Token       args[2];
     uint16_t    line_num;
-    uint16_t    addr;
+    int16_t     addr;
     bool        is_label;
     bool        error;
+    // text only fields 
+    Token       opcode;             
+    Token       args[2];
+    int         sym_arg;
+    // directive fields
+    EvalResult  eval_result;  // TODO: does this become a vector of EvalResult when comma seperated args are supported?
+    std::string expr;
+    int         data;       // TODO: this will become a vector when comma seperated fields are supported
+    bool        evaluated;
+    //std::vector<int> data;           // generic data (eg, from a list of defb/defw)
 
     public:
-        TextLine();
-        TextLine(const TextLine& that);
+        LineInfo();
+        LineInfo(const Token& opcode, const Token& arg1, const Token& arg2);
 
-        bool operator==(const TextLine& that) const;
-        bool operator!=(const TextLine& that) const;
+        bool operator==(const LineInfo& that) const;
+        bool operator!=(const LineInfo& that) const;
         void init(void);
-        std::string diff(const TextLine& that);
-        std::string toString(void);
+
+        // text methods 
+        uint32_t     argHash(void) const;
+        // directive methods
+        void         eval(const SourceInfo& info);
+        unsigned int data_size(void) const;
+
+        // stringify
+        std::string  toString(void) const;
+        std::string  toInstrString(void) const;
+        std::string  diff(const LineInfo& that);
 };
 
-
-// TODO ; in keeping with the text/data segment distinction, this should be at some point
-// renamed into something that indicates that its a collection of TextLine objects
+/*
+ * SourceInfo
+ * Wraps a collection of LineInfo objects that represents each
+ * of the lines in the source file.
+ * NOTE that when include is supported (ie: compilation of multiple
+ * files) that the implementation here may need to slightly change
+ */
 class SourceInfo
 {
     private: 
-        std::vector<TextLine> info;
+        std::vector<LineInfo> info;
+        // maps address to index in info vector
+        std::unordered_map <int16_t, unsigned int> directive_addr_lut;
+        // TODO : do we also want to have a lookup for 
+        // symbol table 
+        std::vector<Symbol> syms;
+        Symbol null_symbol;
 
     public:
         SourceInfo();
-        //SourceInfo(const SourceInfo& that);
+        //SourceInfo(const SourceInfo& that) = default;
 
-        void add(const TextLine& l);
-        TextLine get(const unsigned int idx) const;
+        void         init(void);
+        void         add(const LineInfo& l);
+        bool         hasError(void) const;
+        LineInfo     get(const unsigned int idx) const;
+        LineInfo     getAddr(const int16_t addr) const;
+        void         update(const unsigned int idx, const LineInfo& l);
         unsigned int getNumLines(void) const;
-        void toFile(const std::string& filename) const;
-};
+        void         toFile(const std::string& filename) const;
 
+        // symbol table functions
+        void         addSym(const Symbol& s);
+        void         updateSym(const unsigned int idx, const Symbol& s);
+        Symbol       getSym(const unsigned int idx) const;
+        uint16_t     getSymAddr(const std::string& label) const;
+        std::string  getSymName(const uint16_t addr) const;
+        unsigned int getNumSyms(void) const;
+        std::string  symTableString(void) const;
+        //void         init(void);
+        //unsigned int size(void) const;
+
+        std::string  toString(void) const;
+};
 
 #endif /*__SOURCE_HPP*/

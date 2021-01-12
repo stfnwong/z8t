@@ -19,14 +19,32 @@
 struct Instr
 {
     uint16_t adr;
-    uint16_t ins;
+    uint32_t ins;
+    uint8_t  size;
 
     public:
         Instr();
-        Instr(uint16_t adr, uint16_t ins);
+        Instr(uint16_t adr, uint32_t ins);
+        Instr(uint16_t adr, uint32_t ins, uint8_t size);
 
         bool operator==(const Instr& that) const;
         bool operator!=(const Instr& that) const;
+
+        /*
+         * init()
+         * Reset instruction
+         */
+        void init(void);
+        /*
+         * getInstr()
+         * Get the instruction without checking its size.
+         */
+        uint32_t getInstr(void) const;  
+        /*
+         * toString()
+         * Return a string representation of the instruction.
+         */
+        std::string toString(void) const;
 };
 
 
@@ -49,7 +67,14 @@ class Program
         ~Program();
         Program(const Program& that);
 
-        void initProgram(void);
+        bool operator==(const Program& that) const;
+        bool operator!=(const Program& that) const;
+
+        /*
+         * init()
+         * Reset the program object
+         */
+        void init(void);
         /*
          * get()
          * Return the instruction at position idx of the 
@@ -79,10 +104,16 @@ class Program
         void writeMem(const uint16_t addr, const uint16_t val);
 
         /*
-         * numInstr()
-         * Returns the length of the instruction vector.
+         * length()
+         * Returns the number of instructions in the program.
          */
-        unsigned int numInstr(void) const;
+        unsigned int length(void) const;
+
+        /*
+         * numBytes()
+         * TODO: Returns the length of the program in bytes
+         */
+        unsigned int numBytes(void) const;
 
         /*
          * save()
@@ -106,6 +137,12 @@ class Program
          * readObj()
          */
         int readObj(const std::string& filename);
+        std::vector<uint8_t> toArray(void) const;
+        /*
+         * toString()
+         * Render the program object as a string
+         */
+        std::string toString(void) const;
 
         void setVerbose(const bool v);
         bool getVerbose(void) const;
