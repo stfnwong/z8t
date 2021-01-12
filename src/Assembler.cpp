@@ -629,21 +629,12 @@ void Assembler::parse_directive(const Token& token)
         // TODO: read the whole line in and see if we need to parse as an expression
         case DIR_DEFB:
         case DIR_DEFW:
+        case DIR_EQU:       // this must be a literal
             this->line_info.expr = this->read_to_line_end();
             break;
 
-        case DIR_EQU:       // this must be a literal
-            arg_token = this->next_token();
-            this->line_info.data = arg_token.val;
-            if(arg_token.type != SYM_LITERAL)
-            {
-                this->line_info.error = true;
-                this->line_info.errstr = "equ directive got invalid argument " + std::string(arg_token.repr);
-                break;
-            }
-            break;
-
         case DIR_INCLUDE:
+            // TODO:
             break;
 
         case DIR_ORG:   // updates the current address
@@ -674,7 +665,7 @@ void Assembler::parse_directive(const Token& token)
 /*
  * resolve_labels()
  */
-void Assembler::resolve_labels(void)
+bool Assembler::resolve_labels(void)
 {
     int16_t label_addr;
     int16_t target_addr;
@@ -705,11 +696,6 @@ void Assembler::resolve_labels(void)
                         cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, target_addr, std::to_string(target_addr));
                         break;
 
-                    // for absolute jumps
-                    case INSTR_JP:
-                        cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, label_addr, std::to_string(label_addr));
-                        break;
-
                     // if we have any literals with no value then lookup the value now
                     case INSTR_LD:
                         if(cur_line.args[cur_line.sym_arg].type == SYM_LABEL)
@@ -719,7 +705,24 @@ void Assembler::resolve_labels(void)
                             cur_line.eval(this->source_info);   // sort of untested....
                         }
                         break;
+
+                    // this case should handle absolute jumps (jp
+                    // instruction) as well
+                    default:
+                        cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, label_addr, std::to_string(label_addr));
+                        break;
+                        
                 }
+            }
+            else
+            {
+                error_general(
+                        cur_line.line_num,
+                        cur_line.addr,
+                        "Failed to resolve symbol " + cur_line.args[cur_line.sym_arg].repr + 
+                        " in instruction " + cur_line.toInstrString() 
+                );
+                return false;
             }
             if(this->verbose)
             {
@@ -732,6 +735,8 @@ void Assembler::resolve_labels(void)
             this->source_info.update(idx, cur_line);
         }
     }
+    
+    return true;
 }
 
 /*
@@ -879,7 +884,7 @@ void Assembler::assem_instr(void)
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
     {
         line = this->source_info.get(idx);
-        line.eval(this->source_info);       // TODO : do I need to this for all lines anyway?
+        line.eval(this->source_info);       // TODO : do I need to this for all lines as a matter of course?
         line_hash = line.argHash();
 
         if(line.type == LineType::TextLine)
@@ -889,6 +894,10 @@ void Assembler::assem_instr(void)
             {
                 auto instr_size = lookup_val->second;
                 cur_instr.size = instr_size.second;
+                // TODO: debug, remove 
+                //std::cout << "[" << __func__ << "] got instr_size as " << std::dec << cur_instr.size 
+                //    << " for instruction " << line.toInstrString() << " at line " << line.line_num 
+                //    << " (hash was 0x" << std::hex << line_hash << ")" << std::endl;
                 if(cur_instr.size == 1)
                     cur_instr.ins  = instr_size.first;
                 else if(cur_instr.size == 2 && line.args[0].type == SYM_LITERAL)
@@ -1001,7 +1010,8 @@ void Assembler::assemble(void)
     }
 
     // Resolve symbols 
-    this->resolve_labels();
+    if(!this->resolve_labels())
+        return;
     // now walk over the sourceinfo and assemble
     this->assem_instr();
 }

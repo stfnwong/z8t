@@ -14,14 +14,14 @@
 ; NOTE: taken from rosetta code
 ;#include        "mondef.asm"
  
-                org     ram_start
+                .org     $1000                  ; was ram_start, but the current implementation only accepts literals
  
-scale           equ     256                     ; Do NOT change this - the 
+scale           .equ     256                     ; Do NOT change this - the 
                                                 ; arithmetic routines rely on
                                                 ; this scaling factor! :-)
-divergent       equ     scale * 4
+divergent       .equ     scale * 4
  
-                ld      hl, welcome             ; Print a welcome message
+                ;ld      hl, welcome             ; Print a welcome message  (TODO: welcome message not yet defined)
                 ld      ix, _puts
                 rst     08
  
@@ -163,26 +163,26 @@ mandel_end      ld      hl, finished            ; Print finished-message
  
                 rst     0                       ; Return to the monitor
  
-welcome         defb    "Generating a Mandelbrot set"
-                defb    cr, lf, eos
-finished        defb    "Computation finished.", cr, lf, eos
+welcome         .defb    "Generating a Mandelbrot set"
+                .defb    cr, lf, eos
+finished        .defb    "Computation finished.", cr, lf, eos
  
-iteration_max   defb    10                      ; How many iterations
-x               defw    0                       ; x-coordinate
-x_start         defw    -2 * scale              ; Minimum x-coordinate
-x_end           defw    5 *  scale / 10         ; Maximum x-coordinate
-x_step          defw    4  * scale / 100        ; x-coordinate step-width
-y               defw    -1 * scale              ; Minimum y-coordinate
-y_end           defw    1  * scale              ; Maximum y-coordinate
-y_step          defw    1  * scale / 10         ; y-coordinate step-width
-z_0             defw    0
-z_1             defw    0
-scratch_0       defw    0
-z_0_square_high defw    0
-z_0_square_low  defw    0
-z_1_square_high defw    0
-z_1_square_low  defw    0
-display         defb    " .-+*=#@"              ; 8 characters for the display
+iteration_max   .defb    10                      ; How many iterations
+x               .defw    0                       ; x-coordinate
+x_start         .defw    -2 * scale              ; Minimum x-coordinate
+x_end           .defw    5 *  scale / 10         ; Maximum x-coordinate
+x_step          .defw    4  * scale / 100        ; x-coordinate step-width
+y               .defw    -1 * scale              ; Minimum y-coordinate
+y_end           .defw    1  * scale              ; Maximum y-coordinate
+y_step          .defw    1  * scale / 10         ; y-coordinate step-width
+z_0             .defw    0
+z_1             .defw    0
+scratch_0       .defw    0
+z_0_square_high .defw    0
+z_0_square_low  .defw    0
+z_1_square_high .defw    0
+z_1_square_low  .defw    0
+display         .defb    " .-+*=#@"              ; 8 characters for the display
  
 ;
 ;   Compute DEHL = BC * DE (signed): This routine is not too clever but it 

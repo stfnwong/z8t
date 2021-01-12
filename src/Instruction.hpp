@@ -20,19 +20,19 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
     // format 
     // (OPCODE << 16)  | (ARG1 << 8) | (ARG2) , (instr, size)
     // add 
-    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_A,           std::pair<uint8_t, uint8_t>(0x87, 1)},   // add a, a 
-    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_B,           std::pair<uint8_t, uint8_t>(0x80, 1)},   // add a, b 
-    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_C,           std::pair<uint8_t, uint8_t>(0x81, 1)},   // add a, c 
-    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_D,           std::pair<uint8_t, uint8_t>(0x82, 1)},   // add a, d 
-    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_E,           std::pair<uint8_t, uint8_t>(0x83, 1)},   // add a, e 
-    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_H,           std::pair<uint8_t, uint8_t>(0x84, 1)},   // add a, h 
-    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_L,           std::pair<uint8_t, uint8_t>(0x85, 1)},   // add a, l 
-    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_HL_IND,      std::pair<uint8_t, uint8_t>(0x86, 1)},   // add a, (hl) 
-    {(INSTR_ADD << 16) | (REG_A       << 8) | SYM_LITERAL,     std::pair<uint8_t, uint8_t>(0xC6, 2)},   // add a, ** 
-    {(INSTR_ADD << 16) | (REG_HL      << 8) | REG_BC,          std::pair<uint8_t, uint8_t>(0x09, 1)},   // add hl, bc 
-    {(INSTR_ADD << 16) | (REG_HL      << 8) | REG_DE,          std::pair<uint8_t, uint8_t>(0x19, 1)},   // add hl, de 
-    {(INSTR_ADD << 16) | (REG_HL      << 8) | REG_HL,          std::pair<uint8_t, uint8_t>(0x29, 1)},   // add hl, hl 
-    {(INSTR_ADD << 16) | (REG_HL      << 8) | REG_SP,          std::pair<uint8_t, uint8_t>(0x39, 1)},   // add hl, sp 
+    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_A,           std::pair(0x87, 1)},   // add a, a 
+    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_B,           std::pair(0x80, 1)},   // add a, b 
+    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_C,           std::pair(0x81, 1)},   // add a, c 
+    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_D,           std::pair(0x82, 1)},   // add a, d 
+    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_E,           std::pair(0x83, 1)},   // add a, e 
+    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_H,           std::pair(0x84, 1)},   // add a, h 
+    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_L,           std::pair(0x85, 1)},   // add a, l 
+    {(INSTR_ADD << 16) | (REG_A       << 8) | REG_HL_IND,      std::pair(0x86, 1)},   // add a, (hl) 
+    {(INSTR_ADD << 16) | (REG_A       << 8) | SYM_LITERAL,     std::pair(0xC6, 2)},   // add a, ** 
+    {(INSTR_ADD << 16) | (REG_HL      << 8) | REG_BC,          std::pair(0x09, 1)},   // add hl, bc 
+    {(INSTR_ADD << 16) | (REG_HL      << 8) | REG_DE,          std::pair(0x19, 1)},   // add hl, de 
+    {(INSTR_ADD << 16) | (REG_HL      << 8) | REG_HL,          std::pair(0x29, 1)},   // add hl, hl 
+    {(INSTR_ADD << 16) | (REG_HL      << 8) | REG_SP,          std::pair(0x39, 1)},   // add hl, sp 
     // adc
     {(INSTR_ADC << 16) | (REG_A       << 8) | REG_A,           std::pair(0x8F, 1)},   // adc a, a 
     {(INSTR_ADC << 16) | (REG_A       << 8) | REG_B,           std::pair(0x88, 1)},   // adc a, b 

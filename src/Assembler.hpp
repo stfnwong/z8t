@@ -88,7 +88,7 @@ class Assembler
         std::string read_to_line_end(void);
         void        parse_directive(const Token& token); 
         void        parse_line(void);
-        void        resolve_labels(void);
+        bool        resolve_labels(void);
 
     // assemble from intermediate repr
     private:
