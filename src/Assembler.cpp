@@ -405,6 +405,47 @@ void Assembler::parse_ret(void)
 }
 
 /*
+ * parse_rst()
+ */
+void Assembler::parse_rst(void)
+{
+    Token token;
+
+    // RST can only take some specific values as args
+    this->scan_token();
+    token = this->parse_literal(std::string(this->token_buf));
+    if(token.type == SYM_LITERAL)
+    {
+        switch(token.val)
+        {
+            case 0:
+            case 0x10:
+            case 0x20:
+            case 0x30:
+            case 0x08:
+            case 0x18:
+            case 0x28:
+            case 0x38:
+                this->line_info.args[0] = token;
+                break;
+            default:
+                this->line_info.error = true;
+                this->line_info.errstr = "rst given invalid literal value " 
+                    + token.repr;
+                break;
+        }
+    }
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = this->line_info.opcode.repr + ": failed to parse " 
+            + this->line_info.opcode.repr 
+            + ", current token " + token.toString();
+    }
+
+}
+
+/*
  * parse_call()
  */
 void Assembler::parse_call(void)
@@ -550,13 +591,18 @@ void Assembler::parse_instruction(const Token& token)
             this->parse_one_literal();
             break;
 
+        case INSTR_RET:
+            this->parse_ret();
+            break;
+            
+        case INSTR_RST:
+            this->parse_rst();
+            break;
+
         case INSTR_CALL:
             this->parse_call();
             break;
 
-        case INSTR_RET:
-            this->parse_ret();
-            break;
 
         case INSTR_CCF:
         case INSTR_CPL:

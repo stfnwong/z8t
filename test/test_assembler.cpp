@@ -15,13 +15,14 @@
 #include "Source.hpp"
 #include "Program.hpp"
 
-constexpr const bool GLOBAL_VERBOSE = false;
+constexpr const bool GLOBAL_VERBOSE = true;
 const std::string add_sub_filename = "asm/add_sub.asm";
 const std::string indirect_filename = "asm/indirect_test.asm";
 const std::string gcd_filename = "asm/gcd.asm";
 const std::string expr_filename = "asm/expr.asm";
 const std::string label_resolve_filename = "asm/label_resolve.asm";
 const std::string ret_lookahead_filename = "asm/ret_lookahead.asm";
+const std::string rst_filename = "asm/rst.asm";
 
 // TODO: a test which goes through the entire lookup table and checks
 // that all instructions return valid pairs
@@ -989,3 +990,91 @@ TEST_CASE("test_directive_expr", "expression")
 }
 
 
+
+// Test RST instruction
+SourceInfo get_rst_expected_source(void)
+{
+    SourceInfo info;
+    LineInfo cur_line;
+
+    // rst $00 
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
+    cur_line.args[0] = Token(SYM_LITERAL, 0, "$00");
+    cur_line.addr = TEXT_START_ADDR;
+    info.add(cur_line);
+
+    // rst $10
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
+    cur_line.args[0] = Token(SYM_LITERAL, 0x10, "$10");
+    cur_line.addr = TEXT_START_ADDR + 1;
+    info.add(cur_line);
+
+    // rst $20
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
+    cur_line.args[0] = Token(SYM_LITERAL, 0x20, "$20");
+    cur_line.addr = TEXT_START_ADDR + 2;
+
+    // rst $30 
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
+    cur_line.args[0] = Token(SYM_LITERAL, 0x30, "$30");
+    cur_line.addr = TEXT_START_ADDR + 3;
+    info.add(cur_line);
+    info.add(cur_line);
+
+    // rst $08 
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
+    cur_line.args[0] = Token(SYM_LITERAL, 0x08, "$08");
+    cur_line.addr = TEXT_START_ADDR + 4;
+    info.add(cur_line);
+
+    // rst $18 
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
+    cur_line.args[0] = Token(SYM_LITERAL, 0x18, "$18");
+    cur_line.addr = TEXT_START_ADDR + 5;
+    info.add(cur_line);
+
+    // rst $28 
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
+    cur_line.args[0] = Token(SYM_LITERAL, 0x28, "$28");
+    cur_line.addr = TEXT_START_ADDR + 6;
+    info.add(cur_line);
+
+    // rst $38 
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
+    cur_line.args[0] = Token(SYM_LITERAL, 0x38, "$38");
+    cur_line.addr = TEXT_START_ADDR + 6;
+    info.add(cur_line);
+
+    return info;
+}
+
+TEST_CASE("test_lex_rst", "lexer")
+{
+    SourceInfo lex_source;
+    SourceInfo exp_source;
+
+    lex_source = lex_helper(rst_filename);
+    std::cout << "\t Lexer generated " << std::dec << lex_source.getNumLines() << " line of output" << std::endl;
+
+    // Check intermediate results
+    exp_source = get_rst_expected_source();
+    REQUIRE(lex_source.getNumLines() == exp_source.getNumLines());
+
+    source_check_helper(exp_source, lex_source);
+}

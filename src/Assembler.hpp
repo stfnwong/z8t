@@ -81,6 +81,7 @@ class Assembler
         // instruction specific parsing routines 
         void        parse_jump(void);
         void        parse_ret(void);
+        void        parse_rst(void);
         void        parse_call(void);
         void        parse_one_literal(void);
         void        parse_arg(int arg_idx);
