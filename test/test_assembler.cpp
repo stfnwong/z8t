@@ -1004,61 +1004,63 @@ SourceInfo get_rst_expected_source(void)
     cur_line.args[0] = Token(SYM_LITERAL, 0, "$00");
     cur_line.addr = TEXT_START_ADDR;
     info.add(cur_line);
-
     // rst $10
     cur_line.init();
-    cur_line.line_num = 4;
+    cur_line.line_num = 5;
     cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
     cur_line.args[0] = Token(SYM_LITERAL, 0x10, "$10");
     cur_line.addr = TEXT_START_ADDR + 1;
     info.add(cur_line);
-
     // rst $20
     cur_line.init();
-    cur_line.line_num = 4;
+    cur_line.line_num = 6;
     cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
     cur_line.args[0] = Token(SYM_LITERAL, 0x20, "$20");
     cur_line.addr = TEXT_START_ADDR + 2;
-
+    info.add(cur_line);
     // rst $30 
     cur_line.init();
-    cur_line.line_num = 4;
+    cur_line.line_num = 7;
     cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
     cur_line.args[0] = Token(SYM_LITERAL, 0x30, "$30");
     cur_line.addr = TEXT_START_ADDR + 3;
     info.add(cur_line);
-    info.add(cur_line);
-
     // rst $08 
     cur_line.init();
-    cur_line.line_num = 4;
+    cur_line.line_num = 8;
     cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
     cur_line.args[0] = Token(SYM_LITERAL, 0x08, "$08");
     cur_line.addr = TEXT_START_ADDR + 4;
     info.add(cur_line);
-
     // rst $18 
     cur_line.init();
-    cur_line.line_num = 4;
+    cur_line.line_num = 9;
     cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
     cur_line.args[0] = Token(SYM_LITERAL, 0x18, "$18");
     cur_line.addr = TEXT_START_ADDR + 5;
     info.add(cur_line);
-
     // rst $28 
     cur_line.init();
-    cur_line.line_num = 4;
+    cur_line.line_num = 10;
     cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
     cur_line.args[0] = Token(SYM_LITERAL, 0x28, "$28");
     cur_line.addr = TEXT_START_ADDR + 6;
     info.add(cur_line);
-
     // rst $38 
     cur_line.init();
-    cur_line.line_num = 4;
+    cur_line.line_num = 11;
     cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
     cur_line.args[0] = Token(SYM_LITERAL, 0x38, "$38");
-    cur_line.addr = TEXT_START_ADDR + 6;
+    cur_line.addr = TEXT_START_ADDR + 7;
+    info.add(cur_line);
+    // rst $7 
+    cur_line.init();
+    cur_line.line_num = 12;
+    cur_line.opcode = Token(SYM_INSTR, INSTR_RST, "rst");
+    cur_line.args[0] = Token();
+    //cur_line.args[0] = Token(SYM_LITERAL, 0x7, "$7");
+    cur_line.addr = TEXT_START_ADDR + 8;
+    cur_line.error = true;
     info.add(cur_line);
 
     return info;

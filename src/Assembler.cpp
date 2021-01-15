@@ -37,7 +37,6 @@ void Assembler::init(void)
     this->source_info.init();
     this->program.init();
     // init lookups 
-    this->token_lookup     = TokenLookup(TokenSet::All);
     this->instr_lookup     = TokenLookup(TokenSet::Instructions);
     this->register_lookup  = TokenLookup(TokenSet::Registers);
     this->condition_lookup = TokenLookup(TokenSet::Conditions);
@@ -242,10 +241,18 @@ Token Assembler::next_token(void)
     this->scan_token();
     tok_string = std::string(this->token_buf);  
 
-    // see if this is any known token
-    token = this->token_lookup.lookup(tok_string);
+    // check if this is an instruction or directive
+    token = this->lookup_instruction(tok_string);
     if(token.type != SYM_NULL)
         return token;
+    // check if this is a register 
+    token = this->lookup_register(tok_string);
+    if(token.type != SYM_NULL)
+        return token;
+    // check if this is a conditional 
+    //token = this->lookup_condition(tok_string);
+    //if(token.type != SYM_NULL)
+    //    return token;
 
     // see if this is some kind of literal 
     token = this->parse_literal(tok_string);
@@ -306,15 +313,6 @@ Token Assembler::parse_literal(const std::string& tok_string)
 
     return token;
 }
-
-/*
- * lookup_any()
- */
-Token Assembler::lookup_any(const std::string& tok_string)
-{
-    return this->token_lookup.lookup(tok_string);
-}
-
 
 /*
  * lookup_instruction()

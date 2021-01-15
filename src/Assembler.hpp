@@ -39,7 +39,6 @@ class Assembler
 
     // token lookup
     private:
-        TokenLookup  token_lookup;
         TokenLookup  instr_lookup;
         TokenLookup  register_lookup;
         TokenLookup  condition_lookup;
@@ -73,7 +72,6 @@ class Assembler
         void        skip_to_next_token(void);
         void        scan_token(void);
         bool        check_ahead(void);
-        Token       lookup_any(const std::string& tok_str);
         Token       lookup_condition(const std::string& tok_str);
         Token       lookup_register(const std::string& tok_str);
         Token       lookup_instruction(const std::string& tok_str);

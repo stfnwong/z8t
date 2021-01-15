@@ -350,38 +350,6 @@ uint32_t LineInfo::argHash(void) const
     else
         hash = hash | (this->args[1].val & 0xFF);
 
-    //if(this->args[0].type == SYM_LITERAL || this->args[0].type == SYM_LABEL)
-    //{
-    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
-    //           ((SYM_LITERAL & 0xFF) << 8);
-
-    //    if(this->args[1].val >= 0)
-    //        hash = hash | ((this->args[1].val & 0xFF));
-    //}
-    //else if(this->args[1].type == SYM_LITERAL)
-    //{
-    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
-    //           ((this->args[0].val & 0xFF) << 8) | 
-    //           ((this->args[1].type & 0xFF));
-    //}
-    //// this handles the case where the labels have not yet been resolved
-    //else if(this->args[1].type == SYM_LABEL)
-    //{
-    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
-    //           ((this->args[0].val & 0xFF) << 8) | 
-    //           ((SYM_LITERAL & 0xFF));
-    //}
-    //// instructions with a single cond arg
-    //// instructions with no args 
-    //else
-    //{
-    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
-    //           ((this->args[0].val & 0xFF) << 8);
-
-    //    if(this->args[1].val >= 0)
-    //        hash = hash | ((this->args[1].val & 0xFF));
-    //}
-
     return hash;
 }
 
