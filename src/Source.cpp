@@ -329,26 +329,18 @@ uint32_t LineInfo::argHash(void) const
     uint32_t hash;
 
     hash = (this->opcode.val & 0xFF) << 16;
-    // First argument. If the argument is a literal or indirect literal then 
-    // we use the type in place of the value
-    if(this->args[0].type == SYM_LITERAL || 
-       this->args[0].type == SYM_LITERAL_IND || 
-       this->args[0].type == SYM_NULL)
-        hash = hash | ((this->args[0].type & 0xFF) << 8);
-    else if(this->args[0].type == SYM_LABEL)
-        hash = hash | (SYM_LITERAL << 8);
-    else
-        hash = hash | ((this->args[0].val & 0xFF) << 8);
 
-    // Second argument 
-    if(this->args[1].type == SYM_LITERAL || 
-       this->args[1].type == SYM_LITERAL_IND ||
-       this->args[1].type == SYM_NULL)
-        hash = hash | (this->args[1].type & 0xFF);
-    else if(this->args[1].type == SYM_LABEL)
-        hash = hash | SYM_LITERAL;
-    else
-        hash = hash | (this->args[1].val & 0xFF);
+    for(int i = 0; i < 2; ++i)
+    {
+        if(this->args[i].type == SYM_LITERAL || 
+           this->args[i].type == SYM_LITERAL_IND || 
+           this->args[i].type == SYM_NULL)
+            hash = hash | ((this->args[i].type & 0xFF) << ((1-i) * 8));
+        else if(this->args[i].type == SYM_LABEL)
+            hash = hash | (SYM_LITERAL << ((1-i) * 8));
+        else
+            hash = hash | ((this->args[i].val & 0xFF) << ((1-i) * 8));
+    }
 
     return hash;
 }
