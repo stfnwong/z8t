@@ -100,12 +100,7 @@ TEST_CASE("test_instruction_lookup", "token")
         REQUIRE(out_token == exp_token);
     }
 
-    // all other tokens will return nothing useful
-    for(const Token& cond_token : condition_expected_tokens)
-    {
-        out_token = instr_lut.lookup(cond_token.repr);
-        REQUIRE(out_token == Token());
-    }
+    REQUIRE(instr_lut.lookup("fake_instr") == Token());
 }
 
 TEST_CASE("test_register_lookup", "token")
@@ -124,6 +119,8 @@ TEST_CASE("test_register_lookup", "token")
         }
         REQUIRE(out_token == exp_token);
     }
+
+    REQUIRE(register_lut.lookup("fake_register") == Token());
 }
 
 TEST_CASE("test_condition_lookup", "token")
@@ -142,4 +139,6 @@ TEST_CASE("test_condition_lookup", "token")
         }
         REQUIRE(out_token == exp_token);
     }
+
+    REQUIRE(condition_lut.lookup("fake_condition") == Token());
 }
