@@ -477,6 +477,72 @@ void Assembler::parse_call(void)
 }
 
 /*
+ * parse_in()
+ */
+void Assembler::parse_in(void)
+{
+    Token token;
+
+    // first token must be REG_A 
+    this->scan_token();
+    token = this->lookup_register(std::string(this->token_buf));
+
+    if(token.val == REG_A)
+        this->line_info.args[0] = token;
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "in expected a as first operand, got " + token.repr;
+        return;
+    }
+
+    // next token must be a literal indirect
+    this->scan_token();
+    token = this->parse_literal(std::string(this->token_buf));
+
+    if(token.type == SYM_LITERAL_IND)
+        this->line_info.args[1] = token;
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "in expected (*) as second operand, got " + token.repr;
+    }
+}
+/*
+ * parse_out()
+ */
+void Assembler::parse_out(void)
+{
+    Token token;
+
+    // next token must be a literal indirect
+    this->scan_token();
+    token = this->parse_literal(std::string(this->token_buf));
+
+    if(token.type == SYM_LITERAL_IND)
+        this->line_info.args[0] = token;
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "in expected (*) as first operand, got " + token.repr;
+        return;
+    }
+
+    // next token must be REG_A 
+    this->scan_token();
+    token = this->lookup_register(std::string(this->token_buf));
+
+    if(token.val == REG_A)
+        this->line_info.args[1] = token;
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "out expected a as second operand, got " + token.repr;
+        return;
+    }
+}
+
+/*
  * parse_one_literal()
  * Parse only a single literal into the first argument slot
  */
@@ -548,7 +614,7 @@ void Assembler::parse_arg(int arg_idx)
 void Assembler::parse_instruction(const Token& token)
 {
     // get the corresponding opcode
-    this->line_info.opcode = this->opcode_lookup.get(token.repr);
+    this->line_info.opcode = this->lookup_instruction(token.repr);
     if(this->verbose)
     {
         std::cout << "[" << __func__ << "] parsing instruction token " 
@@ -601,6 +667,13 @@ void Assembler::parse_instruction(const Token& token)
             this->parse_call();
             break;
 
+        case INSTR_IN:
+            this->parse_in();
+            break;
+
+        case INSTR_OUT:
+            this->parse_out();
+            break;
 
         case INSTR_CCF:
         case INSTR_CPL:

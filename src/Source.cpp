@@ -103,7 +103,7 @@ std::string Token::toString(void) const
  */
 TokenLookup::TokenLookup()
 {
-    for(const Token& token : Z80_TOKENS)
+    for(const Token& token : Z80_INSTRUCTIONS)
         this->name_to_token[token.repr] = token;
 }
 
@@ -111,10 +111,6 @@ TokenLookup::TokenLookup(const TokenSet& set)
 {
     switch(set)
     {
-        case TokenSet::Instructions:
-            for(const Token& token : Z80_INSTRUCTIONS)
-                this->name_to_token[token.repr] = token;
-            break;
         case TokenSet::Registers:
             for(const Token& token: Z80_REGISTERS)
                 this->name_to_token[token.repr] = token;
@@ -124,7 +120,7 @@ TokenLookup::TokenLookup(const TokenSet& set)
                 this->name_to_token[token.repr] = token;
             break;
         default:
-            for(const Token& token : Z80_TOKENS)
+            for(const Token& token : Z80_INSTRUCTIONS)
                 this->name_to_token[token.repr] = token;
             break;
     }
@@ -140,47 +136,6 @@ Token TokenLookup::lookup(const std::string& s) const
 }
 
 
-/*
- * Opcode lookup
- */
-OpcodeLookup::OpcodeLookup()
-{
-    for(const Token& opcode : Z80_TOKENS)
-    {
-        if(opcode.type == SYM_INSTR)
-        {
-            this->val_to_opcode[opcode.val] = opcode;
-            this->name_to_opcode[opcode.repr] = opcode;
-        }
-    }
-}
-
-/*
- * get()
- * Get opcode by val
- */
-Token OpcodeLookup::get(const int val) const
-{
-    auto op = this->val_to_opcode.find(val);
-    if(op != this->val_to_opcode.end())
-        return op->second;
-
-    return Token();     // can't find anything, return an empty token
-}
-
-
-/*
- * get()
- * Get opcode by name
- */
-Token OpcodeLookup::get(const std::string& name) const
-{
-    auto op = this->name_to_opcode.find(name);
-    if(op != this->name_to_opcode.end())
-        return op->second;
-
-    return Token();     // can't find anything, return an empty token
-}
 
 /*
  * ======== SYMBOL ======== //
@@ -499,12 +454,12 @@ std::string LineInfo::diff(const LineInfo& that)
             << "] does not match [" << that.label 
             << "]" << std::endl;
     }
-    if(this->errstr != that.errstr)
-    {
-        oss << "errstr [" << this->errstr
-            << "] does not match [" << that.errstr
-            << "]" << std::endl;
-    }
+    //if(this->errstr != that.errstr)
+    //{
+    //    oss << "errstr [" << this->errstr
+    //        << "] does not match [" << that.errstr
+    //        << "]" << std::endl;
+    //}
     if(this->opcode != that.opcode)
     {
         oss << "opcode [" << this->opcode.toString()
