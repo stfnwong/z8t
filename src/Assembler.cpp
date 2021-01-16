@@ -37,7 +37,6 @@ void Assembler::init(void)
     this->source_info.init();
     this->program.init();
     // init lookups 
-    this->token_lookup     = TokenLookup(TokenSet::All);
     this->instr_lookup     = TokenLookup(TokenSet::Instructions);
     this->register_lookup  = TokenLookup(TokenSet::Registers);
     this->condition_lookup = TokenLookup(TokenSet::Conditions);
@@ -242,10 +241,18 @@ Token Assembler::next_token(void)
     this->scan_token();
     tok_string = std::string(this->token_buf);  
 
-    // see if this is any known token
-    token = this->token_lookup.lookup(tok_string);
+    // check if this is an instruction or directive
+    token = this->lookup_instruction(tok_string);
     if(token.type != SYM_NULL)
         return token;
+    // check if this is a register 
+    token = this->lookup_register(tok_string);
+    if(token.type != SYM_NULL)
+        return token;
+    // check if this is a conditional 
+    //token = this->lookup_condition(tok_string);
+    //if(token.type != SYM_NULL)
+    //    return token;
 
     // see if this is some kind of literal 
     token = this->parse_literal(tok_string);
@@ -306,15 +313,6 @@ Token Assembler::parse_literal(const std::string& tok_string)
 
     return token;
 }
-
-/*
- * lookup_any()
- */
-Token Assembler::lookup_any(const std::string& tok_string)
-{
-    return this->token_lookup.lookup(tok_string);
-}
-
 
 /*
  * lookup_instruction()
@@ -405,6 +403,47 @@ void Assembler::parse_ret(void)
 }
 
 /*
+ * parse_rst()
+ */
+void Assembler::parse_rst(void)
+{
+    Token token;
+
+    // RST can only take some specific values as args
+    this->scan_token();
+    token = this->parse_literal(std::string(this->token_buf));
+    if(token.type == SYM_LITERAL)
+    {
+        switch(token.val)
+        {
+            case 0:
+            case 0x10:
+            case 0x20:
+            case 0x30:
+            case 0x08:
+            case 0x18:
+            case 0x28:
+            case 0x38:
+                this->line_info.args[0] = token;
+                break;
+            default:
+                this->line_info.error = true;
+                this->line_info.errstr = "rst given invalid literal value " 
+                    + token.repr;
+                break;
+        }
+    }
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = this->line_info.opcode.repr + ": failed to parse " 
+            + this->line_info.opcode.repr 
+            + ", current token " + token.toString();
+    }
+
+}
+
+/*
  * parse_call()
  */
 void Assembler::parse_call(void)
@@ -434,6 +473,72 @@ void Assembler::parse_call(void)
         this->line_info.error = true;
         this->line_info.errstr = this->line_info.opcode.repr + ": failed to parse " + this->line_info.opcode.repr 
             + ", current token " + token.toString();
+    }
+}
+
+/*
+ * parse_in()
+ */
+void Assembler::parse_in(void)
+{
+    Token token;
+
+    // first token must be REG_A 
+    this->scan_token();
+    token = this->lookup_register(std::string(this->token_buf));
+
+    if(token.val == REG_A)
+        this->line_info.args[0] = token;
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "in expected a as first operand, got " + token.repr;
+        return;
+    }
+
+    // next token must be a literal indirect
+    this->scan_token();
+    token = this->parse_literal(std::string(this->token_buf));
+
+    if(token.type == SYM_LITERAL_IND)
+        this->line_info.args[1] = token;
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "in expected (*) as second operand, got " + token.repr;
+    }
+}
+/*
+ * parse_out()
+ */
+void Assembler::parse_out(void)
+{
+    Token token;
+
+    // next token must be a literal indirect
+    this->scan_token();
+    token = this->parse_literal(std::string(this->token_buf));
+
+    if(token.type == SYM_LITERAL_IND)
+        this->line_info.args[0] = token;
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "in expected (*) as first operand, got " + token.repr;
+        return;
+    }
+
+    // next token must be REG_A 
+    this->scan_token();
+    token = this->lookup_register(std::string(this->token_buf));
+
+    if(token.val == REG_A)
+        this->line_info.args[1] = token;
+    else
+    {
+        this->line_info.error = true;
+        this->line_info.errstr = "out expected a as second operand, got " + token.repr;
+        return;
     }
 }
 
@@ -509,7 +614,7 @@ void Assembler::parse_arg(int arg_idx)
 void Assembler::parse_instruction(const Token& token)
 {
     // get the corresponding opcode
-    this->line_info.opcode = this->opcode_lookup.get(token.repr);
+    this->line_info.opcode = this->lookup_instruction(token.repr);
     if(this->verbose)
     {
         std::cout << "[" << __func__ << "] parsing instruction token " 
@@ -550,12 +655,24 @@ void Assembler::parse_instruction(const Token& token)
             this->parse_one_literal();
             break;
 
+        case INSTR_RET:
+            this->parse_ret();
+            break;
+            
+        case INSTR_RST:
+            this->parse_rst();
+            break;
+
         case INSTR_CALL:
             this->parse_call();
             break;
 
-        case INSTR_RET:
-            this->parse_ret();
+        case INSTR_IN:
+            this->parse_in();
+            break;
+
+        case INSTR_OUT:
+            this->parse_out();
             break;
 
         case INSTR_CCF:

@@ -17,7 +17,7 @@
 // TODO : just test all reserved symbols
 //
 
-const Token expected_tokens[] = 
+const Token instr_expected_tokens[] = 
 {
     Token(SYM_INSTR, INSTR_ADD,  "add" ),
     Token(SYM_INSTR, INSTR_ADC,  "adc" ),
@@ -31,6 +31,7 @@ const Token expected_tokens[] =
     Token(SYM_INSTR, INSTR_DI,   "di" ),
     Token(SYM_INSTR, INSTR_DJNZ, "djnz" ),
     Token(SYM_INSTR, INSTR_EX,   "ex" ),
+    Token(SYM_INSTR, INSTR_IN,   "in" ),
     Token(SYM_INSTR, INSTR_JP,   "jp" ),
     Token(SYM_INSTR, INSTR_JR,   "jr" ),
     Token(SYM_INSTR, INSTR_LD ,  "ld"  ),
@@ -42,10 +43,22 @@ const Token expected_tokens[] =
     Token(SYM_INSTR, INSTR_RRA,  "rra"),
     Token(SYM_INSTR, INSTR_RRCA, "rrca"),
     Token(SYM_INSTR, INSTR_RET,  "ret"),
+    Token(SYM_INSTR, INSTR_RST,  "rst"),
     Token(SYM_INSTR, INSTR_SBC,  "sbc"),
     Token(SYM_INSTR, INSTR_SUB,  "sub"),
     Token(SYM_INSTR, INSTR_XOR,  "xor"),
+    // directives
+    Token(SYM_DIRECTIVE, DIR_DEFB,    ".defb"),
+    Token(SYM_DIRECTIVE, DIR_DEFW,    ".defw"),
+    Token(SYM_DIRECTIVE, DIR_DEFS,    ".defs"),
+    Token(SYM_DIRECTIVE, DIR_END,     ".end"),
+    Token(SYM_DIRECTIVE, DIR_EQU,     ".equ"),
+    Token(SYM_DIRECTIVE, DIR_INCLUDE, ".include"),
+    Token(SYM_DIRECTIVE, DIR_ORG,     ".org"),
+};
 
+
+const Token register_expected_tokens[] = {
     Token(SYM_REG,  REG_A,  "a"),
     Token(SYM_REG,  REG_B,  "b"),
     //Token(SYM_REG,  REG_C,  "c"),     // TODO : need typed lookup to solve this...
@@ -55,25 +68,29 @@ const Token expected_tokens[] =
     Token(SYM_REG,  REG_L,  "l"),
     Token(SYM_REG,  REG_HL, "hl"),
     Token(SYM_REG,  REG_BC, "bc"),
+};
 
-    //Token(SYM_COND, COND_C,  "C"),        // TODO: this is a pain, since we have the same char for two (context dependent) symbols
+const Token condition_expected_tokens[] = {
+    Token(SYM_COND, COND_C,  "c"),        // TODO: need to find a better way to do this..
     Token(SYM_COND, COND_NC, "nc"),
     Token(SYM_COND, COND_Z,  "z"), 
     Token(SYM_COND, COND_NZ, "nz"),
     Token(SYM_COND, COND_M,  "m"), 
     Token(SYM_COND, COND_P,  "p"), 
     Token(SYM_COND, COND_PE, "pe"),
+    Token(SYM_COND, COND_PO, "po"),
 };
 
 
-TEST_CASE("test_token_lookup", "token")
+TEST_CASE("test_instruction_lookup", "token")
 {
-    TokenLookup lut;
+    TokenLookup instr_lut(TokenSet::Instructions);
     Token out_token;
 
-    for(const Token& exp_token : expected_tokens)
+
+    for(const Token& exp_token : instr_expected_tokens)
     {
-        out_token = lut.lookup(exp_token.repr);
+        out_token = instr_lut.lookup(exp_token.repr);
         if(out_token != exp_token)
         {
             std::cout << "Token mismatch. Looked for [" << exp_token.repr << "]" << std::endl;
@@ -82,4 +99,46 @@ TEST_CASE("test_token_lookup", "token")
         }
         REQUIRE(out_token == exp_token);
     }
+
+    REQUIRE(instr_lut.lookup("fake_instr") == Token());
+}
+
+TEST_CASE("test_register_lookup", "token")
+{
+    TokenLookup register_lut(TokenSet::Registers);
+    Token out_token;
+
+    for(const Token& exp_token : register_expected_tokens)
+    {
+        out_token = register_lut.lookup(exp_token.repr);
+        if(out_token != exp_token)
+        {
+            std::cout << "Token mismatch. Looked for [" << exp_token.repr << "]" << std::endl;
+            std::cout << "Expected : " << exp_token.toString() << std::endl;
+            std::cout << "Got      : " << out_token.toString() << std::endl;
+        }
+        REQUIRE(out_token == exp_token);
+    }
+
+    REQUIRE(register_lut.lookup("fake_register") == Token());
+}
+
+TEST_CASE("test_condition_lookup", "token")
+{
+    TokenLookup condition_lut(TokenSet::Conditions);
+    Token out_token;
+
+    for(const Token& exp_token : condition_expected_tokens)
+    {
+        out_token = condition_lut.lookup(exp_token.repr);
+        if(out_token != exp_token)
+        {
+            std::cout << "Token mismatch. Looked for [" << exp_token.repr << "]" << std::endl;
+            std::cout << "Expected : " << exp_token.toString() << std::endl;
+            std::cout << "Got      : " << out_token.toString() << std::endl;
+        }
+        REQUIRE(out_token == exp_token);
+    }
+
+    REQUIRE(condition_lut.lookup("fake_condition") == Token());
 }

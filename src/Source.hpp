@@ -35,6 +35,7 @@ typedef enum {
     INSTR_DI,
     INSTR_DJNZ,
     INSTR_EX,
+    INSTR_IN,
     INSTR_JP,
     INSTR_JR,
     INSTR_LD, 
@@ -139,76 +140,6 @@ struct Token
 };
 
 
-// hash on a key like 
-//
-// SYM_TYPE | ARG1_VAL | ARG2_VAL
-
-// Collection of all valid tokens 
-// TODO: now that there are seperate lookups I gues this can go...
-const Token Z80_TOKENS[] =
-{
-    // Instructions 
-    Token(SYM_INSTR, INSTR_ADD,  "add" ),
-    Token(SYM_INSTR, INSTR_ADC,  "adc" ),
-    Token(SYM_INSTR, INSTR_AND,  "and" ),
-    Token(SYM_INSTR, INSTR_CALL, "call" ),
-    Token(SYM_INSTR, INSTR_CCF,  "ccf" ),
-    Token(SYM_INSTR, INSTR_CP,   "cp" ),
-    Token(SYM_INSTR, INSTR_CPL,  "cpl" ),
-    Token(SYM_INSTR, INSTR_DAA,  "daa" ),
-    Token(SYM_INSTR, INSTR_DEC,  "dec" ),
-    Token(SYM_INSTR, INSTR_DI,   "di" ),
-    Token(SYM_INSTR, INSTR_DJNZ, "djnz" ),
-    Token(SYM_INSTR, INSTR_EX,   "ex" ),
-    Token(SYM_INSTR, INSTR_JP,   "jp" ),
-    Token(SYM_INSTR, INSTR_JR,   "jr" ),
-    Token(SYM_INSTR, INSTR_LD ,  "ld"  ),
-    Token(SYM_INSTR, INSTR_INC,  "inc" ),
-    Token(SYM_INSTR, INSTR_NOP,  "nop" ),
-    Token(SYM_INSTR, INSTR_OR,   "or"),
-    Token(SYM_INSTR, INSTR_OUT,  "out"),
-    Token(SYM_INSTR, INSTR_POP,  "pop" ),
-    Token(SYM_INSTR, INSTR_PUSH, "push" ),
-    Token(SYM_INSTR, INSTR_RRA,  "rra"),
-    Token(SYM_INSTR, INSTR_RRCA, "rrca"),
-    Token(SYM_INSTR, INSTR_RET,  "ret"),
-    Token(SYM_INSTR, INSTR_SBC,  "sbc"),
-    Token(SYM_INSTR, INSTR_SUB,  "sub"),
-    Token(SYM_INSTR, INSTR_XOR,  "xor"),
-    // Registers 
-    Token(SYM_REG,  REG_A,      "a"),
-    Token(SYM_REG,  REG_B,      "b"),
-    Token(SYM_REG,  REG_C,      "c"),
-    Token(SYM_REG,  REG_D,      "d"),
-    Token(SYM_REG,  REG_E,      "e"),
-    Token(SYM_REG,  REG_H,      "h"),
-    Token(SYM_REG,  REG_L,      "l"),
-    Token(SYM_REG,  REG_HL,     "hl"),
-    Token(SYM_REG,  REG_BC,     "bc"),
-    Token(SYM_REG,  REG_DE,     "de"),
-    Token(SYM_REG,  REG_SP,     "sp"),
-    Token(SYM_REG,  REG_BC_IND, "(bc)"),
-    Token(SYM_REG,  REG_DE_IND, "(de)"),
-    Token(SYM_REG,  REG_HL_IND, "(hl)"),
-    // conditions
-    //Token(SYM_COND, COND_C,  "c"),        // TODO: need to find a better way to do this..
-    Token(SYM_COND, COND_NC, "nc"),
-    Token(SYM_COND, COND_Z,  "z"), 
-    Token(SYM_COND, COND_NZ, "nz"),
-    Token(SYM_COND, COND_M,  "m"), 
-    Token(SYM_COND, COND_P,  "p"), 
-    Token(SYM_COND, COND_PE, "pe"),
-    Token(SYM_COND, COND_PO, "po"),
-    // directives
-    Token(SYM_DIRECTIVE, DIR_DEFB,    ".defb"),
-    Token(SYM_DIRECTIVE, DIR_DEFW,    ".defw"),
-    Token(SYM_DIRECTIVE, DIR_DEFS,    ".defs"),
-    Token(SYM_DIRECTIVE, DIR_END,     ".end"),
-    Token(SYM_DIRECTIVE, DIR_EQU,     ".equ"),
-    Token(SYM_DIRECTIVE, DIR_INCLUDE, ".include"),
-    Token(SYM_DIRECTIVE, DIR_ORG,     ".org"),
-};
-
 // Instruction/Directive tokens 
 const Token Z80_INSTRUCTIONS[] = 
 {
@@ -225,6 +156,7 @@ const Token Z80_INSTRUCTIONS[] =
     Token(SYM_INSTR, INSTR_DI,   "di" ),
     Token(SYM_INSTR, INSTR_DJNZ, "djnz" ),
     Token(SYM_INSTR, INSTR_EX,   "ex" ),
+    Token(SYM_INSTR, INSTR_IN,   "in" ),
     Token(SYM_INSTR, INSTR_JP,   "jp" ),
     Token(SYM_INSTR, INSTR_JR,   "jr" ),
     Token(SYM_INSTR, INSTR_LD ,  "ld"  ),
@@ -236,6 +168,7 @@ const Token Z80_INSTRUCTIONS[] =
     Token(SYM_INSTR, INSTR_RRA,  "rra"),
     Token(SYM_INSTR, INSTR_RRCA, "rrca"),
     Token(SYM_INSTR, INSTR_RET,  "ret"),
+    Token(SYM_INSTR, INSTR_RST,  "rst"),
     Token(SYM_INSTR, INSTR_SBC,  "sbc"),
     Token(SYM_INSTR, INSTR_SUB,  "sub"),
     Token(SYM_INSTR, INSTR_XOR,  "xor"),
@@ -296,22 +229,6 @@ class TokenLookup
         TokenLookup(const TokenSet& tok_set);
         Token lookup(const std::string& s) const;
 };
-
-
-/*
- * OpcodeLookup
- * Same as above, but only for opcodes
- */
-class OpcodeLookup
-{
-    std::unordered_map<int, Token> val_to_opcode;
-    std::unordered_map<std::string, Token> name_to_opcode;
-
-    public:
-        OpcodeLookup();
-        Token get(const int val) const;
-        Token get(const std::string& name) const;
-}; 
 
 
 /* 

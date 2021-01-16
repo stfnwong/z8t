@@ -250,6 +250,20 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
     {(INSTR_XOR << 16) | (REG_HL_IND  << 8),                   std::pair(0xAE, 1)},   // xor (hl)
     {(INSTR_XOR << 16) | (SYM_LITERAL << 8),                   std::pair(0xEE, 2)},   // xor *
 
+    // rst
+    {(INSTR_RST << 16) | (SYM_LITERAL << 8),                   std::pair(0xC7, 1)},   // rst 00h
+    {(INSTR_RST << 16) | (SYM_LITERAL << 8),                   std::pair(0xD7, 1)},   // rst 10h
+    {(INSTR_RST << 16) | (SYM_LITERAL << 8),                   std::pair(0xE7, 1)},   // rst 20h
+    {(INSTR_RST << 16) | (SYM_LITERAL << 8),                   std::pair(0xF7, 1)},   // rst 30h
+    {(INSTR_RST << 16) | (SYM_LITERAL << 8),                   std::pair(0xCF, 1)},   // rst 08h
+    {(INSTR_RST << 16) | (SYM_LITERAL << 8),                   std::pair(0xDF, 1)},   // rst 18h
+    {(INSTR_RST << 16) | (SYM_LITERAL << 8),                   std::pair(0xEF, 1)},   // rst 28h
+    {(INSTR_RST << 16) | (SYM_LITERAL << 8),                   std::pair(0xFF, 1)},   // rst 38h
+    // in 
+    {(INSTR_IN << 16)  | (REG_A << 8) | SYM_LITERAL_IND,       std::pair(0xDB, 2)},   // in 38h
+    // out
+    {(INSTR_OUT << 16) | (SYM_LITERAL_IND << 8) | REG_A,       std::pair(0xD3, 2)},   // out 38h
+
     // instructions that take no args
     {(INSTR_RRCA << 16)                    ,                   std::pair(0x0F, 1)},   // rrca 
     {(INSTR_RRA << 16)                     ,                   std::pair(0x1F, 1)},   // rra 

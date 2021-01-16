@@ -21,7 +21,7 @@
 class Assembler
 {
     private:
-        bool verbose;
+        bool    verbose;
         Program program;
 
     // input source text
@@ -39,11 +39,9 @@ class Assembler
 
     // token lookup
     private:
-        TokenLookup  token_lookup;
         TokenLookup  instr_lookup;
         TokenLookup  register_lookup;
         TokenLookup  condition_lookup;
-        OpcodeLookup opcode_lookup;
 
     // source movement 
     private:
@@ -65,15 +63,13 @@ class Assembler
         Token       tok_string_to_literal(const std::string& tok_string) const;
         Token       next_token(void);
         
-        // consume tokens only of a specific type
-
         void        skip_whitespace(void);
         void        skip_line(void);
         void        skip_seperators(void);
         void        skip_to_next_token(void);
         void        scan_token(void);
         bool        check_ahead(void);
-        Token       lookup_any(const std::string& tok_str);
+        // consume tokens only of a specific type
         Token       lookup_condition(const std::string& tok_str);
         Token       lookup_register(const std::string& tok_str);
         Token       lookup_instruction(const std::string& tok_str);
@@ -81,7 +77,11 @@ class Assembler
         // instruction specific parsing routines 
         void        parse_jump(void);
         void        parse_ret(void);
+        void        parse_rst(void);
         void        parse_call(void);
+        // io 
+        void        parse_in(void);
+        void        parse_out(void);
         void        parse_one_literal(void);
         void        parse_arg(int arg_idx);
         void        parse_instruction(const Token& token);

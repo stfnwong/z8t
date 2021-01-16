@@ -103,7 +103,7 @@ std::string Token::toString(void) const
  */
 TokenLookup::TokenLookup()
 {
-    for(const Token& token : Z80_TOKENS)
+    for(const Token& token : Z80_INSTRUCTIONS)
         this->name_to_token[token.repr] = token;
 }
 
@@ -111,10 +111,6 @@ TokenLookup::TokenLookup(const TokenSet& set)
 {
     switch(set)
     {
-        case TokenSet::Instructions:
-            for(const Token& token : Z80_INSTRUCTIONS)
-                this->name_to_token[token.repr] = token;
-            break;
         case TokenSet::Registers:
             for(const Token& token: Z80_REGISTERS)
                 this->name_to_token[token.repr] = token;
@@ -124,7 +120,7 @@ TokenLookup::TokenLookup(const TokenSet& set)
                 this->name_to_token[token.repr] = token;
             break;
         default:
-            for(const Token& token : Z80_TOKENS)
+            for(const Token& token : Z80_INSTRUCTIONS)
                 this->name_to_token[token.repr] = token;
             break;
     }
@@ -140,47 +136,6 @@ Token TokenLookup::lookup(const std::string& s) const
 }
 
 
-/*
- * Opcode lookup
- */
-OpcodeLookup::OpcodeLookup()
-{
-    for(const Token& opcode : Z80_TOKENS)
-    {
-        if(opcode.type == SYM_INSTR)
-        {
-            this->val_to_opcode[opcode.val] = opcode;
-            this->name_to_opcode[opcode.repr] = opcode;
-        }
-    }
-}
-
-/*
- * get()
- * Get opcode by val
- */
-Token OpcodeLookup::get(const int val) const
-{
-    auto op = this->val_to_opcode.find(val);
-    if(op != this->val_to_opcode.end())
-        return op->second;
-
-    return Token();     // can't find anything, return an empty token
-}
-
-
-/*
- * get()
- * Get opcode by name
- */
-Token OpcodeLookup::get(const std::string& name) const
-{
-    auto op = this->name_to_opcode.find(name);
-    if(op != this->name_to_opcode.end())
-        return op->second;
-
-    return Token();     // can't find anything, return an empty token
-}
 
 /*
  * ======== SYMBOL ======== //
@@ -329,58 +284,18 @@ uint32_t LineInfo::argHash(void) const
     uint32_t hash;
 
     hash = (this->opcode.val & 0xFF) << 16;
-    // First argument. If the argument is a literal or indirect literal then 
-    // we use the type in place of the value
-    if(this->args[0].type == SYM_LITERAL || 
-       this->args[0].type == SYM_LITERAL_IND || 
-       this->args[0].type == SYM_NULL)
-        hash = hash | ((this->args[0].type & 0xFF) << 8);
-    else if(this->args[0].type == SYM_LABEL)
-        hash = hash | (SYM_LITERAL << 8);
-    else
-        hash = hash | ((this->args[0].val & 0xFF) << 8);
 
-    // Second argument 
-    if(this->args[1].type == SYM_LITERAL || 
-       this->args[1].type == SYM_LITERAL_IND ||
-       this->args[1].type == SYM_NULL)
-        hash = hash | (this->args[1].type & 0xFF);
-    else if(this->args[1].type == SYM_LABEL)
-        hash = hash | SYM_LITERAL;
-    else
-        hash = hash | (this->args[1].val & 0xFF);
-
-    //if(this->args[0].type == SYM_LITERAL || this->args[0].type == SYM_LABEL)
-    //{
-    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
-    //           ((SYM_LITERAL & 0xFF) << 8);
-
-    //    if(this->args[1].val >= 0)
-    //        hash = hash | ((this->args[1].val & 0xFF));
-    //}
-    //else if(this->args[1].type == SYM_LITERAL)
-    //{
-    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
-    //           ((this->args[0].val & 0xFF) << 8) | 
-    //           ((this->args[1].type & 0xFF));
-    //}
-    //// this handles the case where the labels have not yet been resolved
-    //else if(this->args[1].type == SYM_LABEL)
-    //{
-    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
-    //           ((this->args[0].val & 0xFF) << 8) | 
-    //           ((SYM_LITERAL & 0xFF));
-    //}
-    //// instructions with a single cond arg
-    //// instructions with no args 
-    //else
-    //{
-    //    hash = ((this->opcode.val  & 0xFF) << 16) | 
-    //           ((this->args[0].val & 0xFF) << 8);
-
-    //    if(this->args[1].val >= 0)
-    //        hash = hash | ((this->args[1].val & 0xFF));
-    //}
+    for(int i = 0; i < 2; ++i)
+    {
+        if(this->args[i].type == SYM_LITERAL || 
+           this->args[i].type == SYM_LITERAL_IND || 
+           this->args[i].type == SYM_NULL)
+            hash = hash | ((this->args[i].type & 0xFF) << ((1-i) * 8));
+        else if(this->args[i].type == SYM_LABEL)
+            hash = hash | (SYM_LITERAL << ((1-i) * 8));
+        else
+            hash = hash | ((this->args[i].val & 0xFF) << ((1-i) * 8));
+    }
 
     return hash;
 }
@@ -539,12 +454,12 @@ std::string LineInfo::diff(const LineInfo& that)
             << "] does not match [" << that.label 
             << "]" << std::endl;
     }
-    if(this->errstr != that.errstr)
-    {
-        oss << "errstr [" << this->errstr
-            << "] does not match [" << that.errstr
-            << "]" << std::endl;
-    }
+    //if(this->errstr != that.errstr)
+    //{
+    //    oss << "errstr [" << this->errstr
+    //        << "] does not match [" << that.errstr
+    //        << "]" << std::endl;
+    //}
     if(this->opcode != that.opcode)
     {
         oss << "opcode [" << this->opcode.toString()

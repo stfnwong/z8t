@@ -119,7 +119,7 @@ TEST_CASE("test_cpu_state_init", "cpu")
     REQUIRE(state.w == 0);
     REQUIRE(state.z == 0);
 
-    REQUIRE(state.mem.size() == 0x10000);
+    REQUIRE(state.mem.size() == 0x20000);
 }
 
 TEST_CASE("test_16bit_read_write", "cpu")
