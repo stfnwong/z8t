@@ -684,6 +684,7 @@ void Assembler::parse_instruction(const Token& token)
         case INSTR_RLA:
         case INSTR_DAA:
         case INSTR_SCF:
+        case INSTR_HALT:
             // no args
             break;
 

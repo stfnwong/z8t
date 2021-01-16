@@ -35,6 +35,7 @@ typedef enum {
     INSTR_DI,
     INSTR_DJNZ,
     INSTR_EX,
+    INSTR_HALT,
     INSTR_IN,
     INSTR_JP,
     INSTR_JR,
@@ -121,7 +122,6 @@ typedef enum {
  */
 struct Token
 {
-    // TODO: if we have a non-zero length repr then we need to do lookups later..
     TokenType   type;
     int         val;
     std::string repr;
@@ -156,6 +156,7 @@ const Token Z80_INSTRUCTIONS[] =
     Token(SYM_INSTR, INSTR_DI,   "di" ),
     Token(SYM_INSTR, INSTR_DJNZ, "djnz" ),
     Token(SYM_INSTR, INSTR_EX,   "ex" ),
+    Token(SYM_INSTR, INSTR_HALT, "halt" ),
     Token(SYM_INSTR, INSTR_IN,   "in" ),
     Token(SYM_INSTR, INSTR_JP,   "jp" ),
     Token(SYM_INSTR, INSTR_JR,   "jr" ),

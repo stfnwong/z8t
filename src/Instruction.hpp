@@ -272,6 +272,7 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
     {(INSTR_RLA << 16)                     ,                   std::pair(0x17, 1)},   // rla 
     {(INSTR_DAA << 16)                     ,                   std::pair(0x27, 1)},   // daa 
     {(INSTR_SCF << 16)                     ,                   std::pair(0x37, 1)},   // scf 
+    {(INSTR_HALT << 16)                    ,                   std::pair(0x76, 1)},   // halt 
 
     // TODO: ED instructions 
     // TODO: CB instructions 
