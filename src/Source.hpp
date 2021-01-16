@@ -164,6 +164,7 @@ const Token Z80_TOKENS[] =
     Token(SYM_INSTR, INSTR_JR,   "jr" ),
     Token(SYM_INSTR, INSTR_LD ,  "ld"  ),
     Token(SYM_INSTR, INSTR_INC,  "inc" ),
+    Token(SYM_INSTR, INSTR_NOP,  "nop" ),
     Token(SYM_INSTR, INSTR_OR,   "or"),
     Token(SYM_INSTR, INSTR_OUT,  "out"),
     Token(SYM_INSTR, INSTR_POP,  "pop" ),
@@ -419,8 +420,6 @@ class SourceInfo
         std::string  getSymName(const uint16_t addr) const;
         unsigned int getNumSyms(void) const;
         std::string  symTableString(void) const;
-        //void         init(void);
-        //unsigned int size(void) const;
 
         std::string  toString(void) const;
 };

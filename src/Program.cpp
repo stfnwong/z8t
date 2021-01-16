@@ -187,6 +187,17 @@ unsigned int Program::numBytes(void) const
 }
 
 /*
+ * startAddr()
+ */
+uint16_t Program::startAddr(void) const
+{
+    if(this->instructions.size() > 0)
+        return this->instructions[0].adr;
+
+    return 0;
+}
+
+/*
  * save()
  */
 int Program::save(const std::string& filename)
@@ -200,6 +211,12 @@ int Program::save(const std::string& filename)
         std::cerr << "[" << __func__ << "] " << e.what() << std::endl;
         return -1;
     }
+
+    uint16_t last_addr = this->startAddr() + this->numBytes();
+    // fill the rom up with zeros until the start address
+    for(unsigned int b = 0; b > this->startAddr(); ++b)
+        outfile.write(0, sizeof(uint8_t));
+        //outfile.write(reinterpret_cast<char>('\0'), sizeof(uint8_t));
 
     for(unsigned int idx = 0; idx < this->instructions.size(); ++idx)
     {

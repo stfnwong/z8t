@@ -44,7 +44,7 @@ const uint8_t Memory::operator[](unsigned int i) const
     return this->data[i];
 }
 
-// NOTE: slow!
+// NOTE: slow! This will compare all the bytes in memory
 bool Memory::operator==(const Memory& that) const
 {
     if(this->mem_size != that.mem_size)
@@ -162,7 +162,7 @@ void Memory::save(const std::string& filename)
  */
 
 // Constructors 
-CPUState::CPUState() : mem(0x10000)
+CPUState::CPUState() : mem(0x20000)     // 32k
 {
     this->init();
 }

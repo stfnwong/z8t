@@ -659,6 +659,13 @@ bool Assembler::resolve_labels(void)
     int16_t label_addr;
     int16_t target_addr;
 
+    // dump symbol table
+    if(this->verbose)
+    {
+        std::cout << "[" << __func__ << "] symbols parsed in file [" << this->filename << "]" << std::endl;
+        std::cout << this->source_info.symTableString() << std::endl;
+    }
+
     // walk over the sourceinfo and check for labels
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
     {

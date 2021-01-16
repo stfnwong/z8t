@@ -19,6 +19,7 @@
 const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_code = {
     // format 
     // (OPCODE << 16)  | (ARG1 << 8) | (ARG2) , (instr, size)
+    {(INSTR_NOP << 16)                             ,           std::pair(0x00, 1)},   // nop
     // add 
     {(INSTR_ADD << 16) | (REG_A       << 8) | REG_A,           std::pair(0x87, 1)},   // add a, a 
     {(INSTR_ADD << 16) | (REG_A       << 8) | REG_B,           std::pair(0x80, 1)},   // add a, b 

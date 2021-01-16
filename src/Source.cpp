@@ -600,7 +600,7 @@ std::string LineInfo::toInstrString(void) const
 
     oss << this->opcode.repr << " " << this->args[0].repr;
     if(this->args[1].type != SYM_NULL)
-        oss << "," << this->args[1].repr;
+        oss << ", " << this->args[1].repr;
 
     return oss.str();
 }

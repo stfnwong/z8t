@@ -111,10 +111,13 @@ class Program
 
         /*
          * numBytes()
-         * TODO: Returns the length of the program in bytes
          */
         unsigned int numBytes(void) const;
-
+        /*
+         * startAddr()
+         * Returns first address in the program
+         */
+         uint16_t startAddr(void) const;
         /*
          * save()
          * 
