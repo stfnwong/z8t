@@ -49,6 +49,7 @@ class Assembler
         void         advance(void);
         unsigned int cur_pos;
         unsigned int cur_line;
+        unsigned int cur_column;
         char         cur_char;
         char*        token_buf;
         unsigned int token_buf_size;

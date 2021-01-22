@@ -32,7 +32,7 @@ void Assembler::init(void)
 {
     this->cur_line       = 1;
     this->cur_pos        = 0;
-    this->cur_pos        = 0;
+    this->cur_column     = 0;
     this->cur_addr       = TEXT_START_ADDR;     
     this->source_info.init();
     this->program.init();
@@ -66,9 +66,13 @@ void Assembler::advance(void)
     if(this->exhausted())
         return;
     this->cur_pos++;
+    this->cur_column++;
     this->cur_char = this->source[this->cur_pos];    
     if(this->cur_char == '\n')
+    {
+        this->cur_column = 0;
         this->cur_line++;
+    }
 }
 
 /* 
@@ -148,8 +152,11 @@ void Assembler::scan_token(void)
             break;
         if(this->cur_char == '\n')
             break;
-        if(this->cur_char == ';')
+        if(this->cur_char == ';')   // if we hit a comment then skip immediately to the next line
+        {
+            this->skip_line();
             break;
+        }
         if(this->cur_char == ',')
             break;
 
@@ -238,8 +245,15 @@ Token Assembler::next_token(void)
     Token token;
     std::string tok_string;
     
-    this->scan_token();
-    tok_string = std::string(this->token_buf);  
+    do
+    {
+        this->scan_token();
+        tok_string = std::string(this->token_buf);  
+    } while(tok_string.length() == 0);
+
+    std::cout << "[" << __func__ << ":" << __LINE__ << "] tok_string <" << tok_string 
+        << "> ending at character " << this->cur_pos << " Line " << this->cur_line << " Col "
+         << this->cur_column << std::endl;
 
     // check if this is an instruction or directive
     token = this->lookup_instruction(tok_string);
@@ -249,10 +263,6 @@ Token Assembler::next_token(void)
     token = this->lookup_register(tok_string);
     if(token.type != SYM_NULL)
         return token;
-    // check if this is a conditional 
-    //token = this->lookup_condition(tok_string);
-    //if(token.type != SYM_NULL)
-    //    return token;
 
     // see if this is some kind of literal 
     token = this->parse_literal(tok_string);
@@ -797,7 +807,7 @@ bool Assembler::resolve_labels(void)
                     << " [0x" << std::hex << cur_line.addr << "]" << std::endl;
             }
 
-            if(label_addr > 0)
+            if(label_addr != 0)     // only ignore null addresses
             {
                 switch(cur_line.opcode.val)
                 {
@@ -822,18 +832,19 @@ bool Assembler::resolve_labels(void)
                     // this case should handle absolute jumps (jp
                     // instruction) as well
                     default:
+                        std::cout << "[" << __func__ << "] resolving for instruction " << cur_line.opcode.toString() << std::endl;
                         cur_line.args[cur_line.sym_arg] = Token(SYM_LITERAL, label_addr, std::to_string(label_addr));
                         break;
-                        
                 }
+
             }
             else
             {
                 error_general(
                         cur_line.line_num,
                         cur_line.addr,
-                        "Failed to resolve symbol " + cur_line.args[cur_line.sym_arg].repr + 
-                        " in instruction " + cur_line.toInstrString() 
+                        "Failed to resolve symbol [" + cur_line.args[cur_line.sym_arg].repr + 
+                        "] in instruction [" + cur_line.toInstrString() + "]"
                 );
                 return false;
             }
@@ -846,6 +857,7 @@ bool Assembler::resolve_labels(void)
                 );
             }
             this->source_info.update(idx, cur_line);
+            std::cout << "[" << __func__ << "] line is now " << cur_line.toInstrString() << std::endl;
         }
     }
     
@@ -894,6 +906,7 @@ void Assembler::parse_line(void)
 
         // Scan the next token
         token = this->next_token();
+        std::cout << "[" << __func__ << "] scanned new token <" << std::string(this->token_buf) << ">" << std::endl;
         this->line_info.line_num = this->cur_line;
         this->line_info.is_label = true;
     }
@@ -912,6 +925,12 @@ void Assembler::parse_line(void)
     {
         this->line_info.error = true;
         this->line_info.errstr = "got unexpected token " + token.repr + " on line " + std::to_string(this->cur_line);
+
+        if(this->verbose)
+        {
+            std::cout << "[" << __func__ << ":" << __LINE__ << "] : " << this->line_info.errstr << std::endl;
+            std::cout << "[" << __func__ << ":" << __LINE__ << "] : " << token.toString() << std::endl;
+        }
     }   
     this->line_info.addr = this->cur_addr;
 
