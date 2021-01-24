@@ -54,19 +54,16 @@ class Assembler
         char*        token_buf;
         unsigned int token_buf_size;
 
-    // token check 
-    private:
-        bool        is_space(void);
-        bool        is_comment(void);
-
     // parsing 
     private:
         Token       tok_string_to_literal(const std::string& tok_string) const;
         Token       next_token(void);
         
+        bool        is_space(void);
+        bool        is_comment(void);
         void        skip_whitespace(void);
         void        skip_line(void);
-        void        skip_seperators(void);
+        //void        skip_seperators(void);
         void        skip_to_next_token(void);
         void        scan_token(void);
         bool        check_ahead(void);

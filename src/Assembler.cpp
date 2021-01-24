@@ -75,136 +75,6 @@ void Assembler::advance(void)
     }
 }
 
-/* 
- * is_space()
- */
-bool Assembler::is_space(void)
-{
-    if(this->cur_char == ' ' || this->cur_char == '\n')
-        return true;
-
-    return false;
-}
-
-/* 
- * is_comment()
- */
-bool Assembler::is_comment(void)
-{
-    return (this->cur_char == ';') ? true : false;
-}
-
-/* 
- * skip_whitespace()
- */
-void Assembler::skip_whitespace(void)
-{
-    while(this->cur_char == ' ' || 
-          this->cur_char == '\n' || 
-          this->cur_char == '\t')
-        this->advance();
-}
-
-void Assembler::skip_to_next_token(void)
-{
-    while(this->cur_char != '\n')
-    {
-        if(std::isalnum(this->cur_char))
-            break;                  // this is the start of a new token
-        if(this->cur_char == ' ')   // end
-            break;
-        if(this->cur_char == '\n')
-        {
-            this->advance();
-            break;
-        }
-        if(this->cur_char == ';')
-            break;
-        if(this->cur_char == ',')
-            break;
-        this->advance();
-    }
-}
-
-
-/* 
- * skip_line()
- */
-void Assembler::skip_line(void)
-{
-    while(this->cur_char != '\n')
-        this->advance();
-
-    this->advance();    // skip over the newline char
-}
-
-/*
- * scan_token()
- */
-void Assembler::scan_token(void)
-{
-    unsigned int idx = 0;
-
-    this->skip_whitespace();
-    while(idx < (this->token_buf_size-1))
-    {
-        if(this->cur_char == ' ')   // end
-            break;
-        if(this->cur_char == '\n')
-            break;
-        if(this->cur_char == ';')   // if we hit a comment then skip immediately to the next line
-        {
-            this->skip_line();
-            break;
-        }
-        if(this->cur_char == ',')
-            break;
-
-        this->token_buf[idx] = std::tolower(this->cur_char);
-        this->advance();
-        idx++;
-    }
-
-    this->token_buf[idx] = '\0';
-    if(this->cur_char == ',')   // skip over any seperators
-        this->advance();
-
-    if(this->verbose)
-    {
-        msg_general_funcname(
-                __func__,
-                this->cur_line, 
-                std::string("token_buf contains ") + std::string(this->token_buf)
-        );
-    }
-}
-
-/*
- * check_ahead()
- * Similar to scan token, but doesn't advance the internal position tracking.
- * Useful to see if there is another token or if the line ends.
- */
-bool Assembler::check_ahead(void)
-{
-    unsigned int idx = this->cur_pos;
-    char check_char = this->source[idx];
-
-    while(!this->exhausted())
-    {
-        check_char = this->source[idx];
-        if(check_char == '\n')
-            break;
-        if(check_char == ';')
-            break;
-        if(check_char == ' ' || check_char == ',')
-            idx++;
-        if(std::isalnum(check_char))
-            return true;
-    }
-
-    return false;
-}
-
 
 /*
  * tok_string_to_literal()
@@ -277,6 +147,141 @@ Token Assembler::next_token(void)
     return token;
 }
 
+/* 
+ * is_space()
+ */
+bool Assembler::is_space(void)
+{
+    if(this->cur_char == ' ' || this->cur_char == '\n')
+        return true;
+
+    return false;
+}
+
+/* 
+ * is_comment()
+ */
+bool Assembler::is_comment(void)
+{
+    return (this->cur_char == ';') ? true : false;
+}
+
+/* 
+ * skip_whitespace()
+ */
+void Assembler::skip_whitespace(void)
+{
+    while(this->cur_char == ' ' || 
+          this->cur_char == '\n' || 
+          this->cur_char == '\t')
+        this->advance();
+}
+
+/* 
+ * skip_line()
+ */
+void Assembler::skip_line(void)
+{
+    while(this->cur_char != '\n')
+        this->advance();
+
+    this->advance();    // skip over the newline char
+}
+
+/*
+ * skip_to_next_token()
+ */
+void Assembler::skip_to_next_token(void)
+{
+    while(this->cur_char != '\n')
+    {
+        if(std::isalnum(this->cur_char))
+            break;                  // this is the start of a new token
+        if(this->cur_char == ' ')   // end
+            break;
+        if(this->cur_char == '\n')
+        {
+            this->advance();
+            break;
+        }
+        if(this->cur_char == ';')
+            break;
+        if(this->cur_char == ',')
+            break;
+        this->advance();
+    }
+}
+
+
+/*
+ * scan_token()
+ */
+void Assembler::scan_token(void)
+{
+    unsigned int idx = 0;
+
+    this->skip_whitespace();
+    while(idx < (this->token_buf_size-1))
+    {
+        if(this->cur_char == ' ')   // end
+            break;
+        if(this->cur_char == '\n')
+            break;
+        if(this->cur_char == ';')   // if we hit a comment then skip immediately to the next line
+        {
+            this->skip_line();
+            break;
+        }
+        if(this->cur_char == ',')
+            break;
+
+        this->token_buf[idx] = std::tolower(this->cur_char);
+        this->advance();
+        idx++;
+    }
+
+    this->token_buf[idx] = '\0';
+    if(this->cur_char == ',')   // skip over any seperators
+        this->advance();
+
+    if(this->verbose)
+    {
+        msg_general_funcname(
+                __func__,
+                this->cur_line, 
+                std::string("token_buf contains ") + std::string(this->token_buf)
+        );
+    }
+}
+
+/*
+ * check_ahead()
+ * Similar to scan token, but doesn't advance the internal position tracking.
+ * Useful to see if there is another token or if the line ends.
+ */
+bool Assembler::check_ahead(void)
+{
+    unsigned int idx = this->cur_pos;
+    char check_char = this->source[idx];
+
+    while(!this->exhausted())
+    {
+        check_char = this->source[idx];
+        if(check_char == '\n')
+            break;
+        if(check_char == ';')
+            break;
+        if(check_char == ' ' || check_char == ',')
+            idx++;
+        if(std::isalnum(check_char))
+            return true;
+    }
+
+    return false;
+}
+
+
+
 /*
  * parse_literal()
  */
@@ -288,6 +293,12 @@ Token Assembler::parse_literal(const std::string& tok_string)
     if(tok_string[0] == '$' || tok_string[0] == '%' || std::isdigit(tok_string[0]))
     {
         token = this->tok_string_to_literal(tok_string);
+    }
+    else if(tok_string[0] == '\'')       // character literal
+    {
+        token.val = int(tok_string[1]);
+        token.repr = tok_string[1];
+        token.type = SYM_LITERAL;
     }
     // if the next character is alpha assume this is a labelled indirect 
     else if(tok_string[0] == '(' && std::isalpha(tok_string[1]))
@@ -1083,6 +1094,11 @@ void Assembler::assem_instr(void)
                         line.addr, 
                         std::string("invalid instruction " + line.toInstrString())
                 );
+                std::cout << "[" << __func__ << "] line hash: " << std::hex << line.argHash() << std::endl;
+                std::cout << "[" << __func__ << "] where opcode is " << line.opcode.toString() << std::endl;
+                std::cout << "[" << __func__ << "] and arg 1 is " << line.args[0].toString() << std::endl;
+                std::cout << "[" << __func__ << "] and arg 2 is " << line.args[1].toString() << std::endl;
+
                 return;
             }
             cur_instr.adr = line.addr;      

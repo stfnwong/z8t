@@ -64,6 +64,20 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
     {(INSTR_CP  << 16) | (REG_L       << 8),                   std::pair(0xBD, 1)},   // cp l
     {(INSTR_CP  << 16) | (REG_HL      << 8),                   std::pair(0xBE, 1)},   // cp (hl)
     {(INSTR_CP  << 16) | (SYM_LITERAL << 8),                   std::pair(0xFE, 2)},   // cp *
+    // dec
+    {(INSTR_DEC << 16) | (REG_A       << 8),                   std::pair(0x3D, 1)},   // dec a
+    {(INSTR_DEC << 16) | (REG_B       << 8),                   std::pair(0x05, 1)},   // dec b
+    {(INSTR_DEC << 16) | (REG_C       << 8),                   std::pair(0x0D, 1)},   // dec c
+    {(INSTR_DEC << 16) | (REG_D       << 8),                   std::pair(0x15, 1)},   // dec d
+    {(INSTR_DEC << 16) | (REG_E       << 8),                   std::pair(0x1D, 1)},   // dec e
+    {(INSTR_DEC << 16) | (REG_H       << 8),                   std::pair(0x25, 1)},   // dec h
+    {(INSTR_DEC << 16) | (REG_L       << 8),                   std::pair(0x2D, 1)},   // dec l
+    {(INSTR_DEC << 16) | (REG_BC      << 8),                   std::pair(0x0B, 1)},   // dec bc
+    {(INSTR_DEC << 16) | (REG_DE      << 8),                   std::pair(0x1B, 1)},   // dec de
+    {(INSTR_DEC << 16) | (REG_HL      << 8),                   std::pair(0x2B, 1)},   // dec hl
+    {(INSTR_DEC << 16) | (REG_SP      << 8),                   std::pair(0x3B, 1)},   // dec sp
+    {(INSTR_DEC << 16) | (REG_HL_IND  << 8),                   std::pair(0x35, 1)},   // dec (hl)
+   
     // inc 
     {(INSTR_INC << 16) | (REG_A       << 8),                   std::pair(0x3C, 1)},   // inc a
     {(INSTR_INC << 16) | (REG_B       << 8),                   std::pair(0x15, 1)},   // inc b
