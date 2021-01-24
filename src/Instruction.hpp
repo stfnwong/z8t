@@ -263,6 +263,16 @@ const std::unordered_map<uint32_t, std::pair<uint8_t, uint8_t> > instr_hash_to_c
     {(INSTR_IN << 16)  | (REG_A << 8) | SYM_LITERAL_IND,       std::pair(0xDB, 2)},   // in 38h
     // out
     {(INSTR_OUT << 16) | (SYM_LITERAL_IND << 8) | REG_A,       std::pair(0xD3, 2)},   // out 38h
+    // call
+    {(INSTR_CALL << 16) | (SYM_LITERAL << 8),                  std::pair(0xCD, 3)},   // call **
+    {(INSTR_CALL << 16) | (COND_NZ << 8)  |  SYM_LITERAL,      std::pair(0xC4, 3)},   // call nz, **
+    {(INSTR_CALL << 16) | (COND_NC << 8)  |  SYM_LITERAL,      std::pair(0xD4, 3)},   // call nc, **
+    {(INSTR_CALL << 16) | (COND_PO << 8)  |  SYM_LITERAL,      std::pair(0xE4, 3)},   // call po, **
+    {(INSTR_CALL << 16) | (COND_P << 8)   |  SYM_LITERAL,      std::pair(0xF4, 3)},   // call p, **
+    {(INSTR_CALL << 16) | (COND_Z << 8)   |  SYM_LITERAL,      std::pair(0xCC, 3)},   // call z, **
+    {(INSTR_CALL << 16) | (COND_C << 8)   |  SYM_LITERAL,      std::pair(0xCD, 3)},   // call c, **
+    {(INSTR_CALL << 16) | (COND_PE << 8)  |  SYM_LITERAL,      std::pair(0xCE, 3)},   // call pe, **
+    {(INSTR_CALL << 16) | (COND_M << 8)   |  SYM_LITERAL,      std::pair(0xCF, 3)},   // call m, **
 
     // instructions that take no args
     {(INSTR_RRCA << 16)                    ,                   std::pair(0x0F, 1)},   // rrca 

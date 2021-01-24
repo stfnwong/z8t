@@ -596,9 +596,15 @@ void Assembler::parse_arg(int arg_idx)
         
     // try and match a literal
     token = this->parse_literal(std::string(this->token_buf));
-    if(token.needs_lookup())
+    // TODO: debug, remove 
+    std::cout << "[" << __func__ << "] tried to get a literal from token buf [" << std::string(this->token_buf) 
+        << "], got " << token.toString() << std::endl;
+    if(token.type == SYM_LABEL || token.needs_lookup())     // <- what a shit condition...
     {
         this->line_info.sym_arg = arg_idx;
+        // TODO: debug, remove 
+        std::cout << "[" << __func__ << "] setting sym arg to " << this->line_info.sym_arg << " for line "
+            << this->line_info.line_num << " with instruction " << this->line_info.opcode.toString() << std::endl;
     }
     this->line_info.args[arg_idx] = token;
 
@@ -796,6 +802,8 @@ bool Assembler::resolve_labels(void)
     // walk over the sourceinfo and check for labels
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
     {
+        // make a lookup table of lines that have sym args so that we
+        // dont have to iterate over all the lines
         LineInfo cur_line = this->source_info.get(idx);
         if(cur_line.sym_arg >= 0)
         {
@@ -1034,6 +1042,9 @@ void Assembler::assem_instr(void)
                     cur_instr.ins = (instr_size.first << 8) | (line.args[0].val & 0xFF);
                 else if(cur_instr.size == 2 && line.args[1].type == SYM_LITERAL)
                     cur_instr.ins = (instr_size.first << 8) | (line.args[1].val & 0xFF);
+                // call **
+                else if(cur_instr.size == 3 && line.args[0].type == SYM_LITERAL)
+                    cur_instr.ins = (instr_size.first << 16) | (line.args[0].val & 0xFFFF);
                 // ld bc, ** | ld de, ** | ld hl, ** | ld sp, **
                 else if(cur_instr.size == 3 && line.args[1].type == SYM_LITERAL)
                     cur_instr.ins = (instr_size.first << 16) | (line.args[1].val & 0xFFFF);
@@ -1056,6 +1067,12 @@ void Assembler::assem_instr(void)
                             line.addr,
                             std::string("failed to assemble instruction " + line.toInstrString())
                     );
+                    // TODO: debug, remove 
+                    std::cout << "[" << __func__ << "] line hash: " << std::hex << line.argHash() << std::endl;
+                    std::cout << "[" << __func__ << "] where opcode is " << line.opcode.toString() << std::endl;
+                    std::cout << "[" << __func__ << "] and arg 1 is " << line.args[0].toString() << std::endl;
+                    std::cout << "[" << __func__ << "] and arg 2 is " << line.args[1].toString() << std::endl;
+
                     return;
                 }
             }
