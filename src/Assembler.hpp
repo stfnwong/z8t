@@ -66,6 +66,7 @@ class Assembler
         //void        skip_seperators(void);
         void        skip_to_next_token(void);
         void        scan_token(void);
+        void        scan_string_constant(void);
         bool        check_ahead(void);
         // consume tokens only of a specific type
         Token       lookup_condition(const std::string& tok_str);

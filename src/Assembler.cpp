@@ -255,6 +255,27 @@ void Assembler::scan_token(void)
 }
 
 /*
+ * scan_string_constant()
+ * This function assumes that the current char is the opening 
+ * literal quote for the string.
+ */
+void Assembler::scan_string_constant(void)
+{
+    unsigned int idx = 0;
+    
+    this->advance();
+    while(idx < this->token_buf_size-1)
+    {
+        if(this->cur_char == '"')
+            break;
+        this->advance();
+        this->idx++;
+    }
+
+    this->token_buf[idx] = '\0';
+}
+
+/*
  * check_ahead()
  * Similar to scan token, but doesn't advance the internal position tracking.
  * Useful to see if there is another token or if the line ends.
@@ -763,6 +784,7 @@ void Assembler::parse_directive(const Token& token)
         case DIR_DEFB:
         case DIR_DEFW:
         case DIR_EQU:       // this must be a literal
+            // TODO: comma seperate here?
             this->line_info.expr = this->read_to_line_end();
             break;
 
@@ -1034,6 +1056,9 @@ void Assembler::assem_instr(void)
     for(unsigned int idx = 0; idx < this->source_info.getNumLines(); ++idx)
     {
         line = this->source_info.get(idx);
+        // TODO: debug, remove
+        std::cout << "[" << __func__ << "] evaluating line " << std::dec << line.line_num
+            << " : " << line.toInstrString() << std::endl;
         line.eval(this->source_info);       
 
         if(line.type == LineType::TextLine)

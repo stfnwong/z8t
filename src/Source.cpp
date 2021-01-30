@@ -345,8 +345,17 @@ void LineInfo::eval(const SourceInfo& info)
         if(this->expr[str_idx] == ',')
         {
             cur_string = this->expr.substr(str_start, str_idx - str_start);
+            std::cout << "[" << __func__ << "] evaluating expr ["
+                << cur_string << "] line " << std::dec << this->line_num
+                << " instr " << this->toInstrString();
             str_start = str_idx+1;        // for the next substring
-            EvalResult eval = eval_expr_string(cur_string, info);
+
+            // check if this is a string constant...
+            EvalResult eval;
+            if(cur_string[0] == '"')
+                std::cout << "[" << __func__ << "] TODO: def string constants" << std::endl;
+            else
+                eval = eval_expr_string(cur_string, info);
             this->data = eval.val;
             //this->data.push_back(int(eval));
         }
@@ -356,6 +365,9 @@ void LineInfo::eval(const SourceInfo& info)
     if(str_idx > 0)
     {
         cur_string = this->expr.substr(str_start, str_idx - str_start);
+        std::cout << "[" << __func__ << "] evaluating expr ["
+            << cur_string << "] line " << std::dec << this->line_num
+            << " instr " << this->toInstrString();
         EvalResult eval = eval_expr_string(cur_string, info);
         this->data = eval.val;
         //this->data.push_back(int(eval));
@@ -514,12 +526,14 @@ std::string LineInfo::toInstrString(void) const
     std::ostringstream oss;
 
     oss << this->opcode.repr << " " << this->args[0].repr;
+    // if this is a def instruction then also print the expression
+    if(this->opcode.val == DIR_DEFB || this->opcode.val == DIR_DEFW)
+        oss << this->expr << " ";
     if(this->args[1].type != SYM_NULL)
         oss << ", " << this->args[1].repr;
 
     return oss.str();
 }
-
 
 /*
  * ======== SOURCE INFO ======== //
