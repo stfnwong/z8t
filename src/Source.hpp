@@ -273,10 +273,10 @@ struct LineInfo
     int         sym_arg;
     // directive fields
     EvalResult  eval_result;  // TODO: does this become a vector of EvalResult when comma seperated args are supported?
-    std::string expr;
-    int         data;       // TODO: this will become a vector when comma seperated fields are supported
+    std::vector<std::string> expr;
+    //int         data;       // TODO: this will become a vector when comma seperated fields are supported
     bool        evaluated;
-    //std::vector<int> data;           // generic data (eg, from a list of defb/defw)
+    std::vector<int> data;           // generic data (eg, from a list of defb/defw)
 
     public:
         LineInfo();

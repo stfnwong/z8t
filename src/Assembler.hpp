@@ -66,6 +66,7 @@ class Assembler
         //void        skip_seperators(void);
         void        skip_to_next_token(void);
         void        scan_token(void);
+        void        scan_expr_token(void);
         void        scan_string_constant(void);
         bool        check_ahead(void);
         // consume tokens only of a specific type
@@ -85,6 +86,8 @@ class Assembler
         void        parse_arg(int arg_idx);
         void        parse_instruction(const Token& token);
         std::string read_to_line_end(void);
+        void        parse_def_arg(void);            // TODO: not sure about keeping this...
+        void        parse_def_directive(void);
         void        parse_directive(const Token& token); 
         void        parse_line(void);
         bool        resolve_labels(void);

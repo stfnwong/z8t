@@ -134,8 +134,9 @@ TEST_CASE("test_lineinfo_init", "source")
         REQUIRE(line.args[i] == Token());
 
     //REQUIRE(line.data.size() == 0);       // TODO: this will become relevant when comma-seperated fields are implemented
-    REQUIRE(line.expr == "");
-    REQUIRE(line.data == 0);
+    //REQUIRE(line.expr[0] == "");
+    REQUIRE(line.expr.size() == 0);
+    REQUIRE(line.data[0] == 0);
     REQUIRE(line.evaluated == false);
 }
 
@@ -169,12 +170,12 @@ TEST_CASE("test_single_part_expr", "source")
     LineInfo line;
 
     // setup the expression
-    line.expr = test_expr;
+    line.expr.push_back(test_expr);
     REQUIRE(line.evaluated == false);
     //REQUIRE(line.data_size() == 0);       // TODO: fix after comma-seperated expr support is implemented
     line.eval(dummy_info);
     REQUIRE(line.data_size() == 1);
-    REQUIRE(line.data == int(1 * 50 / 2));
+    REQUIRE(line.data[0] == int(1 * 50 / 2));
     REQUIRE(line.evaluated == true);
 }
 
@@ -185,11 +186,11 @@ TEST_CASE("test_literal_expr", "source")
     LineInfo line;
 
     // setup the expression
-    line.expr = test_expr;
+    line.expr.push_back(test_expr);
     REQUIRE(line.evaluated == false);
     line.eval(dummy_info);
     REQUIRE(line.data_size() == 1);
-    REQUIRE(line.data == 16);
+    REQUIRE(line.data[0] == 16);
     REQUIRE(line.evaluated == true);
 }
 
@@ -237,7 +238,7 @@ TEST_CASE("test_sourceinfo_lookup_directive_by_addr", "source")
     LineInfo line;
     line.type = LineType::DirectiveLine;
     line.addr = 0xBEEF;
-    line.expr = "1 + 2 + 3";
+    line.expr.push_back("1 + 2 + 3");
 
     source.add(line);
     REQUIRE(source.getNumLines() == 1);
@@ -271,7 +272,7 @@ TEST_CASE("test_sourceinfo_lookup_directive_by_symbol", "directive")
     LineInfo line;
     line.type = LineType::DirectiveLine;
     line.addr = sym_addr;
-    line.expr = "1 + 2 + 3";
+    line.expr.push_back("1 + 2 + 3");
 
     source.add(line);
     REQUIRE(source.getNumLines() == 1);

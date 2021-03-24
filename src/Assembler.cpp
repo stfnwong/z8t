@@ -256,23 +256,26 @@ void Assembler::scan_token(void)
 
 /*
  * scan_string_constant()
- * This function assumes that the current char is the opening 
- * literal quote for the string.
+ * This function assumes that the current position is on the leading '"'
+ * character of the string constant.
  */
 void Assembler::scan_string_constant(void)
 {
     unsigned int idx = 0;
     
-    this->advance();
     while(idx < this->token_buf_size-1)
     {
-        if(this->cur_char == '"')
+        if(this->cur_char == '"' && idx > 0)
             break;
+        this->token_buf[idx] = this->cur_char;  // preserve string case
         this->advance();
-        this->idx++;
+        idx++;
     }
 
-    this->token_buf[idx] = '\0';
+    this->token_buf[idx] = '"';         // ensure we have trailing quote
+    this->token_buf[idx+1] = '\0';
+    // move off the trailing '"'
+    this->advance();
 }
 
 /*
@@ -767,6 +770,56 @@ std::string Assembler::read_to_line_end(void)
     return line_to_end;
 }
 
+void Assembler::parse_def_arg(void)
+{
+    Token token;
+    unsigned int cur_line;
+
+    cur_line = this->cur_line;
+    while(this->cur_line == cur_line)
+    {
+        if(this->cur_char == '"')
+        {
+            this->scan_string_constant();
+            this->line_info.expr.push_back(std::string(this->token_buf));
+        }
+    }
+}
+
+/*
+ * scan_expr_arg()
+ */
+void Assembler::scan_expr_token(void)
+{
+    unsigned int idx = 0;
+
+    while(idx < this->token_buf_size-1)
+    {
+        if(this->cur_char == ';')
+            break;
+        if(this->cur_char == '\n')
+            break;
+        if(this->cur_char == ',')
+            break;
+        this->token_buf[idx] = this->cur_char;
+        this->advance();
+        idx++;
+    }
+
+    this->token_buf[idx] = '\0';
+    // skip over the end seperator if we are on one
+    if(this->cur_char == ',')
+        this->advance();
+}
+
+/*
+ * parse_def_directive()
+ */
+void Assembler::parse_def_directive(void)
+{
+    std::cout << "[" << __func__ << "] TODO: expression parsing for directives" << std::endl;
+}
+
 /*
  * parse_directive()
  */
@@ -783,9 +836,12 @@ void Assembler::parse_directive(const Token& token)
         // TODO: read the whole line in and see if we need to parse as an expression
         case DIR_DEFB:
         case DIR_DEFW:
-        case DIR_EQU:       // this must be a literal
-            // TODO: comma seperate here?
-            this->line_info.expr = this->read_to_line_end();
+            this->parse_def_directive();
+
+            break;
+
+        case DIR_EQU:       // only takes one expression
+            this->line_info.expr.push_back(this->read_to_line_end());
             break;
 
         case DIR_INCLUDE:
@@ -1127,22 +1183,27 @@ void Assembler::assem_instr(void)
                 return;
             }
             cur_instr.adr = line.addr;      
+            this->program.add(cur_instr);
         }
         else if(line.type == LineType::DirectiveLine)
         {
             if(line.expr.size() > 0 && line.evaluated == false)
                 line.eval(this->source_info);
 
-            cur_instr.adr = line.addr;
-            if(line.opcode.val == DIR_DEFW || line.opcode.val == DIR_EQU)
+            for(unsigned int i = 0; i < line.data.size(); ++i)
             {
-                cur_instr.size = 2;
-                cur_instr.ins  = uint16_t(line.data);
-            }
-            else
-            {
-                cur_instr.size = 1;     
-                cur_instr.ins  = uint16_t(line.data);
+                cur_instr.adr = line.addr;
+                if(line.opcode.val == DIR_DEFW || line.opcode.val == DIR_EQU)
+                {
+                    cur_instr.size = 2;
+                    cur_instr.ins  = uint16_t(line.data[i]);
+                }
+                else
+                {
+                    cur_instr.size = 1;     
+                    cur_instr.ins  = uint16_t(line.data[i]);
+                }
+                this->program.add(cur_instr);
             }
         }
         else
@@ -1150,7 +1211,6 @@ void Assembler::assem_instr(void)
             error_general(line.line_num, line.addr, std::string("invalid line type " + line.toInstrString()));
             return;
         }
-        this->program.add(cur_instr);
     }
 }
 

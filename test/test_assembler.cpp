@@ -24,6 +24,7 @@ const std::string label_resolve_filename = "asm/label_resolve.asm";
 const std::string ret_lookahead_filename = "asm/ret_lookahead.asm";
 const std::string rst_filename = "asm/rst.asm";
 const std::string io_filename = "asm/io.asm";
+const std::string string_constant_filename = "asm/string_constant.asm";
 
 
 TEST_CASE("test_assembler_init", "assembler")
@@ -491,7 +492,7 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.addr = TEXT_START_ADDR;
     cur_line.label = "x";
     cur_line.is_label = true;
-    cur_line.data = 30;       // NOTE: not resolved until assembly time, not ported back to info
+    cur_line.data = std::vector<int>{30};       // NOTE: not resolved until assembly time, not ported back to info
     info.add(cur_line);
     // y: .defw 20
     cur_line.init();
@@ -501,7 +502,7 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.addr = TEXT_START_ADDR + 2;
     cur_line.label = "y";
     cur_line.is_label = true;
-    cur_line.data = 20;
+    cur_line.data = std::vector<int>{20};
     info.add(cur_line);
     // z: .defw -10 * (2 + x) - (3 * y)
     cur_line.init();
@@ -511,7 +512,7 @@ SourceInfo get_label_resolve_expected_source(void)
     cur_line.addr = TEXT_START_ADDR + 4;
     cur_line.label = "z";
     cur_line.is_label = true;
-    cur_line.data = -380;
+    cur_line.data = std::vector<int>{380};
     info.add(cur_line);
     // ld hl (z)
     cur_line.init();
@@ -787,7 +788,7 @@ SourceInfo get_defw_expected_source(void)
     line.line_num = 1;
     line.label = "label";
     line.is_label = true;
-    line.data = 16;
+    line.data = std::vector<int>{16};
     info.add(line);
 
     return info;
@@ -816,7 +817,7 @@ TEST_CASE("test_defw_single_literal", "directive")
     REQUIRE(lex_source.getNumLines() == 1);
     //REQUIRE(lex_source.get(0) == exp_source.get(0));
     out_line = lex_source.get(0);
-    out_line.data = 16;         // NOTE: we set here since at this time we don't do the eval until we are assembling the instruction (so its not available from the sourceinfo itself)
+    out_line.data = std::vector<int>{16};         // NOTE: we set here since at this time we don't do the eval until we are assembling the instruction (so its not available from the sourceinfo itself)
     exp_line = exp_source.get(0);
 
     REQUIRE(out_line == exp_line);
@@ -855,7 +856,7 @@ TEST_CASE("test_defw_literal_expr", "directive")
     //REQUIRE(lex_source.get(0) == exp_source.get(0));
 
     out_line = lex_source.get(0);
-    out_line.data = 16;         // NOTE: we set here since at this time we don't do the eval until we are assembling the instruction (so its not available from the sourceinfo itself)
+    out_line.data = std::vector<int>{16};         // NOTE: we set here since at this time we don't do the eval until we are assembling the instruction (so its not available from the sourceinfo itself)
     exp_line = exp_source.get(0);
 
     REQUIRE(out_line == exp_line);
@@ -899,7 +900,7 @@ SourceInfo get_expr_expected_source(void)
     line.addr = TEXT_START_ADDR;
     line.label = "scale";
     line.is_label = true;
-    line.data = 256;
+    line.data = std::vector<int>{256};
     info.add(line);
 
     // x: defw  2 * scale / 4
@@ -910,7 +911,7 @@ SourceInfo get_expr_expected_source(void)
     line.addr = TEXT_START_ADDR + 2;
     line.label = "x";
     line.is_label = true;
-    line.data = 128;
+    line.data = std::vector<int>{128};
     info.add(line);
 
     // y: defw -5 * scale / 4
@@ -921,7 +922,7 @@ SourceInfo get_expr_expected_source(void)
     line.addr = TEXT_START_ADDR + 4;
     line.label = "y";
     line.is_label = true;
-    line.data = -320;
+    line.data = std::vector<int>{-320};
     info.add(line);
 
     // equation: .defw (2 * x) + y
@@ -932,7 +933,7 @@ SourceInfo get_expr_expected_source(void)
     line.addr = TEXT_START_ADDR + 6;
     line.label = "equation";
     line.is_label = true;
-    line.data = -64;
+    line.data = std::vector<int>{-64};
     info.add(line);
 
     return info;
@@ -1127,6 +1128,49 @@ TEST_CASE("test_lex_io", "lexer")
 
     // Check intermediate results
     exp_source = get_io_expected_source();
+    REQUIRE(lex_source.getNumLines() == exp_source.getNumLines());
+
+    source_check_helper(exp_source, lex_source);
+}
+
+
+SourceInfo get_string_constant_expected_source(void)
+{
+    SourceInfo info;
+    LineInfo cur_line;
+
+    // STRINGS: .defb "A string constant"  
+    cur_line.init();
+    cur_line.line_num = 3;
+    cur_line.opcode = Token(SYM_DIRECTIVE, DIR_DEFB, ".defb");
+    cur_line.addr = TEXT_START_ADDR;
+    cur_line.expr = std::vector<std::string>{"A string constant"};
+    cur_line.data = std::vector<int> {
+        0x41, 0x20, 0x73, 0x74, 0x72, 0x6E, 0x67, 0x20,
+        0x63, 0x6F, 0x6E, 0x73, 0x74, 0x61, 0x6E, 0x74
+    };
+    info.add(cur_line);
+    // .defb 12
+    cur_line.init();
+    cur_line.line_num = 4;
+    cur_line.opcode = Token(SYM_DIRECTIVE, DIR_DEFB, ".defb");
+    cur_line.addr = TEXT_START_ADDR + 18;
+    cur_line.data = std::vector<int>{12};
+    info.add(cur_line);
+
+    return info;
+}
+
+TEST_CASE("test_string_constant", "lexer")
+{
+    SourceInfo lex_source;
+    SourceInfo exp_source;
+
+    lex_source = lex_helper(string_constant_filename);
+    std::cout << "\t Lexer generated " << std::dec << lex_source.getNumLines() << " line of output" << std::endl;
+
+    // Check intermediate results
+    exp_source = get_string_constant_expected_source();
     REQUIRE(lex_source.getNumLines() == exp_source.getNumLines());
 
     source_check_helper(exp_source, lex_source);

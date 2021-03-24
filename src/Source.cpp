@@ -221,9 +221,8 @@ void LineInfo::init(void)
     // directive fields 
     this->eval_result.init();
     this->expr.clear();
-    this->data = 0;
+    this->data.clear();
     this->evaluated = false;
-    //this->data.clear();
 }
 
 bool LineInfo::operator==(const LineInfo& that) const
@@ -258,15 +257,13 @@ bool LineInfo::operator==(const LineInfo& that) const
     }
     // directive fields
     // we don't bother comparing the directive strings 
-    if(this->data != that.data)
+    if(this->data_size() != that.data_size())
         return false;
-    //if(this->data_size() != that.data_size())
-    //    return false;
-    //for(unsigned int i = 0; i < this->data_size(); ++i)
-    //{
-    //    if(this->data[i] != that.data[i])
-    //        return false;
-    //}
+    for(unsigned int i = 0; i < this->data_size(); ++i)
+    {
+        if(this->data[i] != that.data[i])
+            return false;
+    }
 
     return true;
 }
@@ -324,11 +321,15 @@ void LineInfo::eval(const SourceInfo& info)
             if(addr > 0)
             {
                 LineInfo dir_line = info.getAddr(addr);
-                dir_line.eval(info);        // ensure the target is itself evaluated
+                // Ensure the target is itself evaluated
+                dir_line.eval(info);        
+                // Since this is dereferencing a label, we only take 
+                // the first element of the data vector even if there 
+                // are others. 
                 this->args[this->sym_arg] = Token(
                         SYM_LITERAL, 
-                        uint16_t(dir_line.data), 
-                        std::to_string(dir_line.data)
+                        uint16_t(dir_line.data[0]), 
+                        std::to_string(dir_line.data[0])
                 );
                 this->evaluated = true;
                 return;
@@ -340,38 +341,45 @@ void LineInfo::eval(const SourceInfo& info)
 
     // TODO : note that comma seperated args are not yet supported
     // TODO : check EvalResult and report errors
+
+    // Go through each of the expression strings in turn
+
     for(str_idx = 0; str_idx < this->expr.size(); ++str_idx)
     {
-        if(this->expr[str_idx] == ',')
-        {
-            cur_string = this->expr.substr(str_start, str_idx - str_start);
-            std::cout << "[" << __func__ << "] evaluating expr ["
-                << cur_string << "] line " << std::dec << this->line_num
-                << " instr " << this->toInstrString();
-            str_start = str_idx+1;        // for the next substring
+        //if(this->expr[str_idx] == ',')
+        //{
+        //    //cur_string = this->expr.substr(str_start, str_idx - str_start);
+        //    //std::cout << "[" << __func__ << "] evaluating expr ["
+        //    //    << cur_string << "] line " << std::dec << this->line_num
+        //    //    << " instr " << this->toInstrString();
+        //    //str_start = str_idx+1;        // for the next substring
+        //    cur_string = this->expr[str_idx];
 
-            // check if this is a string constant...
-            EvalResult eval;
-            if(cur_string[0] == '"')
-                std::cout << "[" << __func__ << "] TODO: def string constants" << std::endl;
-            else
-                eval = eval_expr_string(cur_string, info);
-            this->data = eval.val;
-            //this->data.push_back(int(eval));
-        }
+        //    // check if this is a string constant...
+        //    EvalResult eval;
+        //    if(cur_string[0] == '"')
+        //        std::cout << "[" << __func__ << "] TODO: def string constants" << std::endl;
+        //    else
+        //        eval = eval_expr_string(this->expr[str_idx], info);
+        //        //eval = eval_expr_string(cur_string, info);
+        //    this->data.push_back(eval.val);
+        //    //this->data.push_back(int(eval));
+        //}
+        EvalResult eval = eval_expr_string(this->expr[str_idx], info);
+        this->data.push_back(eval.val);
     }
     // Either there was a string but no substring, or this 
     // is the last substring with no trailing comma
-    if(str_idx > 0)
-    {
-        cur_string = this->expr.substr(str_start, str_idx - str_start);
-        std::cout << "[" << __func__ << "] evaluating expr ["
-            << cur_string << "] line " << std::dec << this->line_num
-            << " instr " << this->toInstrString();
-        EvalResult eval = eval_expr_string(cur_string, info);
-        this->data = eval.val;
-        //this->data.push_back(int(eval));
-    }
+    //if(str_idx > 0)
+    //{
+    //    cur_string = this->expr.substr(str_start, str_idx - str_start);
+    //    std::cout << "[" << __func__ << "] evaluating expr ["
+    //        << cur_string << "] line " << std::dec << this->line_num
+    //        << " instr " << this->toInstrString();
+    //    EvalResult eval = eval_expr_string(cur_string, info);
+    //    this->data.push_back(eval.val);
+    //    //this->data.push_back(int(eval));
+    //}
 
     this->evaluated = true;
 }
@@ -437,12 +445,12 @@ std::string LineInfo::toString(void) const
         }
     }
     else
-        oss << "0x" << std::hex << std::setw(2) << std::setfill('0') << this->data;
+        oss << "0x" << std::hex << std::setw(2) << std::setfill('0') << this->data[0];  // TODO: can't just use data[0] here all the time...
 
     // (Next line) Text 
     oss << std::endl;
     oss << "Label [" << std::left << std::setw(16) << std::setfill(' ') << this->label << "] ";
-    oss << "Expr [" << std::left << std::setw(16) << std::setfill(' ') << this->expr << "] ";
+    oss << "Expr [" << std::left << std::setw(16) << std::setfill(' ') << this->expr[0] << "] ";    // TODO: can't just use this->expr[0] in general though...
     //oss << "Symbol[" << std::left << std::setw(16) << std::setfill(' ') << this->symbol << "] ";
 
     oss << std::endl;
@@ -508,12 +516,12 @@ std::string LineInfo::diff(const LineInfo& that)
     {
         oss << "error does not match" << std::endl;
     }
-    if(this->data != that.data)
-    {
-        oss << "data [" << this->data
-            << "] does not match [" << that.data
-            << "]" << std::endl;
-    }
+    //if(this->data != that.data)
+    //{
+    //    oss << "data [" << this->data
+    //        << "] does not match [" << that.data
+    //        << "]" << std::endl;
+    //}
 
     return oss.str();
 }
@@ -528,7 +536,16 @@ std::string LineInfo::toInstrString(void) const
     oss << this->opcode.repr << " " << this->args[0].repr;
     // if this is a def instruction then also print the expression
     if(this->opcode.val == DIR_DEFB || this->opcode.val == DIR_DEFW)
-        oss << this->expr << " ";
+    {
+        for(unsigned int i = 0; i < this->expr.size(); ++i)
+        {
+            oss << this->expr[i];
+            if(i == this->expr.size()-1)
+                oss << ", ";
+            else
+                oss << " ";
+        }
+    }
     if(this->args[1].type != SYM_NULL)
         oss << ", " << this->args[1].repr;
 

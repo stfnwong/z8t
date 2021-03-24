@@ -560,9 +560,14 @@ std::pair<ExprStack, bool> expr_stack_resolve_strings(const ExprStack& expr_stac
 
             // TODO: this will need to change when comma seperated args
             // are implemented
+            // TODO: I guess here we need to match each pair of expr/data and 
+            // add them to the stack one by one
             out_stack.push(
-                    ExprToken(TOK_LITERAL, std::to_string(dir_line.data))
+                    ExprToken(TOK_LITERAL, std::to_string(dir_line.data[0]))   
             );
+            //out_stack.push(
+            //        ExprToken(TOK_LITERAL, std::to_string(dir_line.data))
+            //);
         }
         else
             out_stack.push(expr_stack[idx]);

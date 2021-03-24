@@ -82,5 +82,5 @@ dtoa2dloop:
 
 ; Data
 line1:    .defb " bottles of beer on the wall,",13,'$'
-line2_3:  .defb " bottles of beer,',13,'Take one down, pass it around,",13,'$'
+line2_3:  .defb " bottles of beer,",13,"Take one down, pass it around,",13,'$'
 line4:    .defb " bottles of beer on the wall.",13,13,'$'

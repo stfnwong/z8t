@@ -235,12 +235,12 @@ SourceInfo get_expr_eval_source(void)
     dir_x.type = LineType::DirectiveLine;
     dir_x.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
     dir_x.addr = x_addr;
-    dir_x.expr = "5";
+    dir_x.expr.push_back("5");
 
     dir_y.type = LineType::DirectiveLine;
     dir_y.opcode = Token(SYM_DIRECTIVE, DIR_DEFW, ".defw");
     dir_y.addr = y_addr;
-    dir_y.expr = "10";
+    dir_y.expr.push_back("10");
 
     info.addSym(sym_x);
     info.addSym(sym_y);
